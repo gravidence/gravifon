@@ -5,28 +5,31 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
+import kotlin.io.path.notExists
 
 object ConfigUtil {
 
-    private const val configDirName = ".gravifon"
+    private const val configHomeDirName = ".gravifon"
     private const val configHomeEnvVar = "GRAVIFON_CONFIG_HOME"
 
-    val configHomeDir = resolveConfigHome()
-    val appConfigFile = configHomeDir.resolve("config")
-    val rootsConfigDir = configHomeDir.resolve("library")
+    val configHomeDir: Path = resolveConfigHomeDir()
+    val settingsFile: Path = configHomeDir.resolve("config")
+    val libraryDir: Path = configHomeDir.resolve("library")
+    val playlistDir: Path = configHomeDir.resolve("playlist")
 
     init {
         if (true) {
             configHomeDir.createDirectories()
-            rootsConfigDir.createDirectories()
+            libraryDir.createDirectories()
+            playlistDir.createDirectories()
         }
     }
 
-    private fun resolveConfigHome(): Path {
+    private fun resolveConfigHomeDir(): Path {
         val customDirEnv = System.getenv(configHomeEnvVar)
         if (customDirEnv != null) {
             val path = Path.of(customDirEnv)
-            if (path.isDirectory()) {
+            if (path.notExists() || path.isDirectory()) {
                 return path
             }
         }
@@ -34,22 +37,22 @@ object ConfigUtil {
         // https://docs.oracle.com/javase/6/docs/api/java/lang/System.html#getProperties()
 
         // TODO provide a way to force creating portable setup
-        val currentDir = Path.of(System.getProperty("user.dir"), configDirName)
+        val currentDir = Path.of(System.getProperty("user.dir"), configHomeDirName)
         if (currentDir.exists()) {
             return currentDir
         }
 
-        val homeDir = Path.of(System.getProperty("user.home"), configDirName)
+        val homeDir = Path.of(System.getProperty("user.home"), configHomeDirName)
 
         return homeDir
     }
 
-    fun pathToId(path: String): String {
-        return Base64Utils.encodeToUrlSafeString(path.encodeToByteArray())
+    fun encode(originalPath: String): String {
+        return Base64Utils.encodeToUrlSafeString(originalPath.encodeToByteArray())
     }
 
-    fun idToPath(id: String): String {
-        return String(Base64Utils.decodeFromUrlSafeString(id))
+    fun decode(encodedPath: String): String {
+        return String(Base64Utils.decodeFromUrlSafeString(encodedPath))
     }
 
 }

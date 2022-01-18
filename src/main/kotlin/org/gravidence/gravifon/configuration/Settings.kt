@@ -1,16 +1,14 @@
 package org.gravidence.gravifon.configuration
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.gravidence.gravifon.configuration.ConfigUtil.appConfigFile
+import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.EventConsumerIO
-import org.gravidence.gravifon.event.application.ApplicationConfigurationAvailableEvent
-import org.gravidence.gravifon.event.application.ApplicationConfigurationPersistEvent
-import org.gravidence.gravifon.event.application.ApplicationShutdownEvent
-import org.gravidence.gravifon.event.application.ApplicationStartupEvent
+import org.gravidence.gravifon.event.application.*
 import org.gravidence.gravifon.library.Library
 import org.springframework.stereotype.Component
 import java.nio.file.Files
@@ -20,36 +18,51 @@ import java.nio.file.StandardOpenOption
 class Settings(val library: Library) : EventConsumerIO() {
 
     @Serializable
-    data class AppConfig(var libraryRoots: List<String>)
+    data class GConfig(val library: GLibrary = GLibrary())
 
-    var appConfig: AppConfig? = null
+    @Serializable
+    data class GLibrary(val roots: MutableList<GRoot> = mutableListOf())
+
+    @Serializable
+    data class GRoot(
+        var rootDir: String,
+        var watchForChanges: Boolean = false,
+        var scanOnInit: Boolean = false,
+    )
+
+    private var config: GConfig = GConfig()
 
     override fun consume(event: Event) {
         when (event) {
             is ApplicationStartupEvent -> read()
             is ApplicationShutdownEvent -> write()
+            is ApplicationConfigurationUpdateEvent -> update(event)
             is ApplicationConfigurationPersistEvent -> write()
         }
     }
 
     private fun read() {
-        val latestAppConfig = AppConfig(listOf("/home/m2/Library/"))
+        try {
+            config = Json.decodeFromString(Files.readString(settingsFile))
+        } catch (e: Exception) {
+            // TODO log an error then either keep previous config instance or create a default one
+        }
 
-        appConfig = latestAppConfig
-
-        EventBus.publish(ApplicationConfigurationAvailableEvent(latestAppConfig))
+        EventBus.publish(ApplicationConfigurationAnnounceEvent(config.copy()))
     }
 
     private fun write() {
-        if (appConfig != null) {
-            Files.writeString(
-                appConfigFile,
-                Json.encodeToString(appConfig),
-                StandardOpenOption.CREATE,
-                StandardOpenOption.WRITE,
-                StandardOpenOption.TRUNCATE_EXISTING
-            )
-        }
+        Files.writeString(
+            settingsFile,
+            Json.encodeToString(config),
+            StandardOpenOption.CREATE,
+            StandardOpenOption.WRITE,
+            StandardOpenOption.TRUNCATE_EXISTING
+        )
+    }
+
+    private fun update(event: ApplicationConfigurationUpdateEvent) {
+        TODO("Not yet implemented")
     }
 
 }
