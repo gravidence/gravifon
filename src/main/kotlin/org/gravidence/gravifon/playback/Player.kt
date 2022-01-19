@@ -18,13 +18,13 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
 
     private var currentTrack: VirtualTrack? = null
 
-    private fun playbackStart(event: SubPlaybackStartEvent) {
+    private fun start(track: VirtualTrack) {
         println("Playback start event")
-        currentTrack = event.track
+        currentTrack = track
 
-        audioBackend.prepare(event.track)
+        audioBackend.prepare(track)
 
-        EventBus.publish(PubPlaybackStartEvent(event.track, audioBackend.queryLength()))
+        EventBus.publish(PubPlaybackStartEvent(track, audioBackend.queryLength()))
 
         timer = fixedRateTimer(initialDelay = 1000, period = 100) {
 //            println(refreshEvent.track.uri())
@@ -33,15 +33,15 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
 
         audioBackend.play()
 
-        EventBus.publish(PubTrackStartEvent(event.track))
+        EventBus.publish(PubTrackStartEvent(track))
     }
 
-    private fun playbackPause() {
+    private fun pause() {
         println("Playback pause event")
         audioBackend.pause()
     }
 
-    private fun playbackStop() {
+    private fun stop() {
         timer.cancel()
 
         println("Playback stop")
@@ -50,12 +50,18 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
         currentTrack?.let { EventBus.publish(PubTrackFinishEvent(it)) }
     }
 
+    private fun seek(position: Long) {
+        audioBackend.adjustPosition(position)
+        // not sending status update event since position change already initiated by UI, and there's no other party that could do so
+    }
+
     override fun consume(event: Event) {
         when (event) {
             is SubPlaybackStatusEvent -> sendStatusUpdate()
-            is SubPlaybackStartEvent -> playbackStart(event)
-            is SubPlaybackPauseEvent -> playbackPause()
-            is SubPlaybackStopEvent -> playbackStop()
+            is SubPlaybackStartEvent -> start(event.track)
+            is SubPlaybackPauseEvent -> pause()
+            is SubPlaybackStopEvent -> stop()
+            is SubPlaybackPositionEvent -> seek(event.position)
         }
     }
 

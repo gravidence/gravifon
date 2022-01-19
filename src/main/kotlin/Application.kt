@@ -118,6 +118,7 @@ fun PlaybackControlPanel() {
         valueRange = sliderStart..sliderFinish,
         onValueChange = {
             sliderPosition = it
+            EventBus.publish(SubPlaybackPositionEvent(it.toLong()))
         })
 }
 
