@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import kotlinx.coroutines.delay
-import org.gravidence.gravifon.domain.VirtualTrack
+import org.gravidence.gravifon.domain.FileVirtualTrack
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.ApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.playback.PlaybackPauseEvent
@@ -40,17 +40,17 @@ fun App() {
                                 Text("Save")
                             }
                             Button(onClick = {
-                                EventBus.publish(PlaybackStartEvent(VirtualTrack("start")))
+                                EventBus.publish(PlaybackStartEvent(FileVirtualTrack("start")))
                             }) {
                                 Text("Play")
                             }
                             Button(onClick = {
-                                EventBus.publish(PlaybackPauseEvent(VirtualTrack("pause")))
+                                EventBus.publish(PlaybackPauseEvent(FileVirtualTrack("pause")))
                             }) {
                                 Text("Pause")
                             }
                             Button(onClick = {
-                                EventBus.publish(PlaybackStopEvent(VirtualTrack("stop")))
+                                EventBus.publish(PlaybackStopEvent(FileVirtualTrack("stop")))
                             }) {
                                 Text("Stop")
                             }

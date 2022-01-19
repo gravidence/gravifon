@@ -1,10 +1,10 @@
 package org.gravidence.gravifon.playback
 
-import org.jaudiotagger.audio.AudioFile
+import org.gravidence.gravifon.domain.VirtualTrack
 
 interface AudioBackend {
 
-    fun play(file: AudioFile)
+    fun play(track: VirtualTrack)
     fun pause()
     fun stop()
 

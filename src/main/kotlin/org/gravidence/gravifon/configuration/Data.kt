@@ -36,7 +36,13 @@ class Data(val playlistManager: PlaylistManager, private val library: Library) :
                 .map {
                     val rootId = ConfigUtil.encode(it.rootDir)
                     val rootConfigFile = Path.of(ConfigUtil.libraryDir.toString(), rootId)
-                    val rootTracksFromConfig: MutableList<VirtualTrack> = Json.decodeFromString(Files.readString(rootConfigFile))
+                    val rootTracksFromConfig: MutableList<VirtualTrack> = try {
+                        Json.decodeFromString(Files.readString(rootConfigFile))
+                    } catch (e: Exception) {
+                        // TODO log error
+                        mutableListOf()
+                    }
+
                     Root(
                         rootDir = it.rootDir,
                         watchForChanges = it.watchForChanges,

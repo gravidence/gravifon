@@ -3,12 +3,14 @@ package org.gravidence.gravifon.domain
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
 import java.io.File
+import java.net.URI
 
 class PhysicalTrack(val file: AudioFile) {
 
     // http://www.jthink.net/jaudiotagger/examples_read.jsp
 
-    constructor(path: String) : this(AudioFileIO.read(File(path)))
+    constructor(filepath: String) : this(AudioFileIO.read(File(filepath)))
+    constructor(uri: URI) : this(AudioFileIO.read(File(uri)))
 
     fun toVirtualTrack(): VirtualTrack {
         val fields = mutableMapOf<FieldKey, FieldValues>()
@@ -24,7 +26,7 @@ class PhysicalTrack(val file: AudioFile) {
             }
         }
 
-        return VirtualTrack(file.file.path, fields)
+        return FileVirtualTrack(file.file.path, fields)
     }
 
 }

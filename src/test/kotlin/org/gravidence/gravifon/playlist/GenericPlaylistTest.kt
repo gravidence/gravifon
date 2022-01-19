@@ -1,6 +1,6 @@
 package org.gravidence.gravifon.playlist
 
-import org.gravidence.gravifon.domain.VirtualTrack
+import org.gravidence.gravifon.domain.FileVirtualTrack
 import org.gravidence.gravifon.playlist.behavior.LookupDirection
 import org.gravidence.gravifon.playlist.behavior.PlaybackOrder
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
@@ -12,7 +12,7 @@ import kotlin.test.*
 internal class GenericPlaylistTest {
 
     private val album1track1 = TrackPlaylistItem(
-        VirtualTrack(
+        FileVirtualTrack(
             path = "Second Bad Vilbel",
 //            title = "Second Bad Vilbel",
 //            artist = "Autechre",
@@ -21,7 +21,7 @@ internal class GenericPlaylistTest {
         )
     )
     private val album1track2 = TrackPlaylistItem(
-        VirtualTrack(
+        FileVirtualTrack(
             path = "Second Scepe",
 //            title = "Second Scepe",
 //            artist = "Autechre",
@@ -30,7 +30,7 @@ internal class GenericPlaylistTest {
         )
     )
     private val album1track3 = TrackPlaylistItem(
-        VirtualTrack(
+        FileVirtualTrack(
             path = "Second Scout",
 //            title = "Second Scout",
 //            artist = "Autechre",
@@ -39,7 +39,7 @@ internal class GenericPlaylistTest {
         )
     )
     private val album1track4 = TrackPlaylistItem(
-        VirtualTrack(
+        FileVirtualTrack(
             path = "Second Peng",
 //            title = "Second Peng",
 //            artist = "Autechre",
@@ -50,7 +50,7 @@ internal class GenericPlaylistTest {
     private val album1 = AlbumPlaylistItem(listOf(album1track1, album1track2, album1track3, album1track4))
 
     private val album2track1 = TrackPlaylistItem(
-        VirtualTrack(
+        FileVirtualTrack(
             path = "Gantz Graf",
 //            title = "Gantz Graf",
 //            artist = "Autechre",
@@ -59,7 +59,7 @@ internal class GenericPlaylistTest {
         )
     )
     private val album2track2 = TrackPlaylistItem(
-        VirtualTrack(
+        FileVirtualTrack(
             path = "Dial.",
 //            title = "Dial.",
 //            artist = "Autechre",
@@ -68,7 +68,7 @@ internal class GenericPlaylistTest {
         )
     )
     private val album2track3 = TrackPlaylistItem(
-        VirtualTrack(
+        FileVirtualTrack(
             path = "Cap.IV",
 //            title = "Cap.IV",
 //            artist = "Autechre",

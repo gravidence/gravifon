@@ -1,6 +1,5 @@
 package org.gravidence.gravifon.playback
 
-import org.gravidence.gravifon.domain.PhysicalTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventConsumer
 import org.gravidence.gravifon.event.playback.PlaybackPauseEvent
@@ -14,7 +13,7 @@ class Player(private val audioBackend: AudioBackend, private val library: Librar
 
     fun playbackStart(event: PlaybackStartEvent) {
         println("Playback start event")
-        val track = PhysicalTrack(library.random().path).file
+        val track = library.random()
         audioBackend.play(track)
         // TODO do STOP first
     }

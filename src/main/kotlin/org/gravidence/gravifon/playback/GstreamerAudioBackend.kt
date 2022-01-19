@@ -4,7 +4,7 @@ import org.freedesktop.gstreamer.Gst
 import org.freedesktop.gstreamer.State
 import org.freedesktop.gstreamer.Version
 import org.freedesktop.gstreamer.elements.PlayBin
-import org.jaudiotagger.audio.AudioFile
+import org.gravidence.gravifon.domain.VirtualTrack
 import org.springframework.stereotype.Component
 
 @Component
@@ -17,18 +17,16 @@ class GstreamerAudioBackend : AudioBackend {
         playbin = PlayBin("Gravifon")
     }
 
-    override fun play(file: AudioFile) {
-//        val file = File("/home/m2/Library/Paul van Dyk - Amanecer.flac")
-//        val audioFile = AudioFileIO.read(file)
-        println("Play $file")
-        playbin.setInputFile(file.file)
-        playbin.state = State.PLAYING
+    override fun play(track: VirtualTrack) {
+        println("Play $track")
+        playbin.setURI(track.uri())
+        playbin.play()
     }
 
     override fun pause() {
         when (playbin.state) {
-            State.PLAYING -> playbin.state = State.PAUSED
-            State.PAUSED -> playbin.state = State.PLAYING
+            State.PLAYING -> playbin.pause()
+            State.PAUSED -> playbin.play()
             else -> {
                 // keep current state
             }
@@ -36,7 +34,7 @@ class GstreamerAudioBackend : AudioBackend {
     }
 
     override fun stop() {
-        playbin.state = State.NULL
+        playbin.stop()
     }
 
     override fun prepareNext() {
