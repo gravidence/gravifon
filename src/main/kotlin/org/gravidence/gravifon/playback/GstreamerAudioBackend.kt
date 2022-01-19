@@ -6,6 +6,7 @@ import org.freedesktop.gstreamer.Version
 import org.freedesktop.gstreamer.elements.PlayBin
 import org.gravidence.gravifon.domain.VirtualTrack
 import org.springframework.stereotype.Component
+import java.util.concurrent.TimeUnit
 
 @Component
 class GstreamerAudioBackend : AudioBackend {
@@ -17,9 +18,7 @@ class GstreamerAudioBackend : AudioBackend {
         playbin = PlayBin("Gravifon")
     }
 
-    override fun play(track: VirtualTrack) {
-        println("Play $track")
-        playbin.setURI(track.uri())
+    override fun play() {
         playbin.play()
     }
 
@@ -37,7 +36,40 @@ class GstreamerAudioBackend : AudioBackend {
         playbin.stop()
     }
 
-    override fun prepareNext() {
+    override fun queryLength(): Long {
+        return playbin.queryDuration(TimeUnit.MILLISECONDS)
+    }
+
+    override fun queryPosition(): Long {
+        return playbin.queryPosition(TimeUnit.MILLISECONDS)
+    }
+
+    override fun adjustPosition(position: Long) {
+        playbin.seek(position, TimeUnit.MILLISECONDS)
+    }
+
+    override fun queryVolume(): Int {
+        return playbin.volume.toInt()
+    }
+
+    override fun adjustVolume(volume: Int) {
+        playbin.volume = volume.toDouble()
+    }
+
+    override fun prepare(track: VirtualTrack) {
+        playbin.stop()
+        playbin.setURI(track.uri())
+        playbin.pause()
+        println(playbin.state)
+        println(queryPosition())
+        println(queryLength())
+    }
+
+    override fun prepareNext(track: VirtualTrack) {
+        TODO("Not yet implemented")
+    }
+
+    override fun isInitialized(): Boolean {
         TODO("Not yet implemented")
     }
 

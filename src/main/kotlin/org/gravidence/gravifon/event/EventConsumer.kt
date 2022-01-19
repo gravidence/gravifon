@@ -11,7 +11,7 @@ abstract class EventConsumer {
     }
 
     protected fun receive(event: Event) {
-        println("$event received by $this")
+//        println("$event received by $this")
         consume(event)
     }
 

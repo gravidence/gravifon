@@ -1,16 +1,9 @@
 package org.gravidence.gravifon.playlist.manage
 
 import org.gravidence.gravifon.Initializable
-import org.gravidence.gravifon.configuration.Data
-import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventConsumer
-import org.gravidence.gravifon.event.playback.PlaybackStartEvent
-import org.gravidence.gravifon.playlist.Playlist
-import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
-import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
-import java.util.*
 
 @Component
 class PlaylistManager: Initializable, EventConsumer() {

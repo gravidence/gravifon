@@ -8,9 +8,9 @@ import org.gravidence.gravifon.Gravifon.scopeIO
 import org.gravidence.gravifon.domain.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventConsumerIO
-import org.gravidence.gravifon.event.application.ApplicationConfigurationAnnounceEvent
-import org.gravidence.gravifon.event.application.ApplicationConfigurationPersistEvent
-import org.gravidence.gravifon.event.application.ApplicationShutdownEvent
+import org.gravidence.gravifon.event.application.PubApplicationConfigurationAnnounceEvent
+import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
+import org.gravidence.gravifon.event.application.SubApplicationShutdownEvent
 import org.gravidence.gravifon.library.Library
 import org.gravidence.gravifon.library.Root
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
@@ -24,13 +24,13 @@ class Data(val playlistManager: PlaylistManager, private val library: Library) :
 
     override fun consume(event: Event) {
         when (event) {
-            is ApplicationShutdownEvent -> scopeIO.launch { write() }
-            is ApplicationConfigurationAnnounceEvent -> scopeIO.launch { read(event) }
-            is ApplicationConfigurationPersistEvent -> scopeIO.launch { write() }
+            is SubApplicationShutdownEvent -> scopeIO.launch { write() }
+            is PubApplicationConfigurationAnnounceEvent -> scopeIO.launch { read(event) }
+            is SubApplicationConfigurationPersistEvent -> scopeIO.launch { write() }
         }
     }
 
-    private fun read(event: ApplicationConfigurationAnnounceEvent) {
+    private fun read(event: PubApplicationConfigurationAnnounceEvent) {
         if (event.config.library.roots.isNotEmpty()) {
             val rootsFromConfigDir: List<Root> = event.config.library.roots
                 .map {

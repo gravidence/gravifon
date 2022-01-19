@@ -34,21 +34,21 @@ class Settings(val library: Library) : EventConsumerIO() {
 
     override fun consume(event: Event) {
         when (event) {
-            is ApplicationStartupEvent -> read()
-            is ApplicationShutdownEvent -> write()
-            is ApplicationConfigurationUpdateEvent -> update(event)
-            is ApplicationConfigurationPersistEvent -> write()
+            is SubApplicationStartupEvent -> read()
+            is SubApplicationShutdownEvent -> write()
+            is SubApplicationConfigurationUpdateEvent -> update(event)
+            is SubApplicationConfigurationPersistEvent -> write()
         }
     }
 
     private fun read() {
         try {
-            config = Json.decodeFromString(Files.readString(settingsFile))
+            config = Json.decodeFromString<GConfig>(Files.readString(settingsFile))
         } catch (e: Exception) {
             // TODO log an error then either keep previous config instance or create a default one
         }
 
-        EventBus.publish(ApplicationConfigurationAnnounceEvent(config.copy()))
+        EventBus.publish(PubApplicationConfigurationAnnounceEvent(config.copy()))
     }
 
     private fun write() {
@@ -61,7 +61,7 @@ class Settings(val library: Library) : EventConsumerIO() {
         )
     }
 
-    private fun update(event: ApplicationConfigurationUpdateEvent) {
+    private fun update(event: SubApplicationConfigurationUpdateEvent) {
         TODO("Not yet implemented")
     }
 
