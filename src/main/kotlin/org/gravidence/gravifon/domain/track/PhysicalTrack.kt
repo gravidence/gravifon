@@ -1,5 +1,7 @@
-package org.gravidence.gravifon.domain
+package org.gravidence.gravifon.domain.track
 
+import org.gravidence.gravifon.domain.tag.FieldKey
+import org.gravidence.gravifon.domain.tag.FieldValues
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
 import java.io.File

@@ -1,7 +1,7 @@
 package org.gravidence.gravifon.playback
 
 import mu.KotlinLogging
-import org.gravidence.gravifon.domain.VirtualTrack
+import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.EventConsumer

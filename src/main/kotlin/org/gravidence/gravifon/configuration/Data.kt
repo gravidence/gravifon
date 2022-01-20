@@ -6,7 +6,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.gravidence.gravifon.Gravifon.scopeIO
-import org.gravidence.gravifon.domain.VirtualTrack
+import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventConsumerIO
 import org.gravidence.gravifon.event.application.PubApplicationConfigurationAnnounceEvent

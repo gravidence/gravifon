@@ -1,6 +1,6 @@
 package org.gravidence.gravifon.playlist
 
-import org.gravidence.gravifon.domain.FileVirtualTrack
+import org.gravidence.gravifon.domain.track.FileVirtualTrack
 import org.gravidence.gravifon.playlist.behavior.LookupDirection
 import org.gravidence.gravifon.playlist.behavior.PlaybackOrder
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem

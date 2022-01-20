@@ -1,8 +1,8 @@
 package org.gravidence.gravifon
 
-import org.gravidence.gravifon.domain.FieldKeyExt
-import org.gravidence.gravifon.domain.FieldValues
-import org.gravidence.gravifon.domain.FileVirtualTrack
+import org.gravidence.gravifon.domain.tag.FieldKeyExt
+import org.gravidence.gravifon.domain.tag.FieldValues
+import org.gravidence.gravifon.domain.track.FileVirtualTrack
 
 object TestUtil {
 

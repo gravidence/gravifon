@@ -1,4 +1,4 @@
-package org.gravidence.gravifon.domain
+package org.gravidence.gravifon.domain.track
 
 import java.net.URI
 

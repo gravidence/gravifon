@@ -1,8 +1,8 @@
 package org.gravidence.gravifon.query
 
 import mu.KotlinLogging
-import org.gravidence.gravifon.domain.FileVirtualTrack
-import org.gravidence.gravifon.domain.VirtualTrack
+import org.gravidence.gravifon.domain.track.FileVirtualTrack
+import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.springframework.expression.spel.standard.SpelExpressionParser
 import org.springframework.stereotype.Component
 

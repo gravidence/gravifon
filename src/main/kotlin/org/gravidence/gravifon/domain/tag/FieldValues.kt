@@ -1,4 +1,4 @@
-package org.gravidence.gravifon.domain
+package org.gravidence.gravifon.domain.tag
 
 import kotlinx.serialization.Serializable
 

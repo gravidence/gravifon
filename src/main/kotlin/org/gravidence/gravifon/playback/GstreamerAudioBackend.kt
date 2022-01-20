@@ -5,7 +5,7 @@ import org.freedesktop.gstreamer.Gst
 import org.freedesktop.gstreamer.State
 import org.freedesktop.gstreamer.Version
 import org.freedesktop.gstreamer.elements.PlayBin
-import org.gravidence.gravifon.domain.VirtualTrack
+import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 

@@ -4,8 +4,8 @@ import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import mu.KotlinLogging
-import org.gravidence.gravifon.domain.PhysicalTrack
-import org.gravidence.gravifon.domain.VirtualTrack
+import org.gravidence.gravifon.domain.track.PhysicalTrack
+import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.jaudiotagger.audio.AudioFileFilter
 import org.jaudiotagger.audio.AudioFileIO
 import java.nio.file.Files

@@ -1,7 +1,7 @@
 package org.gravidence.gravifon.library
 
 import org.gravidence.gravifon.Initializable
-import org.gravidence.gravifon.domain.VirtualTrack
+import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventConsumer
 import org.springframework.stereotype.Component

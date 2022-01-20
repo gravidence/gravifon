@@ -2,8 +2,8 @@ package org.gravidence.gravifon.query
 
 import kotlinx.datetime.Clock
 import org.gravidence.gravifon.TestUtil
-import org.gravidence.gravifon.domain.FileVirtualTrack
-import org.gravidence.gravifon.domain.VirtualTrack
+import org.gravidence.gravifon.domain.track.FileVirtualTrack
+import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach

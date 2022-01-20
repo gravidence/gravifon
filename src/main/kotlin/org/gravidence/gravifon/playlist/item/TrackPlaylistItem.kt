@@ -1,6 +1,6 @@
 package org.gravidence.gravifon.playlist.item
 
-import org.gravidence.gravifon.domain.VirtualTrack
+import org.gravidence.gravifon.domain.track.VirtualTrack
 
 data class TrackPlaylistItem(val track: VirtualTrack) : PlaylistItem {
 }
