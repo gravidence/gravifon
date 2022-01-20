@@ -4,17 +4,13 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-abstract class EventConsumer {
+abstract class EventConsumer(subscribe: ((Event) -> Unit) -> Unit = EventBus::subscribe) {
 
     init {
-        subscribe()
+        subscribe(::receive)
     }
 
-    protected open fun subscribe() {
-        EventBus.subscribe(::receive)
-    }
-
-    protected fun receive(event: Event) {
+    private fun receive(event: Event) {
         logger.trace { "$event received by $this" }
         consume(event)
     }

@@ -1,9 +1,5 @@
 package org.gravidence.gravifon.event
 
-abstract class EventConsumerIO: EventConsumer() {
-
-    override fun subscribe() {
-        EventBus.subscribeIO(::receive)
-    }
+abstract class EventConsumerIO: EventConsumer(EventBus::subscribeIO) {
 
 }
