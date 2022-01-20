@@ -6,7 +6,7 @@ import org.gravidence.gravifon.domain.tag.FieldValues
 import java.net.URI
 
 @Serializable
-class StreamVirtualTrack(
+data class StreamVirtualTrack(
     val url: String,
     override val fields: MutableMap<FieldKey, FieldValues>? = null
 ) : VirtualTrack() {

@@ -1,5 +1,6 @@
 package org.gravidence.gravifon
 
+import org.gravidence.gravifon.domain.album.VirtualAlbum
 import org.gravidence.gravifon.domain.tag.FieldKeyExt
 import org.gravidence.gravifon.domain.tag.FieldValues
 import org.gravidence.gravifon.domain.track.FileVirtualTrack
@@ -23,7 +24,7 @@ object TestUtil {
         return randomString(length, charset)
     }
 
-    fun randomFileVirtualTrack(): FileVirtualTrack {
+    fun randomFileVirtualTrack(album: String? = null): FileVirtualTrack {
         return FileVirtualTrack(
             path = randomAlphanumericString(20),
             fields = mutableMapOf(
@@ -39,7 +40,7 @@ object TestUtil {
                 ),
                 Pair(
                     FieldKeyExt.ALBUM.name, FieldValues(
-                        randomAlphabeticString(8)
+                        album ?: randomAlphabeticString(8)
                     )
                 ),
                 Pair(
@@ -58,6 +59,23 @@ object TestUtil {
 
     fun manyRandomFileVirtualTracks(numberOfTracks: Int): List<FileVirtualTrack> {
         return List(numberOfTracks) { randomFileVirtualTrack() }
+    }
+
+    fun randomVirtualAlbum(): VirtualAlbum {
+        val album = randomAlphabeticString(12)
+        val numberOfTracks = (3..20).random()
+
+        val firstTrack = randomFileVirtualTrack(album)
+        val tracks = mutableListOf(firstTrack)
+        for (i in 2..numberOfTracks) {
+            tracks += randomFileVirtualTrack(album)
+        }
+
+        return VirtualAlbum(album, tracks.toMutableList())
+    }
+
+    fun manyRandomVirtualAlbums(numberOfAlbums: Int): List<VirtualAlbum> {
+        return List(numberOfAlbums) { randomVirtualAlbum() }
     }
 
 }

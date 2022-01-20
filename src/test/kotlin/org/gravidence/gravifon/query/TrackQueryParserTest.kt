@@ -88,6 +88,7 @@ internal class TrackQueryParserTest {
         val finish = Clock.System.now()
 
         val duration = finish.minus(start).inWholeMilliseconds
+        println("Query execution over $numberOfTracks tracks took ${duration}ms")
         assertTrue(duration < 500)
     }
 

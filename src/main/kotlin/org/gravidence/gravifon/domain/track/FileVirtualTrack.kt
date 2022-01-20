@@ -7,7 +7,7 @@ import java.io.File
 import java.net.URI
 
 @Serializable
-class FileVirtualTrack(
+data class FileVirtualTrack(
     val path: String,
     override val fields: MutableMap<FieldKey, FieldValues>? = null
 ) : VirtualTrack() {
