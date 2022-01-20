@@ -20,7 +20,7 @@ class GstreamerAudioBackend : AudioBackend {
         Gst.init(Version.BASELINE)
         playbin = PlayBin("Gravifon")
 
-        logger.info { "$this initialized" }
+        logger.info { "Audio backend initialized" }
     }
 
     override fun play() {
@@ -62,7 +62,7 @@ class GstreamerAudioBackend : AudioBackend {
     }
 
     override fun prepare(track: VirtualTrack) {
-        logger.debug { "Prepare backend to play $track" }
+        logger.debug { "Prepare to play $track" }
 
         playbin.stop()
         playbin.setURI(track.uri())
