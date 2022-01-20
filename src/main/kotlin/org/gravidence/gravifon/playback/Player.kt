@@ -1,5 +1,6 @@
 package org.gravidence.gravifon.playback
 
+import mu.KotlinLogging
 import org.gravidence.gravifon.domain.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventBus
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
+private val logger = KotlinLogging.logger {}
+
 @Component
 class Player(private val audioBackend: AudioBackend) : EventConsumer() {
 
@@ -19,7 +22,6 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
     private var currentTrack: VirtualTrack? = null
 
     private fun start(track: VirtualTrack) {
-        println("Playback start event")
         currentTrack = track
 
         audioBackend.prepare(track)
@@ -27,7 +29,7 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
         EventBus.publish(PubPlaybackStartEvent(track, audioBackend.queryLength()))
 
         timer = fixedRateTimer(initialDelay = 1000, period = 100) {
-//            println(refreshEvent.track.uri())
+            logger.trace { "Time to send playback status update events" }
             sendStatusUpdate()
         }
 
@@ -37,14 +39,12 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
     }
 
     private fun pause() {
-        println("Playback pause event")
         audioBackend.pause()
     }
 
     private fun stop() {
         timer.cancel()
 
-        println("Playback stop")
         audioBackend.stop()
 
         currentTrack?.let { EventBus.publish(PubTrackFinishEvent(it)) }

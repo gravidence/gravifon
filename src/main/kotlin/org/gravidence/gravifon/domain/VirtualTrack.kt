@@ -3,10 +3,13 @@ package org.gravidence.gravifon.domain
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class VirtualTrack(
-) : Track {
+sealed class VirtualTrack : Track {
 
     abstract val fields: MutableMap<FieldKey, FieldValues>?
+
+    override fun toString(): String {
+        return uri().toString()
+    }
 
     fun extractArtist(): String? {
         return fields?.get(FieldKeyExt.ARTIST.name)?.values?.joinToString(separator = ", ")

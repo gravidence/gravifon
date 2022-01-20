@@ -1,5 +1,6 @@
 package org.gravidence.gravifon.playback
 
+import mu.KotlinLogging
 import org.freedesktop.gstreamer.Gst
 import org.freedesktop.gstreamer.State
 import org.freedesktop.gstreamer.Version
@@ -7,6 +8,8 @@ import org.freedesktop.gstreamer.elements.PlayBin
 import org.gravidence.gravifon.domain.VirtualTrack
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
+
+private val logger = KotlinLogging.logger {}
 
 @Component
 class GstreamerAudioBackend : AudioBackend {
@@ -16,6 +19,8 @@ class GstreamerAudioBackend : AudioBackend {
     init {
         Gst.init(Version.BASELINE)
         playbin = PlayBin("Gravifon")
+
+        logger.info { "$this initialized" }
     }
 
     override fun play() {
@@ -57,12 +62,13 @@ class GstreamerAudioBackend : AudioBackend {
     }
 
     override fun prepare(track: VirtualTrack) {
+        logger.debug { "Prepare backend to play $track" }
+
         playbin.stop()
         playbin.setURI(track.uri())
         playbin.pause()
-        println(playbin.state)
-        println(queryPosition())
-        println(queryLength())
+
+        logger.debug { "Ready to play $track" }
     }
 
     override fun prepareNext(track: VirtualTrack) {

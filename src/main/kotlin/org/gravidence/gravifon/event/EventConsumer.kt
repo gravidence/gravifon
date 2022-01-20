@@ -1,5 +1,9 @@
 package org.gravidence.gravifon.event
 
+import mu.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
+
 abstract class EventConsumer {
 
     init {
@@ -11,7 +15,7 @@ abstract class EventConsumer {
     }
 
     protected fun receive(event: Event) {
-//        println("$event received by $this")
+        logger.trace { "$event received by $this" }
         consume(event)
     }
 

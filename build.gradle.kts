@@ -26,9 +26,16 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 
+    implementation("ch.qos.logback:logback-classic:1.2.10")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
+    implementation("org.slf4j:jcl-over-slf4j:1.7.33")
+    implementation("org.slf4j:jul-to-slf4j:1.7.33")
+    implementation("org.slf4j:log4j-over-slf4j:1.7.33")
+
+    implementation("org.springframework:spring-context:5.3.14")
+
     implementation("net.jthink:jaudiotagger:3.0.1")
     implementation("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
-    implementation("org.springframework:spring-context:5.3.14")
 
     testImplementation(kotlin("test"))
 }

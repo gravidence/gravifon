@@ -2,13 +2,17 @@ package org.gravidence.gravifon
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import mu.KotlinLogging
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.SubApplicationStartupEvent
 import org.gravidence.gravifon.library.Library
 import org.gravidence.gravifon.playback.Player
+import org.slf4j.bridge.SLF4JBridgeHandler
 import org.springframework.beans.factory.getBean
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
+
+private val logger = KotlinLogging.logger {}
 
 object Gravifon {
 
@@ -21,18 +25,23 @@ object Gravifon {
     val library: Library
 
     init {
-        println("Initialize Spring Application Context")
+        logger.debug { "Initialize SLF4J bridge handler" }
+        SLF4JBridgeHandler.removeHandlersForRootLogger()
+        SLF4JBridgeHandler.install()
+
+        logger.debug { "Initialize Spring application context" }
         ctx = AnnotationConfigApplicationContext()
         ctx.scan("org.gravidence.gravifon")
         ctx.refresh()
 
         // TODO these shouldn't be needed when time comes?
-        println("Expose global beans")
+        logger.debug { "Expose global beans" }
         player = ctx.getBean<Player>()
         library = ctx.getBean<Library>()
     }
 
     fun kickoff() {
+        logger.info { "Send application startup event" }
         EventBus.publish(SubApplicationStartupEvent())
     }
 

@@ -3,8 +3,11 @@ package org.gravidence.gravifon.event
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import org.gravidence.gravifon.Gravifon.scopeDefault
 import org.gravidence.gravifon.Gravifon.scopeIO
+
+private val logger = KotlinLogging.logger {}
 
 object EventBus {
 
@@ -13,7 +16,7 @@ object EventBus {
 
     fun publish(event: Event) {
         scopeDefault.launch {
-            println("$event published")
+            logger.trace { "$event published" }
             events.emit(event)
         }
     }

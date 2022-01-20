@@ -4,18 +4,20 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.EventConsumerIO
 import org.gravidence.gravifon.event.application.*
-import org.gravidence.gravifon.library.Library
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 
+private val logger = KotlinLogging.logger {}
+
 @Component
-class Settings(val library: Library) : EventConsumerIO() {
+class Settings : EventConsumerIO() {
 
     @Serializable
     data class GConfig(val library: GLibrary = GLibrary())
@@ -42,23 +44,33 @@ class Settings(val library: Library) : EventConsumerIO() {
     }
 
     private fun read() {
+        logger.info { "Read application configuration from $settingsFile" }
+
         try {
             config = Json.decodeFromString<GConfig>(Files.readString(settingsFile))
         } catch (e: Exception) {
-            // TODO log an error then either keep previous config instance or create a default one
+            logger.error(e) { "Failed to read application configuration from $settingsFile" }
         }
 
         EventBus.publish(PubApplicationConfigurationAnnounceEvent(config.copy()))
     }
 
     private fun write() {
-        Files.writeString(
-            settingsFile,
-            Json.encodeToString(config),
-            StandardOpenOption.CREATE,
-            StandardOpenOption.WRITE,
-            StandardOpenOption.TRUNCATE_EXISTING
-        )
+        val configAsString = Json.encodeToString(config).also {
+            logger.debug { "Application configuration to be persisted: $it" }
+        }
+        logger.info { "Write application configuration to $settingsFile" }
+        try {
+            Files.writeString(
+                settingsFile,
+                configAsString,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE,
+                StandardOpenOption.TRUNCATE_EXISTING
+            )
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to write application configuration to $settingsFile" }
+        }
     }
 
     private fun update(event: SubApplicationConfigurationUpdateEvent) {
