@@ -77,7 +77,7 @@ fun PlaybackInformationPanel() {
     EventBus.subscribe {
         when (it) {
             is PubTrackStartEvent -> {
-                artist = "${it.track.extractArtist()} (${it.track.extractYear()}) ${it.track.extractAlbum()} - ${it.track.extractTitle()}" ?: "---"
+                artist = "${it.track.getArtist()} (${it.track.getDate()}) ${it.track.getAlbum()} - ${it.track.getTitle()}" ?: "---"
             }
             is PubTrackFinishEvent -> {
                 artist = "---"

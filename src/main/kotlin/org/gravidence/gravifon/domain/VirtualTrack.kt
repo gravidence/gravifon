@@ -11,24 +11,72 @@ sealed class VirtualTrack : Track {
         return uri().toString()
     }
 
-    fun extractArtist(): String? {
-        return fields?.get(FieldKeyExt.ARTIST.name)?.values?.joinToString(separator = ", ")
+    fun getFieldValues(key: FieldKeyExt): Set<String>? {
+        return fields?.get(key.name)?.values
     }
 
-    fun extractArtists(): List<String>? {
-        return fields?.get(FieldKeyExt.ARTIST.name)?.values?.toList()
+    fun getFieldValue(key: FieldKeyExt): String? {
+        return getFieldValues(key)?.firstOrNull()
     }
 
-    fun extractTitle(): String? {
-        return fields?.get(FieldKeyExt.TITLE.name)?.values?.firstOrNull()
+    fun setFieldValues(key: FieldKeyExt, values: FieldValues) {
+        fields?.replace(key.name, values)
     }
 
-    fun extractAlbum(): String? {
-        return fields?.get(FieldKeyExt.ALBUM.name)?.values?.firstOrNull()
+    fun setFieldValues(key: FieldKeyExt, value: String) {
+        setFieldValues(key, FieldValues(value))
     }
 
-    fun extractYear(): String? {
-        return fields?.get(FieldKeyExt.YEAR.name)?.values?.firstOrNull()
+    fun clearField(key: FieldKeyExt) {
+        fields?.remove(key.name)
+    }
+
+    fun getArtist(): String? {
+        return getFieldValues(FieldKeyExt.ARTIST)?.joinToString(separator = ", ")
+    }
+
+    fun setArtist(value: String) {
+        setFieldValues(FieldKeyExt.ARTIST, value)
+    }
+
+    fun getArtists(): Set<String>? {
+        return getFieldValues(FieldKeyExt.ARTIST)
+    }
+
+    fun setArtists(values: MutableSet<String>) {
+        setFieldValues(FieldKeyExt.ARTIST, FieldValues(values))
+    }
+
+    fun getTitle(): String? {
+        return getFieldValue(FieldKeyExt.TITLE)
+    }
+
+    fun setTitle(value: String) {
+        setFieldValues(FieldKeyExt.TITLE, value)
+    }
+
+    fun getAlbum(): String? {
+        return getFieldValue(FieldKeyExt.ALBUM)
+    }
+
+    fun setAlbum(value: String) {
+        setFieldValues(FieldKeyExt.ALBUM, value)
+    }
+
+    fun getYear(): Int? {
+        return getFieldValue(FieldKeyExt.YEAR)?.toIntOrNull()
+    }
+
+    fun setYear(value: Int) {
+        setFieldValues(FieldKeyExt.YEAR, value.toString())
+    }
+
+    fun getDate(): String? {
+        return getFieldValue(FieldKeyExt.RECORDINGDATE)
+    }
+
+    fun setDate(value: String) {
+        setFieldValues(FieldKeyExt.RECORDINGDATE, value)
     }
 
 }
