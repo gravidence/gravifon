@@ -42,7 +42,9 @@ class GstreamerAudioBackend : AudioBackend {
     }
 
     override fun queryLength(): Long {
-        return playbin.queryDuration(TimeUnit.MILLISECONDS)
+        return playbin.queryDuration(TimeUnit.MILLISECONDS).also {
+            if (it == 0L) logger.warn { "Track length is zero" }
+        }
     }
 
     override fun queryPosition(): Long {

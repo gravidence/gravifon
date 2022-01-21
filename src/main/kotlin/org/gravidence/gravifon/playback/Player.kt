@@ -5,6 +5,7 @@ import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.EventConsumer
+import org.gravidence.gravifon.event.application.SubApplicationShutdownEvent
 import org.gravidence.gravifon.event.playback.*
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
@@ -25,17 +26,15 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
         currentTrack = track
 
         audioBackend.prepare(track)
-
         EventBus.publish(PubPlaybackStartEvent(track, audioBackend.queryLength()))
+
+        audioBackend.play()
+        EventBus.publish(PubTrackStartEvent(track))
 
         timer = fixedRateTimer(initialDelay = 1000, period = 100) {
             logger.trace { "Time to send playback status update events" }
             sendStatusUpdate()
         }
-
-        audioBackend.play()
-
-        EventBus.publish(PubTrackStartEvent(track))
     }
 
     private fun pause() {
@@ -62,6 +61,7 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
             is SubPlaybackPauseEvent -> pause()
             is SubPlaybackStopEvent -> stop()
             is SubPlaybackPositionEvent -> seek(event.position)
+            is SubApplicationShutdownEvent -> stop()
         }
     }
 
