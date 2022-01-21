@@ -18,8 +18,8 @@ internal class AlbumScannerTest {
 
 
         assertEquals(
-            originalAlbums.sortedBy { it.album }.onEach { it.tracks.sortBy { it.getTitle() } },
-            discoveredAlbums.sortedBy { it.album }.onEach { it.tracks.sortBy { it.getTitle() } }
+            originalAlbums.sortedBy { it.albumKey }.onEach { it.tracks.sortBy { it.getTitle() } },
+            discoveredAlbums.sortedBy { it.albumKey }.onEach { it.tracks.sortBy { it.getTitle() } }
         )
     }
 
@@ -48,12 +48,12 @@ internal class AlbumScannerTest {
 
         assertEquals(2, discoveredAlbums.size)
 
-        val theAlbum = discoveredAlbums.find { it.album == theAlbumTitle }
+        val theAlbum = discoveredAlbums.find { it.albumKey == theAlbumTitle }
         assertNotNull(theAlbum)
         assertTrue(theAlbum!!.tracks.containsAll(
             listOf(theAlbumTrack1, theAlbumTrack2, theAlbumTrack3)))
 
-        val noAlbum = discoveredAlbums.find { it.album == "" }
+        val noAlbum = discoveredAlbums.find { it.albumKey == "" }
         assertNotNull(noAlbum)
         assertTrue(noAlbum!!.tracks.containsAll(
             listOf(noAlbumTrack1, noAlbumTrack2, noAlbumTrack3, noAlbumTrack4)))
@@ -115,27 +115,27 @@ internal class AlbumScannerTest {
 
         assertEquals(5, discoveredAlbums.size)
 
-        assertEquals(album1Title, discoveredAlbums[0].album)
+        assertEquals(album1Title, discoveredAlbums[0].albumKey)
         assertEquals(4, discoveredAlbums[0].tracks.size)
         assertTrue(discoveredAlbums[0].tracks.containsAll(
             listOf(album1Track1, album1Track2, album1Track3, album1Track4)))
 
-        assertEquals("", discoveredAlbums[1].album)
+        assertEquals("", discoveredAlbums[1].albumKey)
         assertEquals(2, discoveredAlbums[1].tracks.size)
         assertTrue(discoveredAlbums[1].tracks.containsAll(
             listOf(noAlbumTrack1, noAlbumTrack2)))
 
-        assertEquals(album2Title, discoveredAlbums[2].album)
+        assertEquals(album2Title, discoveredAlbums[2].albumKey)
         assertEquals(1, discoveredAlbums[2].tracks.size)
         assertTrue(discoveredAlbums[2].tracks.containsAll(
             listOf(album2Track1)))
 
-        assertEquals("", discoveredAlbums[3].album)
+        assertEquals("", discoveredAlbums[3].albumKey)
         assertEquals(2, discoveredAlbums[3].tracks.size)
         assertTrue(discoveredAlbums[3].tracks.containsAll(
             listOf(noAlbumTrack3, noAlbumTrack4)))
 
-        assertEquals(album2Title, discoveredAlbums[4].album)
+        assertEquals(album2Title, discoveredAlbums[4].albumKey)
         assertEquals(2, discoveredAlbums[4].tracks.size)
         assertTrue(discoveredAlbums[4].tracks.containsAll(
             listOf(album2Track2, album2Track3)))

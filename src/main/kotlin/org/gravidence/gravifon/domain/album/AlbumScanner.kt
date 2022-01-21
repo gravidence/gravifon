@@ -23,16 +23,16 @@ object AlbumScanner {
     fun slidingScan(tracks: List<VirtualTrack>): List<VirtualAlbum> {
         val albums = mutableListOf<VirtualAlbum>()
 
-        var runningAlbumKey: String? = null
+        var runningAlbum: VirtualAlbum? = null
         for (track in tracks) {
             val candidateAlbumKey = calculateAlbumKey(track)
 
-            if (candidateAlbumKey != runningAlbumKey) {
-                runningAlbumKey = candidateAlbumKey
-                albums += VirtualAlbum(runningAlbumKey, mutableListOf())
+            if (candidateAlbumKey != runningAlbum?.albumKey) {
+                runningAlbum = VirtualAlbum(candidateAlbumKey, mutableListOf())
+                albums += runningAlbum
             }
 
-            albums.last().tracks += track
+            runningAlbum.tracks += track
         }
 
         return albums
