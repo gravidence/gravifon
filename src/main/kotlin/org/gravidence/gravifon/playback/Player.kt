@@ -3,8 +3,7 @@ package org.gravidence.gravifon.playback
 import mu.KotlinLogging
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.EventConsumer
+import org.gravidence.gravifon.event.EventHandler
 import org.gravidence.gravifon.event.application.SubApplicationShutdownEvent
 import org.gravidence.gravifon.event.playback.*
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
@@ -16,7 +15,7 @@ import kotlin.concurrent.fixedRateTimer
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Player(private val audioBackend: AudioBackend) : EventConsumer() {
+class Player(private val audioBackend: AudioBackend) : EventHandler() {
 
     private var timer = Timer()
 
@@ -26,10 +25,10 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
         currentTrack = track
 
         audioBackend.prepare(track)
-        EventBus.publish(PubPlaybackStartEvent(track, audioBackend.queryLength()))
+        publish(PubPlaybackStartEvent(track, audioBackend.queryLength()))
 
         audioBackend.play()
-        EventBus.publish(PubTrackStartEvent(track))
+        publish(PubTrackStartEvent(track))
 
         timer = fixedRateTimer(initialDelay = 1000, period = 100) {
             logger.trace { "Time to send playback status update events" }
@@ -46,7 +45,7 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
 
         audioBackend.stop()
 
-        currentTrack?.let { EventBus.publish(PubTrackFinishEvent(it)) }
+        currentTrack?.let { publish(PubTrackFinishEvent(it)) }
     }
 
     private fun seek(position: Long) {
@@ -66,7 +65,7 @@ class Player(private val audioBackend: AudioBackend) : EventConsumer() {
     }
 
     private fun sendStatusUpdate() {
-        EventBus.publish(PubPlaybackPositionEvent(audioBackend.queryPosition()))
+        publish(PubPlaybackPositionEvent(audioBackend.queryPosition()))
     }
 
 }

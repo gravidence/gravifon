@@ -3,11 +3,11 @@ package org.gravidence.gravifon.library
 import org.gravidence.gravifon.Initializable
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventConsumer
+import org.gravidence.gravifon.event.EventHandler
 import org.springframework.stereotype.Component
 
 @Component
-class Library : Initializable, EventConsumer() {
+class Library : Initializable, EventHandler() {
 
     private var isInitialized: Boolean = false
 

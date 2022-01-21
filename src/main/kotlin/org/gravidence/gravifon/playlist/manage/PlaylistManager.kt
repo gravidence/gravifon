@@ -2,11 +2,11 @@ package org.gravidence.gravifon.playlist.manage
 
 import org.gravidence.gravifon.Initializable
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventConsumer
+import org.gravidence.gravifon.event.EventHandler
 import org.springframework.stereotype.Component
 
 @Component
-class PlaylistManager: Initializable, EventConsumer() {
+class PlaylistManager: Initializable, EventHandler() {
 /*
     private val regularPlaylists: List<Playlist>
     activeRegularPlaylistId: UUID? = null

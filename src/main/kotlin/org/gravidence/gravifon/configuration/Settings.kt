@@ -7,8 +7,7 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.EventConsumerIO
+import org.gravidence.gravifon.event.EventHandlerIO
 import org.gravidence.gravifon.event.application.*
 import org.springframework.stereotype.Component
 import java.nio.file.Files
@@ -17,7 +16,7 @@ import java.nio.file.StandardOpenOption
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Settings : EventConsumerIO() {
+class Settings : EventHandlerIO() {
 
     @Serializable
     data class GConfig(val library: GLibrary = GLibrary())
@@ -52,7 +51,7 @@ class Settings : EventConsumerIO() {
             logger.error(e) { "Failed to read application configuration from $settingsFile" }
         }
 
-        EventBus.publish(PubApplicationConfigurationAnnounceEvent(config.copy()))
+        publish(PubApplicationConfigurationAnnounceEvent(config.copy()))
     }
 
     private fun write() {

@@ -8,7 +8,7 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.Gravifon.scopeIO
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventConsumerIO
+import org.gravidence.gravifon.event.EventHandlerIO
 import org.gravidence.gravifon.event.application.PubApplicationConfigurationAnnounceEvent
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.application.SubApplicationShutdownEvent
@@ -23,7 +23,7 @@ import java.nio.file.StandardOpenOption
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Data(val playlistManager: PlaylistManager, private val library: Library) : EventConsumerIO() {
+class Data(val playlistManager: PlaylistManager, private val library: Library) : EventHandlerIO() {
 
     override fun consume(event: Event) {
         when (event) {
