@@ -71,12 +71,90 @@ internal class AlbumScannerTest {
         val finish = Clock.System.now()
 
         val duration = finish.minus(start).inWholeMilliseconds
-        println("Full scan duration over $numberOfAlbums albums (or ${allTracksShuffled.size} tracks) took ${duration}ms")
+        println("Full scan duration against $numberOfAlbums albums (or ${allTracksShuffled.size} tracks) took ${duration}ms")
         assertTrue(duration < 100)
     }
 
     @Test
     fun slidingScan() {
+        val album1Title = "album1"
+        val album1Track1 = TestUtil.randomFileVirtualTrack(album1Title)
+        val album1Track2 = TestUtil.randomFileVirtualTrack(album1Title)
+        val album1Track3 = TestUtil.randomFileVirtualTrack(album1Title)
+        val album1Track4 = TestUtil.randomFileVirtualTrack(album1Title)
+
+        val noAlbumTrack1 = TestUtil.randomFileVirtualTrack().also { it.clearField(FieldKey.ALBUM) }
+        val noAlbumTrack2 = TestUtil.randomFileVirtualTrack().also { it.clearField(FieldKey.ALBUM) }
+        val noAlbumTrack3 = TestUtil.randomFileVirtualTrack().also { it.clearField(FieldKey.ALBUM) }
+        val noAlbumTrack4 = TestUtil.randomFileVirtualTrack().also { it.clearField(FieldKey.ALBUM) }
+
+        val album2Title = "album2"
+        val album2Track1 = TestUtil.randomFileVirtualTrack(album2Title)
+        val album2Track2 = TestUtil.randomFileVirtualTrack(album2Title)
+        val album2Track3 = TestUtil.randomFileVirtualTrack(album2Title)
+
+        val allTracksScientificallyShuffled = mutableListOf(
+            // album1
+            album1Track1,
+            album1Track2,
+            album1Track3,
+            album1Track4,
+            // no album
+            noAlbumTrack1,
+            noAlbumTrack2,
+            // album2
+            album2Track1,
+            // no album
+            noAlbumTrack3,
+            noAlbumTrack4,
+            // album2
+            album2Track2,
+            album2Track3,
+        )
+        val discoveredAlbums = AlbumScanner.slidingScan(allTracksScientificallyShuffled)
+
+        assertEquals(5, discoveredAlbums.size)
+
+        assertEquals(album1Title, discoveredAlbums[0].album)
+        assertEquals(4, discoveredAlbums[0].tracks.size)
+        assertTrue(discoveredAlbums[0].tracks.containsAll(
+            listOf(album1Track1, album1Track2, album1Track3, album1Track4)))
+
+        assertEquals("", discoveredAlbums[1].album)
+        assertEquals(2, discoveredAlbums[1].tracks.size)
+        assertTrue(discoveredAlbums[1].tracks.containsAll(
+            listOf(noAlbumTrack1, noAlbumTrack2)))
+
+        assertEquals(album2Title, discoveredAlbums[2].album)
+        assertEquals(1, discoveredAlbums[2].tracks.size)
+        assertTrue(discoveredAlbums[2].tracks.containsAll(
+            listOf(album2Track1)))
+
+        assertEquals("", discoveredAlbums[3].album)
+        assertEquals(2, discoveredAlbums[3].tracks.size)
+        assertTrue(discoveredAlbums[3].tracks.containsAll(
+            listOf(noAlbumTrack3, noAlbumTrack4)))
+
+        assertEquals(album2Title, discoveredAlbums[4].album)
+        assertEquals(2, discoveredAlbums[4].tracks.size)
+        assertTrue(discoveredAlbums[4].tracks.containsAll(
+            listOf(album2Track2, album2Track3)))
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "gravifon.test.performance", matches = "enable")
+    fun slidingScanBigCollection() {
+        val numberOfAlbums = 10000
+        val originalAlbums = TestUtil.manyRandomVirtualAlbums(numberOfAlbums)
+        val allTracksShuffled = originalAlbums.flatMap { it.tracks }.shuffled()
+
+        val start = Clock.System.now()
+        AlbumScanner.slidingScan(allTracksShuffled)
+        val finish = Clock.System.now()
+
+        val duration = finish.minus(start).inWholeMilliseconds
+        println("Sliding scan duration against $numberOfAlbums albums (or ${allTracksShuffled.size} tracks) took ${duration}ms")
+        assertTrue(duration < 100)
     }
 
 }

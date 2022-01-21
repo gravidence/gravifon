@@ -4,21 +4,38 @@ import org.gravidence.gravifon.domain.track.VirtualTrack
 
 object AlbumScanner {
 
+    /**
+     * Discovers all present albums in a track list.
+     */
     fun fullScan(tracks: List<VirtualTrack>): List<VirtualAlbum> {
         val albums = mutableMapOf<String, MutableList<VirtualTrack>>()
 
         tracks.forEach {
-            albums.computeIfAbsent(calculateAlbumKey(it)) { mutableListOf() }
-                .add(it)
+            albums.computeIfAbsent(calculateAlbumKey(it)) { mutableListOf() } += it
         }
 
         return albums.map { VirtualAlbum(it.key, it.value) }
     }
 
+    /**
+     * Groups track sequences by album, preserving the order.
+     */
     fun slidingScan(tracks: List<VirtualTrack>): List<VirtualAlbum> {
-        val albums = mutableMapOf<String, MutableList<VirtualTrack>>()
+        val albums = mutableListOf<VirtualAlbum>()
 
-        return listOf()
+        var runningAlbumKey: String? = null
+        for (track in tracks) {
+            val candidateAlbumKey = calculateAlbumKey(track)
+
+            if (candidateAlbumKey != runningAlbumKey) {
+                runningAlbumKey = candidateAlbumKey
+                albums += VirtualAlbum(runningAlbumKey, mutableListOf())
+            }
+
+            albums.last().tracks += track
+        }
+
+        return albums
     }
 
     private fun calculateAlbumKey(track: VirtualTrack): String {
