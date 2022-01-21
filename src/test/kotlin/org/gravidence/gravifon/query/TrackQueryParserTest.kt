@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import kotlin.test.assertEquals
 
 internal class TrackQueryParserTest {
 
@@ -78,17 +79,30 @@ internal class TrackQueryParserTest {
     }
 
     @Test
+    fun executeFilterPlaylist() {
+        val track1 = TestUtil.randomFileVirtualTrack(album = "alb1")
+        val track2 = TestUtil.randomFileVirtualTrack(album = "alb2")
+        val track3 = TestUtil.randomFileVirtualTrack(album = "alb2")
+        val track4 = TestUtil.randomFileVirtualTrack(album = "alb1")
+
+        val matchingTracks = parser.execute("album eq 'alb2'", listOf(track1, track2, track3, track4))
+        assertEquals(2, matchingTracks.size)
+        assertTrue(matchingTracks.contains(track2))
+        assertTrue(matchingTracks.contains(track3))
+    }
+
+    @Test
     @EnabledIfEnvironmentVariable(named = "gravifon.test.performance", matches = "enable")
-    fun executeBigCollection() {
+    fun executeFilterBigCollection() {
         val numberOfTracks = 50000
         val tracks = TestUtil.manyRandomFileVirtualTracks(numberOfTracks)
 
         val start = Clock.System.now()
-        tracks.filter { parser.execute("year gt 2000 and artist >= 'x'", it) }
+        parser.execute("year gt 2000 and artist >= 'x'", tracks)
         val finish = Clock.System.now()
 
         val duration = finish.minus(start).inWholeMilliseconds
-        println("Query execution over $numberOfTracks tracks took ${duration}ms")
+        println("Query execution against $numberOfTracks tracks took ${duration}ms")
         assertTrue(duration < 500)
     }
 

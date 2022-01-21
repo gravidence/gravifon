@@ -3,6 +3,7 @@ package org.gravidence.gravifon.query
 import mu.KotlinLogging
 import org.gravidence.gravifon.domain.track.FileVirtualTrack
 import org.gravidence.gravifon.domain.track.VirtualTrack
+import org.springframework.expression.Expression
 import org.springframework.expression.spel.standard.SpelExpressionParser
 import org.springframework.stereotype.Component
 
@@ -24,13 +25,22 @@ class TrackQueryParser : QueryParser<VirtualTrack> {
         }
     }
 
-    override fun execute(query: String, context: VirtualTrack): Boolean {
+    override fun execute(expression: Expression, context: VirtualTrack): Boolean {
         return try {
-            parser.parseExpression(query).getValue(context) as Boolean
+            expression.getValue(context) as Boolean
         } catch (e: Exception) {
             logger.debug(e) { "Query execution against '$context' failed" }
             false
         }
+    }
+
+    override fun execute(query: String, context: VirtualTrack): Boolean {
+        return execute(parser.parseExpression(query), context)
+    }
+
+    override fun execute(query: String, context: List<VirtualTrack>): List<VirtualTrack> {
+        val queryExpression = parser.parseExpression(query)
+        return context.filter { execute(queryExpression, it) }
     }
 
 }
