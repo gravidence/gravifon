@@ -82,13 +82,14 @@ internal class TrackQueryParserTest {
     fun executeFilterPlaylist() {
         val track1 = TestUtil.randomFileVirtualTrack(album = "alb1")
         val track2 = TestUtil.randomFileVirtualTrack(album = "alb2")
-        val track3 = TestUtil.randomFileVirtualTrack(album = "alb2")
-        val track4 = TestUtil.randomFileVirtualTrack(album = "alb1")
+        val track3 = TestUtil.randomFileVirtualTrack(album = "alb1")
+        val track4 = TestUtil.randomFileVirtualTrack(album = "alb2")
+        val track5 = TestUtil.randomFileVirtualTrack(album = "alb1")
 
-        val matchingTracks = parser.execute("album eq 'alb2'", listOf(track1, track2, track3, track4))
+        val matchingTracks = parser.execute("album eq 'alb2'", listOf(track1, track2, track3, track4, track5))
         assertEquals(2, matchingTracks.size)
         assertTrue(matchingTracks.contains(track2))
-        assertTrue(matchingTracks.contains(track3))
+        assertTrue(matchingTracks.contains(track4))
     }
 
     @Test
