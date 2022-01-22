@@ -2,10 +2,12 @@ package org.gravidence.gravifon.domain.album
 
 import org.gravidence.gravifon.domain.track.VirtualTrack
 
+const val NO_ALBUM_KEY = ""
+
 object AlbumScanner {
 
     /**
-     * Discovers all present albums in a track list.
+     * Discovers all present albums in track list.
      */
     fun fullScan(tracks: List<VirtualTrack>): List<VirtualAlbum> {
         val albums = mutableMapOf<String, MutableList<VirtualTrack>>()
@@ -38,8 +40,16 @@ object AlbumScanner {
         return albums
     }
 
-    private fun calculateAlbumKey(track: VirtualTrack): String {
-        return track.getAlbum().orEmpty()
+    /**
+     * Calculates a unique album key for [track].
+     */
+    // TODO add support of MusicBrainz tags
+    fun calculateAlbumKey(track: VirtualTrack): String {
+        if (track.getAlbum() == null) {
+            return NO_ALBUM_KEY
+        }
+
+        return listOfNotNull(track.getAlbum(), track.getAlbumArtist()).joinToString(separator = "::")
     }
 
 }

@@ -1,6 +1,5 @@
 package org.gravidence.gravifon.query
 
-import kotlinx.datetime.Clock
 import org.gravidence.gravifon.TestUtil
 import org.gravidence.gravifon.domain.track.FileVirtualTrack
 import org.gravidence.gravifon.domain.track.VirtualTrack
@@ -8,7 +7,9 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertTimeoutPreemptively
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import java.time.Duration
 import kotlin.test.assertEquals
 
 internal class TrackQueryParserTest {
@@ -95,16 +96,11 @@ internal class TrackQueryParserTest {
     @Test
     @EnabledIfEnvironmentVariable(named = "gravifon.test.performance", matches = "enable")
     fun executeFilterBigCollection() {
-        val numberOfTracks = 50000
-        val tracks = TestUtil.manyRandomFileVirtualTracks(numberOfTracks)
+        val tracks = TestUtil.manyRandomFileVirtualTracks(50000)
 
-        val start = Clock.System.now()
-        parser.execute("year gt 2000 and artist >= 'x'", tracks)
-        val finish = Clock.System.now()
-
-        val duration = finish.minus(start).inWholeMilliseconds
-        println("Query execution against $numberOfTracks tracks took ${duration}ms")
-        assertTrue(duration < 500)
+        assertTimeoutPreemptively(Duration.ofMillis(250)) {
+            parser.execute("year gt 2000 and artist >= 'x'", tracks)
+        }
     }
 
 }

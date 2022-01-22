@@ -27,8 +27,12 @@ sealed class VirtualTrack : Track {
         fields[key] = values
     }
 
-    fun setFieldValues(key: FieldKey, value: String) {
-        setFieldValues(key, FieldValues(value))
+    fun setFieldValues(key: FieldKey, value: String?) {
+        if (value == null) {
+            clearField(key)
+        } else {
+            setFieldValues(key, FieldValues(value))
+        }
     }
 
     fun clearField(key: FieldKey) {
@@ -39,7 +43,7 @@ sealed class VirtualTrack : Track {
         return getFieldValues(FieldKey.ARTIST)?.joinToString(separator = ", ")
     }
 
-    fun setArtist(value: String) {
+    fun setArtist(value: String?) {
         setFieldValues(FieldKey.ARTIST, value)
     }
 
@@ -47,15 +51,19 @@ sealed class VirtualTrack : Track {
         return getFieldValues(FieldKey.ARTIST)
     }
 
-    fun setArtists(values: MutableSet<String>) {
-        setFieldValues(FieldKey.ARTIST, FieldValues(values))
+    fun setArtists(values: MutableSet<String>?) {
+        if (values == null) {
+            setArtist(null)
+        } else {
+            setFieldValues(FieldKey.ARTIST, FieldValues(values))
+        }
     }
 
     fun getAlbumArtist(): String? {
         return getFieldValues(FieldKey.ALBUM_ARTIST)?.joinToString(separator = ", ")
     }
 
-    fun setAlbumArtist(value: String) {
+    fun setAlbumArtist(value: String?) {
         setFieldValues(FieldKey.ALBUM_ARTIST, value)
     }
 
@@ -63,7 +71,7 @@ sealed class VirtualTrack : Track {
         return getFieldValue(FieldKey.TITLE)
     }
 
-    fun setTitle(value: String) {
+    fun setTitle(value: String?) {
         setFieldValues(FieldKey.TITLE, value)
     }
 
@@ -71,7 +79,7 @@ sealed class VirtualTrack : Track {
         return getFieldValue(FieldKey.ALBUM)
     }
 
-    fun setAlbum(value: String) {
+    fun setAlbum(value: String?) {
         setFieldValues(FieldKey.ALBUM, value)
     }
 
@@ -79,7 +87,7 @@ sealed class VirtualTrack : Track {
         return getFieldValue(FieldKey.YEAR)
     }
 
-    fun setDate(value: String) {
+    fun setDate(value: String?) {
         setFieldValues(FieldKey.YEAR, value)
     }
 
@@ -93,7 +101,7 @@ sealed class VirtualTrack : Track {
         return getFieldValue(FieldKey.GENRE)
     }
 
-    fun setGenre(value: String) {
+    fun setGenre(value: String?) {
         setFieldValues(FieldKey.GENRE, value)
     }
 
@@ -101,7 +109,7 @@ sealed class VirtualTrack : Track {
         return getFieldValue(FieldKey.COMMENT)
     }
 
-    fun setComment(value: String) {
+    fun setComment(value: String?) {
         setFieldValues(FieldKey.COMMENT, value)
     }
 
