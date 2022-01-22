@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.gravidence.gravifon.Gravifon.scopeDefault
-import org.gravidence.gravifon.Gravifon.scopeIO
 
 private val logger = KotlinLogging.logger {}
 
@@ -23,12 +22,6 @@ object EventBus {
 
     fun subscribe(receive: (Event) -> Unit) {
         scopeDefault.launch {
-            events.collect { receive(it) }
-        }
-    }
-
-    fun subscribeIO(receive: (Event) -> Unit) {
-        scopeIO.launch {
             events.collect { receive(it) }
         }
     }

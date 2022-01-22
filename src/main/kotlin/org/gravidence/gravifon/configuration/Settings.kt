@@ -7,7 +7,7 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventHandlerIO
+import org.gravidence.gravifon.event.EventHandler
 import org.gravidence.gravifon.event.application.*
 import org.springframework.stereotype.Component
 import java.nio.file.Files
@@ -16,7 +16,7 @@ import java.nio.file.StandardOpenOption
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Settings : EventHandlerIO() {
+class Settings : EventHandler() {
 
     @Serializable
     data class GConfig(val library: GLibrary = GLibrary())

@@ -8,7 +8,7 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.Gravifon.scopeIO
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventHandlerIO
+import org.gravidence.gravifon.event.EventHandler
 import org.gravidence.gravifon.event.application.PubApplicationConfigurationAnnounceEvent
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.application.SubApplicationShutdownEvent
@@ -23,7 +23,7 @@ import java.nio.file.StandardOpenOption
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Data(val playlistManager: PlaylistManager, private val library: Library) : EventHandlerIO() {
+class Data(val playlistManager: PlaylistManager, private val library: Library) : EventHandler() {
 
     override fun consume(event: Event) {
         when (event) {
@@ -50,7 +50,6 @@ class Data(val playlistManager: PlaylistManager, private val library: Library) :
                         Json.decodeFromString(Files.readString(rootConfigFile))
                     } catch (e: Exception) {
                         logger.error(e) { "Failed to read library root configuration from $rootConfigFile" }
-
                         mutableListOf()
                     }
 
@@ -79,7 +78,7 @@ class Data(val playlistManager: PlaylistManager, private val library: Library) :
                     logger.trace { "Library root ($rootId) configuration to be persisted: $it" }
                 }
                 val rootConfigFile = Path.of(ConfigUtil.libraryDir.toString(), rootId).also {
-                    logger.debug { "Write library root ($rootId) configuration to $it" }
+                    logger.debug { "Write library root configuration to $it" }
                 }
                 try {
                     Files.writeString(
@@ -91,7 +90,7 @@ class Data(val playlistManager: PlaylistManager, private val library: Library) :
                     )
                 }
                 catch (e: Exception) {
-                    logger.error(e) { "Failed to write library root ($rootId) configuration to $rootConfigFile" }
+                    logger.error(e) { "Failed to write library root configuration to $rootConfigFile" }
                 }
             }
         }
