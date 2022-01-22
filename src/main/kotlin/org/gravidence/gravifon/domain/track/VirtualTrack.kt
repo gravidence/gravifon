@@ -1,85 +1,108 @@
 package org.gravidence.gravifon.domain.track
 
 import kotlinx.serialization.Serializable
-import org.gravidence.gravifon.domain.tag.FieldKey
-import org.gravidence.gravifon.domain.tag.FieldKeyExt
 import org.gravidence.gravifon.domain.tag.FieldValues
+import org.jaudiotagger.tag.FieldKey
+
+val dateRegex = """^(\d{4})(-\d{2}(-\d{2})?)?""".toRegex()
 
 @Serializable
 sealed class VirtualTrack : Track {
 
-    abstract val fields: MutableMap<FieldKey, FieldValues>?
+    abstract val fields: MutableMap<FieldKey, FieldValues>
 
     override fun toString(): String {
         return uri().toString()
     }
 
-    fun getFieldValues(key: FieldKeyExt): Set<String>? {
-        return fields?.get(key.name)?.values
+    fun getFieldValues(key: FieldKey): Set<String>? {
+        return fields[key]?.values
     }
 
-    fun getFieldValue(key: FieldKeyExt): String? {
+    fun getFieldValue(key: FieldKey): String? {
         return getFieldValues(key)?.firstOrNull()
     }
 
-    fun setFieldValues(key: FieldKeyExt, values: FieldValues) {
-        fields?.replace(key.name, values)
+    fun setFieldValues(key: FieldKey, values: FieldValues) {
+        fields[key] = values
     }
 
-    fun setFieldValues(key: FieldKeyExt, value: String) {
+    fun setFieldValues(key: FieldKey, value: String) {
         setFieldValues(key, FieldValues(value))
     }
 
-    fun clearField(key: FieldKeyExt) {
-        fields?.remove(key.name)
+    fun clearField(key: FieldKey) {
+        fields.remove(key)
     }
 
     fun getArtist(): String? {
-        return getFieldValues(FieldKeyExt.ARTIST)?.joinToString(separator = ", ")
+        return getFieldValues(FieldKey.ARTIST)?.joinToString(separator = ", ")
     }
 
     fun setArtist(value: String) {
-        setFieldValues(FieldKeyExt.ARTIST, value)
+        setFieldValues(FieldKey.ARTIST, value)
     }
 
     fun getArtists(): Set<String>? {
-        return getFieldValues(FieldKeyExt.ARTIST)
+        return getFieldValues(FieldKey.ARTIST)
     }
 
     fun setArtists(values: MutableSet<String>) {
-        setFieldValues(FieldKeyExt.ARTIST, FieldValues(values))
+        setFieldValues(FieldKey.ARTIST, FieldValues(values))
+    }
+
+    fun getAlbumArtist(): String? {
+        return getFieldValues(FieldKey.ALBUM_ARTIST)?.joinToString(separator = ", ")
+    }
+
+    fun setAlbumArtist(value: String) {
+        setFieldValues(FieldKey.ALBUM_ARTIST, value)
     }
 
     fun getTitle(): String? {
-        return getFieldValue(FieldKeyExt.TITLE)
+        return getFieldValue(FieldKey.TITLE)
     }
 
     fun setTitle(value: String) {
-        setFieldValues(FieldKeyExt.TITLE, value)
+        setFieldValues(FieldKey.TITLE, value)
     }
 
     fun getAlbum(): String? {
-        return getFieldValue(FieldKeyExt.ALBUM)
+        return getFieldValue(FieldKey.ALBUM)
     }
 
     fun setAlbum(value: String) {
-        setFieldValues(FieldKeyExt.ALBUM, value)
-    }
-
-    fun getYear(): Int? {
-        return getFieldValue(FieldKeyExt.YEAR)?.toIntOrNull()
-    }
-
-    fun setYear(value: Int) {
-        setFieldValues(FieldKeyExt.YEAR, value.toString())
+        setFieldValues(FieldKey.ALBUM, value)
     }
 
     fun getDate(): String? {
-        return getFieldValue(FieldKeyExt.RECORDINGDATE)
+        return getFieldValue(FieldKey.YEAR)
     }
 
     fun setDate(value: String) {
-        setFieldValues(FieldKeyExt.RECORDINGDATE, value)
+        setFieldValues(FieldKey.YEAR, value)
+    }
+
+    fun getYear(): Int? {
+        return getDate()?.let {
+            dateRegex.matchEntire(it)?.groupValues?.get(1)?.toIntOrNull()
+        }
+    }
+
+    fun getGenre(): String? {
+        return getFieldValue(FieldKey.GENRE)
+    }
+
+    fun setGenre(value: String) {
+        setFieldValues(FieldKey.GENRE, value)
+    }
+
+    fun getComment(): String? {
+        return getFieldValue(FieldKey.COMMENT)
+    }
+
+    fun setComment(value: String) {
+        setFieldValues(FieldKey.COMMENT, value)
     }
 
 }

@@ -1,11 +1,14 @@
 package org.gravidence.gravifon
 
 import org.gravidence.gravifon.domain.album.VirtualAlbum
-import org.gravidence.gravifon.domain.tag.FieldKeyExt
-import org.gravidence.gravifon.domain.tag.FieldValues
 import org.gravidence.gravifon.domain.track.FileVirtualTrack
+import java.net.URI
 
 object TestUtil {
+
+    fun resourceFromClasspath(path: String): URI {
+        return this::class.java.getResource(path)?.toURI()!!
+    }
 
     fun randomString(length: Int, charset: List<Char>): String {
         return List(length) { charset.random() }
@@ -25,36 +28,13 @@ object TestUtil {
     }
 
     fun randomFileVirtualTrack(album: String? = null): FileVirtualTrack {
-        return FileVirtualTrack(
-            path = randomAlphanumericString(20),
-            fields = mutableMapOf(
-                Pair(
-                    FieldKeyExt.ARTIST.name, FieldValues(
-                        randomAlphabeticString(8)
-                    )
-                ),
-                Pair(
-                    FieldKeyExt.TITLE.name, FieldValues(
-                        randomAlphabeticString(8)
-                    )
-                ),
-                Pair(
-                    FieldKeyExt.ALBUM.name, FieldValues(
-                        album ?: randomAlphabeticString(8)
-                    )
-                ),
-                Pair(
-                    FieldKeyExt.YEAR.name, FieldValues(
-                        (1980..2020).random().toString()
-                    )
-                ),
-                Pair(
-                    FieldKeyExt.COMMENT.name, FieldValues(
-                        randomAlphabeticString(8)
-                    )
-                )
-            )
-        )
+        return FileVirtualTrack(path = randomAlphanumericString(20)).apply {
+            setArtist(randomAlphabeticString(8))
+            setTitle(randomAlphabeticString(8))
+            setAlbum(album ?: randomAlphabeticString(8))
+            setDate((1980..2020).random().toString())
+            setComment(randomAlphabeticString(8))
+        }
     }
 
     fun manyRandomFileVirtualTracks(numberOfTracks: Int): List<FileVirtualTrack> {

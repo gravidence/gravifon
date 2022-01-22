@@ -1,9 +1,11 @@
 package org.gravidence.gravifon.domain.track
 
-import org.gravidence.gravifon.domain.tag.FieldKey
 import org.gravidence.gravifon.domain.tag.FieldValues
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
+import org.jaudiotagger.audio.mp3.MP3File
+import org.jaudiotagger.tag.FieldKey
+import org.jaudiotagger.tag.KeyNotFoundException
 import java.io.File
 import java.net.URI
 
@@ -17,18 +19,51 @@ class PhysicalTrack(val file: AudioFile) {
     fun toVirtualTrack(): VirtualTrack {
         val fields = mutableMapOf<FieldKey, FieldValues>()
 
-        file.tag.fields.forEach {
-            if (!it.isBinary) {
-                val values = fields[it.id]
-                if (values == null) {
-                    fields[it.id] = FieldValues(it.toString())
-                } else {
-                    values.values.add(it.toString())
-                }
+        FieldKey.values().forEach { fieldKey ->
+            extractFieldValues(fieldKey)?.let { fieldValues ->
+                fields[fieldKey] = fieldValues
             }
         }
 
         return FileVirtualTrack(file.file.path, fields)
+    }
+
+    private fun extractFieldValues(fieldKey: FieldKey): FieldValues? {
+        return try {
+            when (file) {
+                is MP3File -> extractFieldValuesFromMp3File(fieldKey, file)
+                else -> extractFieldValuesFromGenericFile(fieldKey, file)
+            }
+        } catch (e: KeyNotFoundException) {
+            // ignore since JAudioTagger generic fields are not supported fully by all metadata formats
+            null
+        }
+    }
+
+    private fun extractFieldValuesFromGenericFile(fieldKey: FieldKey, f: AudioFile): FieldValues? {
+        val tagFields = f.tag.getFields(fieldKey)
+        return if (tagFields.isNotEmpty()) {
+            FieldValues(tagFields
+                .filter { tagField -> !tagField.isBinary }
+                .map { tagField -> tagField.toString() }
+                .toMutableSet())
+        } else {
+            null
+        }
+    }
+
+    private fun extractFieldValuesFromMp3File(fieldKey: FieldKey, f: MP3File): FieldValues? {
+        if (!f.hasID3v2Tag()) {
+            // fortunately ID3v1 is compatible with generic tag approach (though supports very limited set of fields)
+            return extractFieldValuesFromGenericFile(fieldKey, f)
+        }
+
+        val tagFields = f.iD3v2Tag.getAll(fieldKey)
+        return if (tagFields.isNotEmpty()) {
+            FieldValues(tagFields.toMutableSet())
+        } else {
+            null
+        }
     }
 
 }
