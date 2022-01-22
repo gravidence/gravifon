@@ -1,11 +1,13 @@
 package org.gravidence.gravifon.domain.track
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.gravidence.gravifon.domain.tag.FieldValues
 import org.jaudiotagger.tag.FieldKey
 import java.net.URI
 
 @Serializable
+@SerialName("stream")
 data class StreamVirtualTrack(
     val url: String,
     override val fields: MutableMap<FieldKey, FieldValues> = mutableMapOf()
