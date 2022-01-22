@@ -1,6 +1,5 @@
 package org.gravidence.gravifon.library
 
-import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import mu.KotlinLogging
@@ -11,6 +10,7 @@ import org.jaudiotagger.audio.AudioFileIO
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.streams.toList
+import kotlin.system.measureTimeMillis
 
 private val logger = KotlinLogging.logger {}
 
@@ -35,23 +35,23 @@ class Root(
 
     fun scan(): List<VirtualTrack> {
         logger.info { "Library root ($rootDir) scan started" }
-        val scanStartedAt = Clock.System.now()
 
-        try {
-            val tracksFromRoot = Files.walk(Path.of(rootDir))
-                .map { it.toFile() }
-                .filter { audioFileFilter.accept(it) }
-                .map { PhysicalTrack(AudioFileIO.read(it)).toVirtualTrack() }
-                .toList()
+        val scanDuration = measureTimeMillis {
+            try {
+                val tracksFromRoot = Files.walk(Path.of(rootDir))
+                    .map { it.toFile() }
+                    .filter { audioFileFilter.accept(it) }
+                    .map { PhysicalTrack(AudioFileIO.read(it)).toVirtualTrack() }
+                    .toList()
 
-            tracks.clear()
-            tracks.addAll(tracksFromRoot)
-        } catch (e: Exception) {
-            logger.error(e) { "Failed to scan library root: $rootDir" }
+                tracks.clear()
+                tracks.addAll(tracksFromRoot)
+            } catch (e: Exception) {
+                logger.error(e) { "Failed to scan library root: $rootDir" }
+            }
         }
 
-        val scanFinishedAt = Clock.System.now()
-        logger.info { "Library root ($rootDir) scan completed (processed in ${scanFinishedAt.minus(scanStartedAt).inWholeSeconds}s)" }
+        logger.info { "Library root ($rootDir) scan completed (processed in ${scanDuration}ms)" }
 
         return tracks
     }
