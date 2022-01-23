@@ -22,7 +22,13 @@ object EventBus {
 
     fun subscribe(receive: (Event) -> Unit) {
         scopeDefault.launch {
-            events.collect { receive(it) }
+            events.collect {
+                try {
+                    receive(it)
+                } catch (e: Exception) {
+                    logger.error(e) { "Internal application error occurred while handling ${it.javaClass.simpleName} event" }
+                }
+            }
         }
     }
 
