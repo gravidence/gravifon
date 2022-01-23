@@ -6,6 +6,7 @@ import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertTimeoutPreemptively
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -54,16 +55,15 @@ internal class TrackQueryParserTest {
 
     @Test
     fun executeClassMethod() {
-        val fileVirtualTrack = TestUtil.randomFileVirtualTrack()
-        val originalYear = fileVirtualTrack.getYear()
-        assertTrue(parser.execute("year eq $originalYear", fileVirtualTrack))
-        assertFalse(parser.execute("year lt $originalYear", fileVirtualTrack))
-        assertTrue(parser.execute("year gt ${originalYear?.minus(10)}", fileVirtualTrack))
+        val fileVirtualTrack = TestUtil.fixedFileVirtualTrack(date = "2014-07-19")
+        assertTrue(parser.execute("year eq 2014", fileVirtualTrack))
+        assertFalse(parser.execute("year lt 2014", fileVirtualTrack))
+        assertTrue(parser.execute("year gt 2010", fileVirtualTrack))
 
         val virtualTrack = fileVirtualTrack as VirtualTrack
-        assertTrue(parser.execute("year eq $originalYear", virtualTrack))
-        assertFalse(parser.execute("year lt $originalYear", virtualTrack))
-        assertTrue(parser.execute("year gt ${originalYear?.minus(10)}", virtualTrack))
+        assertTrue(parser.execute("year eq 2014", virtualTrack))
+        assertFalse(parser.execute("year lt 2014", virtualTrack))
+        assertTrue(parser.execute("year gt 2010", virtualTrack))
     }
 
     @Test
@@ -75,17 +75,29 @@ internal class TrackQueryParserTest {
 
     @Test
     fun executeInvalidQuery() {
-        val fileVirtualTrack = FileVirtualTrack(path = "music.mp3")
-        assertFalse(parser.execute("path", fileVirtualTrack)) // query result is String
+        assertFalse(parser.execute("path", FileVirtualTrack(path = "music.mp3"))) // query result is String
+    }
+
+    @Test
+    @Disabled
+    fun executeCaseSensitive() {
+        assertTrue(parser.execute("title eq 'track 1'", TestUtil.fixedFileVirtualTrack(title = "Track 1")))
+    }
+
+    @Test
+    @Disabled
+    fun executeExtendedCharacterSet() {
+        assertTrue(parser.execute("title eq 'Larmpegel'", TestUtil.fixedFileVirtualTrack(title = "Lärmpegel")))
+        assertTrue(parser.execute("title eq 'Een'", TestUtil.fixedFileVirtualTrack(title = "Één")))
     }
 
     @Test
     fun executeFilterPlaylist() {
-        val track1 = TestUtil.randomFileVirtualTrack(album = "alb1")
-        val track2 = TestUtil.randomFileVirtualTrack(album = "alb2")
-        val track3 = TestUtil.randomFileVirtualTrack(album = "alb1")
-        val track4 = TestUtil.randomFileVirtualTrack(album = "alb2")
-        val track5 = TestUtil.randomFileVirtualTrack(album = "alb1")
+        val track1 = TestUtil.fixedFileVirtualTrack(album = "alb1")
+        val track2 = TestUtil.fixedFileVirtualTrack(album = "alb2")
+        val track3 = TestUtil.fixedFileVirtualTrack(album = "alb1")
+        val track4 = TestUtil.fixedFileVirtualTrack(album = "alb2")
+        val track5 = TestUtil.fixedFileVirtualTrack(album = "alb1")
 
         val matchingTracks = parser.execute("album eq 'alb2'", listOf(track1, track2, track3, track4, track5))
         assertEquals(2, matchingTracks.size)
