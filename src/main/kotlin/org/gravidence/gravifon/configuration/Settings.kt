@@ -19,17 +19,7 @@ private val logger = KotlinLogging.logger {}
 class Settings : EventHandler() {
 
     @Serializable
-    data class GConfig(val library: GLibrary = GLibrary())
-
-    @Serializable
-    data class GLibrary(val roots: MutableList<GRoot> = mutableListOf())
-
-    @Serializable
-    data class GRoot(
-        var rootDir: String,
-        var watchForChanges: Boolean = false,
-        var scanOnInit: Boolean = false,
-    )
+    data class GConfig(var placeholder: String = "")
 
     private var config: GConfig = GConfig()
 

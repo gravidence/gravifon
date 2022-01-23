@@ -1,6 +1,5 @@
 package org.gravidence.gravifon.configuration
 
-import org.springframework.util.Base64Utils
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
@@ -14,13 +13,11 @@ object ConfigUtil {
 
     val configHomeDir: Path = resolveConfigHomeDir()
     val settingsFile: Path = configHomeDir.resolve("config")
-    val libraryDir: Path = configHomeDir.resolve("library")
     val playlistDir: Path = configHomeDir.resolve("playlist")
 
     init {
         if (true) {
             configHomeDir.createDirectories()
-            libraryDir.createDirectories()
             playlistDir.createDirectories()
         }
     }
@@ -45,14 +42,6 @@ object ConfigUtil {
         val homeDir = Path.of(System.getProperty("user.home"), configHomeDirName)
 
         return homeDir
-    }
-
-    fun encode(originalPath: String): String {
-        return Base64Utils.encodeToUrlSafeString(originalPath.encodeToByteArray())
-    }
-
-    fun decode(encodedPath: String): String {
-        return String(Base64Utils.decodeFromUrlSafeString(encodedPath))
     }
 
 }

@@ -25,14 +25,7 @@ class Root(
     @Transient
     private val audioFileFilter = AudioFileFilter(false)
 
-    init {
-        logger.info { "Initialize library root: $rootDir" }
-
-        if (scanOnInit) {
-            scan()
-        }
-    }
-
+    @Synchronized
     fun scan(): List<VirtualTrack> {
         logger.info { "Library root ($rootDir) scan started" }
 

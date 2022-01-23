@@ -1,53 +1,135 @@
 package org.gravidence.gravifon.library
 
-import org.gravidence.gravifon.Initializable
+import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import mu.KotlinLogging
+import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventHandler
+import org.gravidence.gravifon.event.application.PubApplicationConfigurationAnnounceEvent
+import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
+import org.gravidence.gravifon.event.application.SubApplicationShutdownEvent
+import org.gravidence.gravifon.plugin.Plugin
 import org.springframework.stereotype.Component
+import org.springframework.util.Base64Utils
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
+import kotlin.io.path.createDirectories
+import kotlin.streams.toList
+
+private val logger = KotlinLogging.logger {}
 
 @Component
-class Library : Initializable, EventHandler() {
+class Library : Plugin() {
 
-    private var isInitialized: Boolean = false
-
+    private val configuration = Configuration()
     private val roots: MutableList<Root> = ArrayList()
 
-    fun init(roots: MutableList<Root>) {
-        isInitialized = false
-
-        this.roots.clear()
-        this.roots.addAll(roots)
-
-        isInitialized = true
+    override fun consume(event: Event) {
+        when (event) {
+            is SubApplicationShutdownEvent -> Gravifon.scopeIO.launch { configuration.writeConfiguration() }
+            is PubApplicationConfigurationAnnounceEvent -> Gravifon.scopeIO.launch { configuration.readConfiguration() }
+            is SubApplicationConfigurationPersistEvent -> Gravifon.scopeIO.launch { configuration.writeConfiguration() }
+        }
     }
 
-    fun getRoots(): List<Root> {
-        if (!isInitialized) {
-            TODO("Not yet implemented")
+    @Synchronized
+    private fun init() {
+        logger.info { "Initialize library (${roots.size} roots configured)" }
+
+        Gravifon.scopeIO.launch {
+            this@Library.roots
+                .filter { it.scanOnInit }
+                .forEach { it.scan() }
         }
+    }
+
+    @Synchronized
+    fun getRoots(): List<Root> {
         return roots.toList()
     }
 
+    @Synchronized
     fun addRoot(root: Root) {
         if (roots.none { it.rootDir == root.rootDir }) {
-            roots.add(root)
+            roots.add(root).also {
+                logger.info { "Register library root: ${root.rootDir}" }
+            }
         }
     }
 
+    @Synchronized
     fun random(): VirtualTrack {
-        if (!isInitialized) {
-            TODO("Not yet implemented")
-        }
         return roots.first().tracks.random()
     }
 
-    override fun isInitialized(): Boolean {
-        return isInitialized
-    }
+    inner class Configuration {
 
-    override fun consume(event: Event) {
-//        TODO("Not yet implemented")
+        private val libraryDir: Path = configHomeDir.resolve("library")
+
+        init {
+            libraryDir.createDirectories()
+        }
+
+        fun readConfiguration() {
+            val libraryRootConfigFiles = try {
+                Files.list(libraryDir).toList()
+            } catch (e: Exception) {
+                listOf()
+            }.also {
+                logger.info { "Discovered library root configuration files: $it" }
+            }
+
+            libraryRootConfigFiles.map { libraryRootConfigFile ->
+                logger.debug { "Read library root configuration from $libraryRootConfigFile" }
+
+                try {
+                    addRoot(Json.decodeFromString(Files.readString(libraryRootConfigFile))).also {
+                        logger.trace { "Library root configuration loaded: $it" }
+                    }
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to read library root configuration from $libraryRootConfigFile" }
+                }
+            }
+
+            init()
+        }
+
+        fun writeConfiguration() {
+            getRoots().forEach {
+                val rootId = encode(it.rootDir)
+                val libraryRootConfigAsString = Json.encodeToString(it).also {
+                    logger.trace { "Library root ($rootId) configuration to be persisted: $it" }
+                }
+                val rootConfigFile = Path.of(libraryDir.toString(), rootId).also {
+                    logger.debug { "Write library root configuration to $it" }
+                }
+                try {
+                    Files.writeString(
+                        rootConfigFile,
+                        libraryRootConfigAsString,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.TRUNCATE_EXISTING
+                    )
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to write library root configuration to $rootConfigFile" }
+                }
+            }
+        }
+
+
+        fun encode(originalPath: String): String {
+            return Base64Utils.encodeToUrlSafeString(originalPath.encodeToByteArray())
+        }
+
+        fun decode(encodedPath: String): String {
+            return String(Base64Utils.decodeFromUrlSafeString(encodedPath))
+        }
+
     }
 
 }
