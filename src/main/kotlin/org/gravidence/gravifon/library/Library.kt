@@ -11,6 +11,7 @@ import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.application.PubApplicationConfigurationAnnounceEvent
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.application.SubApplicationShutdownEvent
+import org.gravidence.gravifon.event.component.PubLibraryReadyEvent
 import org.gravidence.gravifon.plugin.Plugin
 import org.springframework.stereotype.Component
 import org.springframework.util.Base64Utils
@@ -30,9 +31,9 @@ class Library : Plugin() {
 
     override fun consume(event: Event) {
         when (event) {
-            is SubApplicationShutdownEvent -> Gravifon.scopeIO.launch { configuration.writeConfiguration() }
-            is PubApplicationConfigurationAnnounceEvent -> Gravifon.scopeIO.launch { configuration.readConfiguration() }
-            is SubApplicationConfigurationPersistEvent -> Gravifon.scopeIO.launch { configuration.writeConfiguration() }
+            is SubApplicationShutdownEvent -> configuration.writeConfiguration()
+            is PubApplicationConfigurationAnnounceEvent -> configuration.readConfiguration()
+            is SubApplicationConfigurationPersistEvent -> configuration.writeConfiguration()
         }
     }
 
@@ -45,6 +46,8 @@ class Library : Plugin() {
                 .filter { it.scanOnInit }
                 .forEach { it.scan() }
         }
+
+        publish(PubLibraryReadyEvent(this))
     }
 
     @Synchronized

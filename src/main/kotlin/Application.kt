@@ -5,10 +5,12 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
-import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.playback.*
+import org.gravidence.gravifon.event.playlist.SubPlaylistActivatePriorityPlaylistEvent
+import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
+import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
 
@@ -41,7 +43,9 @@ fun App() {
                                 Text("Save")
                             }
                             Button(onClick = {
-                                EventBus.publish(SubPlaybackStartEvent(Gravifon.library.random()))
+                                EventBus.publish(SubPlaylistActivatePriorityPlaylistEvent(null))
+                                EventBus.publish(SubPlaylistActivateRegularPlaylistEvent(null))
+                                EventBus.publish(SubPlaylistPlayNextEvent())
                             }) {
                                 Text("Play")
                             }

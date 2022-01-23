@@ -3,13 +3,14 @@ package org.gravidence.gravifon.playlist
 import org.gravidence.gravifon.domain.track.FileVirtualTrack
 import org.gravidence.gravifon.playlist.behavior.LookupDirection
 import org.gravidence.gravifon.playlist.behavior.PlaybackOrder
+import org.gravidence.gravifon.playlist.behavior.PlaylistStructure
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.junit.jupiter.api.Test
 import java.util.*
 import kotlin.test.*
 
-internal class GenericPlaylistTest {
+internal class QueuePlaylistTest {
 
     private val album1track1 = TrackPlaylistItem(
         FileVirtualTrack(
@@ -80,14 +81,14 @@ internal class GenericPlaylistTest {
 
     @Test
     fun id() {
-        val expectedId = UUID.randomUUID()
-        val playlist = GenericPlaylist(id = expectedId)
+        val expectedId = UUID.randomUUID().toString()
+        val playlist = Queue(id = expectedId)
         assertEquals(expectedId, playlist.id())
     }
 
     @Test
     fun peekCurrent_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -106,7 +107,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekCurrent_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -130,7 +131,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekCurrent_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.peekCurrent()
         assertNull(actualPlaylistItem)
@@ -140,7 +141,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekCurrentTrack_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -159,7 +160,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekCurrentTrack_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -182,7 +183,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekCurrentTrack_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.peekCurrentTrack()
         assertNull(actualPlaylistItem)
@@ -192,7 +193,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToCurrentTrack_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album2track1,
                 album2track2,
@@ -210,7 +211,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToCurrentTrack_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -234,7 +235,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToCurrentTrack_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.moveToCurrentTrack()
         assertNull(actualPlaylistItem)
@@ -244,7 +245,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToCurrentTrack_TailOfPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album2track1,
                 album2track2,
@@ -262,7 +263,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekNext_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -281,7 +282,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekNext_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -305,7 +306,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekNext_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.peekNext()
         assertNull(actualPlaylistItem)
@@ -315,7 +316,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekNext_TailOfPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -333,7 +334,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekNextTrack_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -352,7 +353,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekNextTrack_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -375,7 +376,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekNextTrack_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.peekNextTrack()
         assertNull(actualPlaylistItem)
@@ -385,7 +386,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekNextTrack_TailOfPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -403,7 +404,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToNextTrack_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album2track1,
                 album2track2,
@@ -420,7 +421,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToNextTrack_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -444,7 +445,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToNextTrack_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.moveToNextTrack()
         assertNull(actualPlaylistItem)
@@ -454,7 +455,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToNextTrack_TailOfPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -472,7 +473,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekPrev_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -491,7 +492,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekPrev_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -515,7 +516,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekPrev_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.peekPrev()
         assertNull(actualPlaylistItem)
@@ -525,7 +526,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekPrev_HeadOfPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -543,7 +544,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekPrevTrack_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -562,7 +563,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekPrevTrack_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -586,7 +587,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekPrevTrack_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.peekPrevTrack()
         assertNull(actualPlaylistItem)
@@ -596,7 +597,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekPrevTrack_HeadOfPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -614,7 +615,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToPrevTrack_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album2track1,
                 album2track2,
@@ -632,7 +633,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToPrevTrack_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -656,7 +657,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToPrevTrack_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.moveToPrevTrack()
         assertNull(actualPlaylistItem)
@@ -666,7 +667,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToPrevTrack_HeadOfPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -683,7 +684,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekFirst_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -702,7 +703,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekFirst_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -725,7 +726,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekFirst_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.peekFirst()
         assertNull(actualPlaylistItem)
@@ -735,7 +736,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekFirstTrack_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -754,7 +755,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekFirstTrack_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -778,7 +779,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekFirstTrack_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.peekFirstTrack()
         assertNull(actualPlaylistItem)
@@ -788,7 +789,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekFirstTrack_HeadOfPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -807,7 +808,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToFirstTrack_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album2track1,
                 album2track2,
@@ -825,7 +826,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToFirstTrack_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -849,7 +850,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToFirstTrack_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         val actualPlaylistItem = playlist.moveToFirstTrack()
         assertNull(actualPlaylistItem)
@@ -859,7 +860,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToFirstTrack_HeadOfPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -877,7 +878,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekSpecific_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -918,7 +919,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekSpecific_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -964,7 +965,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekSpecific_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         assertNull(playlist.peekSpecific(0))
         assertEquals(1, playlist.position())
@@ -978,7 +979,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekSpecificTrack_TrackPlaylist_Forward() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -997,7 +998,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekSpecificTrack_TrackPlaylist_Backward() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1track1,
                 album1track2,
@@ -1016,7 +1017,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekSpecificTrack_AlbumPlaylist_Forward() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -1040,7 +1041,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekSpecificTrack_AlbumPlaylist_Backward() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -1064,7 +1065,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun peekSpecificTrack_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         assertNull(playlist.peekSpecificTrack(0, LookupDirection.FORWARD))
         assertEquals(1, playlist.position())
@@ -1084,7 +1085,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToSpecific_TrackPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album2track1,
                 album2track2,
@@ -1102,7 +1103,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToSpecific_AlbumPlaylist() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -1126,7 +1127,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToSpecific_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         assertNull(playlist.moveToSpecific(0))
         assertEquals(1, playlist.position())
@@ -1146,7 +1147,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToSpecificTrack_TrackPlaylist_Forward() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album2track1,
                 album2track2,
@@ -1164,7 +1165,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToSpecificTrack_TrackPlaylist_Backward() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album2track1,
                 album2track2,
@@ -1182,7 +1183,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToSpecificTrack_AlbumPlaylist_Forward() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -1206,7 +1207,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToSpecificTrack_AlbumPlaylist_Backward() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album1,
                 album1track1,
@@ -1230,7 +1231,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun moveToSpecificTrack_EmptyPlaylist() {
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
 
         assertNull(playlist.moveToSpecificTrack(0, LookupDirection.FORWARD))
         assertEquals(1, playlist.position())
@@ -1262,16 +1263,18 @@ internal class GenericPlaylistTest {
             album2track3,
         )
 
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
         playlist.init(
             items = expectedItems,
             position = 4,
-            playbackOrder = PlaybackOrder.REPEAT_PLAYLIST
+            playbackOrder = PlaybackOrder.REPEAT_PLAYLIST,
+            playlistStructure = PlaylistStructure.TRACK
         )
 
         assertEquals(expectedItems, playlist.view())
         assertEquals(4, playlist.position())
-        assertEquals(PlaybackOrder.REPEAT_PLAYLIST, playlist.playbackOrder())
+        assertEquals(PlaybackOrder.SEQUENTIAL, playlist.playbackOrder())
+        assertEquals(PlaylistStructure.TRACK, playlist.structure())
     }
 
     @Test
@@ -1292,7 +1295,7 @@ internal class GenericPlaylistTest {
             album2track3,
         )
 
-        val playlist = GenericPlaylist()
+        val playlist = Queue()
         playlist.init(items = expectedItems)
 
         playlist.shuffle()
@@ -1305,7 +1308,7 @@ internal class GenericPlaylistTest {
 
     @Test
     fun clear() {
-        val playlist = GenericPlaylist(
+        val playlist = Queue(
             items = mutableListOf(
                 album2track1,
                 album2track2,

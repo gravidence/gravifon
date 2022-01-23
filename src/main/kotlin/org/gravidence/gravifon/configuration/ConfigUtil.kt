@@ -13,13 +13,9 @@ object ConfigUtil {
 
     val configHomeDir: Path = resolveConfigHomeDir()
     val settingsFile: Path = configHomeDir.resolve("config")
-    val playlistDir: Path = configHomeDir.resolve("playlist")
 
     init {
-        if (true) {
-            configHomeDir.createDirectories()
-            playlistDir.createDirectories()
-        }
+        configHomeDir.createDirectories()
     }
 
     private fun resolveConfigHomeDir(): Path {

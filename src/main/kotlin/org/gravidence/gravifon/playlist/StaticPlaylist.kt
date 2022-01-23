@@ -8,17 +8,13 @@ import org.gravidence.gravifon.playlist.item.PlaylistItem
 import java.util.*
 
 @Serializable
-@SerialName("queue")
-class Queue(
+@SerialName("static")
+class StaticPlaylist(
     override val id: String = UUID.randomUUID().toString(),
     override val items: MutableList<PlaylistItem> = ArrayList(),
     override var position: Int = 1,
     override var playbackOrder: PlaybackOrder = PlaybackOrder.SEQUENTIAL,
     override var playlistStructure: PlaylistStructure = PlaylistStructure.TRACK
 ) : Playlist() {
-
-    override fun playbackOrder(playbackOrder: PlaybackOrder) {
-        // makes no effect, queue playback order is always sequential
-    }
 
 }

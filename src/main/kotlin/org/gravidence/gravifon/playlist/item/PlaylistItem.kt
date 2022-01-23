@@ -1,4 +1,7 @@
 package org.gravidence.gravifon.playlist.item
 
-interface PlaylistItem {
+import kotlinx.serialization.Serializable
+
+@Serializable
+sealed class PlaylistItem {
 }

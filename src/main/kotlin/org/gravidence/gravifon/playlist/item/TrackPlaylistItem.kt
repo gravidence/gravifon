@@ -1,6 +1,10 @@
 package org.gravidence.gravifon.playlist.item
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import org.gravidence.gravifon.domain.track.VirtualTrack
 
-data class TrackPlaylistItem(val track: VirtualTrack) : PlaylistItem {
+@Serializable
+@SerialName("track")
+data class TrackPlaylistItem(val track: VirtualTrack) : PlaylistItem() {
 }

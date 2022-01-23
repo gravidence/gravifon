@@ -9,6 +9,7 @@ import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
 import org.gravidence.gravifon.event.application.*
+import org.gravidence.gravifon.event.component.PubSettingsReadyEvent
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -36,11 +37,12 @@ class Settings : EventHandler() {
         logger.info { "Read application configuration from $settingsFile" }
 
         try {
-            config = Json.decodeFromString<GConfig>(Files.readString(settingsFile))
+            config = Json.decodeFromString(Files.readString(settingsFile))
         } catch (e: Exception) {
             logger.error(e) { "Failed to read application configuration from $settingsFile" }
         }
 
+        publish(PubSettingsReadyEvent())
         publish(PubApplicationConfigurationAnnounceEvent(config.copy()))
     }
 
