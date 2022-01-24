@@ -1,4 +1,4 @@
-package org.gravidence.gravifon.library
+package org.gravidence.gravifon.plugin.library
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient

@@ -3,7 +3,7 @@ package org.gravidence.gravifon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import mu.KotlinLogging
-import org.gravidence.gravifon.library.Library
+import org.gravidence.gravifon.plugin.library.Library
 import org.gravidence.gravifon.orchestration.Orchestrator
 import org.gravidence.gravifon.playback.Player
 import org.slf4j.bridge.SLF4JBridgeHandler

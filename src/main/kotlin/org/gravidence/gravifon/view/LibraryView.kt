@@ -7,7 +7,7 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.library.Library
+import org.gravidence.gravifon.plugin.library.Library
 import org.gravidence.gravifon.orchestration.PlaylistManagerConsumer
 import org.gravidence.gravifon.orchestration.SettingsConsumer
 import org.gravidence.gravifon.playlist.DynamicPlaylist
