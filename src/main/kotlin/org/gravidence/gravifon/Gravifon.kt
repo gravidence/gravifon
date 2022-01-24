@@ -3,9 +3,8 @@ package org.gravidence.gravifon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import mu.KotlinLogging
-import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.application.SubApplicationStartupEvent
 import org.gravidence.gravifon.library.Library
+import org.gravidence.gravifon.orchestration.Orchestrator
 import org.gravidence.gravifon.playback.Player
 import org.slf4j.bridge.SLF4JBridgeHandler
 import org.springframework.beans.factory.getBean
@@ -23,6 +22,7 @@ object Gravifon {
 
     val player: Player
     val library: Library
+    val orchestrator: Orchestrator
 
     init {
         logger.debug { "Initialize SLF4J bridge handler" }
@@ -38,11 +38,12 @@ object Gravifon {
         logger.debug { "Expose global beans" }
         player = ctx.getBean<Player>()
         library = ctx.getBean<Library>()
+        orchestrator = ctx.getBean<Orchestrator>()
     }
 
     fun kickoff() {
-        logger.info { "Send application startup event" }
-        EventBus.publish(SubApplicationStartupEvent())
+        logger.info { "Spin-up application" }
+        orchestrator.startup()
     }
 
 }

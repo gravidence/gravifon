@@ -31,7 +31,7 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
         }
     }
 
-    override fun boot() {
+    override fun startup() {
         // do nothing
     }
 

@@ -55,7 +55,7 @@ class PlaylistManager(val consumers: List<PlaylistManagerConsumer>) : EventHandl
         }
     }
 
-    override fun boot() {
+    override fun startup() {
         // do nothing
     }
 

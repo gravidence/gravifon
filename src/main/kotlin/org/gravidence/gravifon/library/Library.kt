@@ -34,7 +34,7 @@ class Library : Plugin(), OrchestratorConsumer {
         }
     }
 
-    override fun boot() {
+    override fun startup() {
         // do nothing
     }
 

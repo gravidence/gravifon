@@ -7,6 +7,8 @@ import org.gravidence.gravifon.Gravifon
 fun main() = application {
     Window(
         onCloseRequest = {
+            Gravifon.orchestrator.shutdown()
+
             Gravifon.scopeDefault.cancel()
             Gravifon.scopeIO.cancel()
 

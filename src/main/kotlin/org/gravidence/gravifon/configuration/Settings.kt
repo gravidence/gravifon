@@ -37,7 +37,7 @@ class Settings(private val consumers: List<SettingsConsumer>) : EventHandler(), 
         }
     }
 
-    override fun boot() {
+    override fun startup() {
         read()
 
         logger.debug { "Notify components about application configuration readiness" }
