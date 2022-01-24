@@ -7,14 +7,13 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ConfigUtil.configHomeDir
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
-import org.gravidence.gravifon.event.application.PubApplicationConfigurationAnnounceEvent
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
-import org.gravidence.gravifon.event.application.SubApplicationShutdownEvent
-import org.gravidence.gravifon.event.component.PubPlaylistManagerReadyEvent
 import org.gravidence.gravifon.event.playback.SubPlaybackStartEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistActivatePriorityPlaylistEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
+import org.gravidence.gravifon.orchestration.OrchestratorConsumer
+import org.gravidence.gravifon.orchestration.PlaylistManagerConsumer
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
@@ -29,7 +28,7 @@ import kotlin.streams.toList
 private val logger = KotlinLogging.logger {}
 
 @Component
-class PlaylistManager : EventHandler() {
+class PlaylistManager(val consumers: List<PlaylistManagerConsumer>) : EventHandler(), OrchestratorConsumer {
 
     private val configuration = Configuration()
 
@@ -43,15 +42,35 @@ class PlaylistManager : EventHandler() {
     private var activeRegularPlaylist: Playlist? = null
     private var activePriorityPlaylist: Playlist? = null
 
+    init {
+        logger.info { "Consumer components registered: $consumers" }
+    }
+
     override fun consume(event: Event) {
         when (event) {
-            is SubApplicationShutdownEvent -> configuration.writeConfiguration()
-            is PubApplicationConfigurationAnnounceEvent -> configuration.readConfiguration()
             is SubApplicationConfigurationPersistEvent -> configuration.writeConfiguration()
             is SubPlaylistActivatePriorityPlaylistEvent -> activatePriorityPlaylist(event.playlistId)
             is SubPlaylistActivateRegularPlaylistEvent -> activateRegularPlaylist(event.playlistId)
             is SubPlaylistPlayNextEvent -> playNext()
         }
+    }
+
+    override fun boot() {
+        // do nothing
+    }
+
+    override fun afterStartup() {
+        configuration.readConfiguration()
+
+        logger.debug { "Notify components about playlist manager readiness" }
+        consumers.forEach { it.playlistManagerReady(this) }
+
+        logger.debug { "Ask components to register their playlists" }
+        consumers.forEach { it.registerPlaylist() }
+    }
+
+    override fun beforeShutdown() {
+        configuration.writeConfiguration()
     }
 
     @Synchronized
@@ -143,8 +162,6 @@ class PlaylistManager : EventHandler() {
                     logger.error(e) { "Failed to read playlist from $playlistConfigFile" }
                 }
             }
-
-            publish(PubPlaylistManagerReadyEvent(this@PlaylistManager))
         }
 
         fun writeConfiguration() {

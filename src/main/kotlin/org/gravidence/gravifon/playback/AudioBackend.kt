@@ -1,9 +1,8 @@
 package org.gravidence.gravifon.playback
 
-import org.gravidence.gravifon.Initializable
 import org.gravidence.gravifon.domain.track.VirtualTrack
 
-interface AudioBackend : Initializable {
+interface AudioBackend {
 
     fun play()
     fun pause()

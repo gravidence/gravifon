@@ -8,8 +8,10 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
-import org.gravidence.gravifon.event.application.*
-import org.gravidence.gravifon.event.component.PubSettingsReadyEvent
+import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
+import org.gravidence.gravifon.event.application.SubApplicationConfigurationUpdateEvent
+import org.gravidence.gravifon.orchestration.OrchestratorConsumer
+import org.gravidence.gravifon.orchestration.SettingsConsumer
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -17,20 +19,47 @@ import java.nio.file.StandardOpenOption
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Settings : EventHandler() {
+class Settings(private val consumers: List<SettingsConsumer>) : EventHandler(), OrchestratorConsumer {
 
     @Serializable
-    data class GConfig(var placeholder: String = "")
+    data class GConfig(val component: MutableMap<String, String> = mutableMapOf())
 
     private var config: GConfig = GConfig()
 
+    init {
+        logger.info { "Consumer components registered: $consumers" }
+    }
+
     override fun consume(event: Event) {
         when (event) {
-            is SubApplicationStartupEvent -> read()
-            is SubApplicationShutdownEvent -> write()
             is SubApplicationConfigurationUpdateEvent -> update(event)
             is SubApplicationConfigurationPersistEvent -> write()
         }
+    }
+
+    override fun boot() {
+        read()
+
+        logger.debug { "Notify components about application configuration readiness" }
+        consumers.forEach { it.settingsReady(this) }
+    }
+
+    override fun afterStartup() {
+        // do nothing
+    }
+
+    override fun beforeShutdown() {
+        write()
+    }
+
+    @Synchronized
+    fun componentConfig(componentId: String): String? {
+        return config.component[componentId]
+    }
+
+    @Synchronized
+    fun componentConfig(componentId: String, componentConfig: String) {
+        config.component[componentId] = componentConfig
     }
 
     private fun read() {
@@ -41,12 +70,12 @@ class Settings : EventHandler() {
         } catch (e: Exception) {
             logger.error(e) { "Failed to read application configuration from $settingsFile" }
         }
-
-        publish(PubSettingsReadyEvent())
-        publish(PubApplicationConfigurationAnnounceEvent(config.copy()))
     }
 
     private fun write() {
+        logger.debug { "Collect config updates from components" }
+        consumers.forEach { it.persistConfig() }
+
         val configAsString = Json.encodeToString(config).also {
             logger.debug { "Application configuration to be persisted: $it" }
         }

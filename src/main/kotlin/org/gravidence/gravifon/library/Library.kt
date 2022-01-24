@@ -8,10 +8,9 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.application.PubApplicationConfigurationAnnounceEvent
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
-import org.gravidence.gravifon.event.application.SubApplicationShutdownEvent
 import org.gravidence.gravifon.event.component.PubLibraryReadyEvent
+import org.gravidence.gravifon.orchestration.OrchestratorConsumer
 import org.gravidence.gravifon.plugin.Plugin
 import org.springframework.stereotype.Component
 import org.springframework.util.Base64Utils
@@ -24,17 +23,27 @@ import kotlin.streams.toList
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Library : Plugin() {
+class Library : Plugin(), OrchestratorConsumer {
 
     private val configuration = Configuration()
     private val roots: MutableList<Root> = ArrayList()
 
     override fun consume(event: Event) {
         when (event) {
-            is SubApplicationShutdownEvent -> configuration.writeConfiguration()
-            is PubApplicationConfigurationAnnounceEvent -> configuration.readConfiguration()
             is SubApplicationConfigurationPersistEvent -> configuration.writeConfiguration()
         }
+    }
+
+    override fun boot() {
+        // do nothing
+    }
+
+    override fun afterStartup() {
+        configuration.readConfiguration()
+    }
+
+    override fun beforeShutdown() {
+        configuration.writeConfiguration()
     }
 
     @Synchronized

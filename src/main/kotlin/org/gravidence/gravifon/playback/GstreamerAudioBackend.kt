@@ -77,8 +77,4 @@ class GstreamerAudioBackend : AudioBackend {
         TODO("Not yet implemented")
     }
 
-    override fun isInitialized(): Boolean {
-        TODO("Not yet implemented")
-    }
-
 }
