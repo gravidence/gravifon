@@ -74,6 +74,13 @@ class Library : Plugin(), OrchestratorConsumer {
     }
 
     @Synchronized
+    fun allTracks(): List<VirtualTrack> {
+        return roots
+            .flatMap { root -> root.tracks }
+            .toList()
+    }
+
+    @Synchronized
     fun random(): VirtualTrack {
         return roots.first().tracks.random()
     }

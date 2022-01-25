@@ -28,7 +28,7 @@ import kotlin.streams.toList
 private val logger = KotlinLogging.logger {}
 
 @Component
-class PlaylistManager(val consumers: List<PlaylistManagerConsumer>) : EventHandler(), OrchestratorConsumer {
+class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : EventHandler(), OrchestratorConsumer {
 
     private val configuration = Configuration()
 
