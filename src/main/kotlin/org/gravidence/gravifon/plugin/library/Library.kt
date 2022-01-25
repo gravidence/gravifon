@@ -10,6 +10,7 @@ import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.component.PubLibraryReadyEvent
+import org.gravidence.gravifon.orchestration.LibraryConsumer
 import org.gravidence.gravifon.orchestration.OrchestratorConsumer
 import org.gravidence.gravifon.plugin.Plugin
 import org.springframework.stereotype.Component
@@ -23,7 +24,7 @@ import kotlin.streams.toList
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Library : Plugin(), OrchestratorConsumer {
+class Library(private val consumers: List<LibraryConsumer>) : Plugin(), OrchestratorConsumer {
 
     private val configuration = Configuration()
     private val roots: MutableList<Root> = ArrayList()
@@ -40,6 +41,9 @@ class Library : Plugin(), OrchestratorConsumer {
 
     override fun afterStartup() {
         configuration.readConfiguration()
+
+        logger.debug { "Notify components about library readiness" }
+        consumers.forEach { it.libraryReady(this) }
     }
 
     override fun beforeShutdown() {
