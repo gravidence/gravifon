@@ -11,6 +11,7 @@ import org.gravidence.gravifon.event.application.SubApplicationConfigurationPers
 import org.gravidence.gravifon.event.playback.SubPlaybackStartEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistActivatePriorityPlaylistEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
+import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.orchestration.OrchestratorConsumer
 import org.gravidence.gravifon.orchestration.PlaylistManagerConsumer
@@ -51,6 +52,7 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
             is SubApplicationConfigurationPersistEvent -> configuration.writeConfiguration()
             is SubPlaylistActivatePriorityPlaylistEvent -> activatePriorityPlaylist(event.playlistId)
             is SubPlaylistActivateRegularPlaylistEvent -> activateRegularPlaylist(event.playlistId)
+            is SubPlaylistPlayCurrentEvent -> playCurrent()
             is SubPlaylistPlayNextEvent -> playNext()
         }
     }

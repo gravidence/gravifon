@@ -23,6 +23,10 @@ sealed class Playlist {
         return id
     }
 
+    fun items(): List<PlaylistItem> {
+        return items.toList()
+    }
+
     open fun position(): Int {
         return position
     }
@@ -113,6 +117,17 @@ sealed class Playlist {
         }
     }
 
+    open fun moveToSpecific(playlistItem: PlaylistItem): Int? {
+        val position = items.indexOf(playlistItem) + 1
+
+        return if (position > 0) {
+            this.position = position
+            this.position
+        } else {
+            null
+        }
+    }
+
     open fun moveToSpecific(position: Int): PlaylistItem? {
         val playlistItem = peekSpecific(position)
 
@@ -161,11 +176,11 @@ sealed class Playlist {
     }
 
     open fun append(item: PlaylistItem) {
-        TODO("Not yet implemented")
+        this.items += item
     }
 
     open fun append(items: List<PlaylistItem>) {
-        TODO("Not yet implemented")
+        this.items += items
     }
 
     open fun insert(item: PlaylistItem, position: Int) {
@@ -190,6 +205,11 @@ sealed class Playlist {
 
     open fun remove(positionRange: IntRange) {
         TODO("Not yet implemented")
+    }
+
+    open fun replace(items: List<PlaylistItem>) {
+        clear()
+        append(items)
     }
 
     private fun normalisePosition(position: Int): Int {

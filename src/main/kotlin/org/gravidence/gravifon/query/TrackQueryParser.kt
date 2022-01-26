@@ -5,16 +5,14 @@ import org.gravidence.gravifon.domain.track.FileVirtualTrack
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.springframework.expression.Expression
 import org.springframework.expression.spel.standard.SpelExpressionParser
-import org.springframework.stereotype.Component
 
 private val logger = KotlinLogging.logger {}
 
-@Component
-class TrackQueryParser : QueryParser<VirtualTrack> {
+object TrackQueryParser : QueryParser<VirtualTrack> {
 
     private val parser = SpelExpressionParser()
 
-    private val testContext: VirtualTrack = FileVirtualTrack("~/test.flac")
+    private val testContext: VirtualTrack = FileVirtualTrack("here-path-doesnt-matter")
 
     override fun validate(query: String): Boolean {
         return try {
