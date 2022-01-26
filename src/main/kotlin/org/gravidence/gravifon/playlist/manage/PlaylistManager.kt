@@ -172,13 +172,13 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
         private fun writePlaylists(playlists: List<Playlist>) {
             playlists.forEach { playlist ->
                 val playlistId = playlist.id()
-                val playlistAsString = Json.encodeToString(playlist).also {
-                    logger.trace { "Playlist ($playlistId) to be persisted: $it" }
-                }
                 val playlistFile = Path.of(playlistDir.toString(), playlistId).also {
                     logger.debug { "Write playlist to $it" }
                 }
                 try {
+                    val playlistAsString = Json.encodeToString(playlist).also {
+                        logger.trace { "Playlist ($playlistId) to be persisted: $it" }
+                    }
                     Files.writeString(
                         playlistFile,
                         playlistAsString,
