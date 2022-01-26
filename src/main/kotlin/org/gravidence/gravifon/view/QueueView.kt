@@ -1,5 +1,6 @@
 package org.gravidence.gravifon.view
 
+import androidx.compose.runtime.Composable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -60,6 +61,11 @@ class QueueView : View(), SettingsConsumer, PlaylistManagerConsumer {
         if (playlistManager.getPlaylist(viewConfig.playlistId) == null) {
             playlistManager.addPlaylist(Queue(viewConfig.playlistId))
         }
+    }
+
+    @Composable
+    override fun compose() {
+        TODO("Not yet implemented")
     }
 
 }

@@ -5,6 +5,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
+import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.playback.*
@@ -13,6 +14,8 @@ import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylist
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
+import org.gravidence.gravifon.view.View
+import org.springframework.beans.factory.getBean
 
 @Composable
 @Preview
@@ -20,6 +23,8 @@ fun App() {
     val scope = rememberCoroutineScope()
 
     var text by remember { mutableStateOf("Gravifon") }
+
+    val view: View by remember { mutableStateOf(Gravifon.ctx.getBean<org.gravidence.gravifon.view.LibraryView>()) }
 
     LaunchedEffect(Unit) {
         delay(2000)
@@ -66,7 +71,8 @@ fun App() {
                     Row { Text("Bottom Bar") }
                 },
                 content = {
-                    LibraryView()
+//                    LibraryView()
+                    view.compose()
                 }
             )
         }
