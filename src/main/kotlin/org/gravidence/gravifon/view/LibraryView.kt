@@ -19,6 +19,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.Settings
+import org.gravidence.gravifon.domain.track.compare.VirtualTrackComparator
+import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
@@ -34,6 +36,7 @@ import org.gravidence.gravifon.plugin.library.Library
 import org.gravidence.gravifon.query.TrackQueryParser
 import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.springframework.stereotype.Component
+import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -41,7 +44,7 @@ private val logger = KotlinLogging.logger {}
 class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryConsumer {
 
     @Serializable
-    data class LibraryViewConfiguration(val playlistId: String)
+    data class LibraryViewConfiguration(val playlistId: String, val sortOrder: MutableList<VirtualTrackSelectors> = mutableListOf())
 
     private lateinit var viewConfig: LibraryViewConfiguration
 
@@ -62,8 +65,7 @@ class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryCo
         val viewConfigAsString = readViewConfig()
         viewConfig = if (viewConfigAsString == null) {
             logger.debug { "Create new configuration" }
-//            LibraryViewConfiguration(playlistId = UUID.randomUUID().toString())
-            LibraryViewConfiguration(playlistId = "64ce227a-261e-4d52-ac28-83de7a08b6d8")
+            LibraryViewConfiguration(playlistId = UUID.randomUUID().toString())
         } else {
             logger.debug { "Use configuration: $viewConfigAsString" }
             Json.decodeFromString(viewConfigAsString)
@@ -97,7 +99,11 @@ class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryCo
         fun onQueryChange(changed: String) {
             query.value = changed
             if (TrackQueryParser.validate(changed)) {
-                playlist.replace(TrackQueryParser.execute(changed, library.allTracks()).map { TrackPlaylistItem(it) })
+                val selection = TrackQueryParser.execute(changed, library.allTracks())
+                    // TODO sortOrder should be part of view state
+                    .sortedWith(VirtualTrackComparator.build(viewConfig.sortOrder))
+                    .map { TrackPlaylistItem(it) }
+                playlist.replace(selection)
                 playlistItems.value = playlist.items()
             }
         }
