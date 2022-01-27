@@ -1,7 +1,7 @@
-package org.gravidence.gravifon.domain.track.compare
+package org.gravidence.gravifon.domain.track
 
 import org.gravidence.gravifon.TestUtil
-import org.gravidence.gravifon.domain.track.VirtualTrack
+import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -28,7 +28,7 @@ internal class VirtualTrackComparatorTest {
             track4, // bb
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build())
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator())
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -54,7 +54,7 @@ internal class VirtualTrackComparatorTest {
             track4, // bb
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf()))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf()))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -84,7 +84,7 @@ internal class VirtualTrackComparatorTest {
         )
 
         val actualTracksOrder = sourceTracksOrder.sortedWith(
-            VirtualTrackComparator.build(
+            virtualTrackComparator(
                 listOf(
                     VirtualTrackSelectors.ARTIST,
                     VirtualTrackSelectors.ALBUM,
@@ -110,7 +110,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.URI)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.URI)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -129,7 +129,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.ARTIST)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.ARTIST)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -148,7 +148,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.ALBUM_ARTIST)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.ALBUM_ARTIST)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -167,7 +167,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.ALBUM)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.ALBUM)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -186,7 +186,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.DATE)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.DATE)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -205,7 +205,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.DATE)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.DATE)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -224,7 +224,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.YEAR)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.YEAR)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -243,7 +243,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.YEAR)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.YEAR)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -262,7 +262,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.TITLE)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.TITLE)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -281,7 +281,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.TRACK)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.TRACK)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -300,7 +300,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.TRACK_TOTAL)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.TRACK_TOTAL)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -319,7 +319,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.DISC)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.DISC)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -338,7 +338,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.DISC_TOTAL)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.DISC_TOTAL)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -357,7 +357,7 @@ internal class VirtualTrackComparatorTest {
             track1,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.TITLE)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.TITLE)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }
@@ -376,7 +376,7 @@ internal class VirtualTrackComparatorTest {
             track2,
         )
 
-        val actualTracksOrder = sourceTracksOrder.sortedWith(VirtualTrackComparator.build(listOf(VirtualTrackSelectors.TITLE)))
+        val actualTracksOrder = sourceTracksOrder.sortedWith(virtualTrackComparator(listOf(VirtualTrackSelectors.TITLE)))
 
         assertEquals(expectedTracksOrder, actualTracksOrder)
     }

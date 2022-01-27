@@ -2,10 +2,22 @@ package org.gravidence.gravifon.domain.track
 
 import kotlinx.serialization.Serializable
 import org.gravidence.gravifon.domain.tag.FieldValues
+import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
 import org.jaudiotagger.tag.FieldKey
 import java.net.URI
 
 val dateRegex = """^(\d{4})(-\d{2}(-\d{2})?)?""".toRegex()
+
+/**
+ * Builds a [VirtualTrack] comparator based on sequence of [selectors].
+ */
+fun virtualTrackComparator(selectors: List<VirtualTrackSelectors> = listOf(VirtualTrackSelectors.URI)): Comparator<VirtualTrack> {
+    var comparator = compareBy((selectors.firstOrNull() ?: VirtualTrackSelectors.URI).selector)
+    selectors.drop(1).forEach {
+        comparator = comparator.thenBy(it.selector)
+    }
+    return comparator
+}
 
 @Serializable
 sealed class VirtualTrack {

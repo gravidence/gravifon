@@ -19,8 +19,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.Settings
-import org.gravidence.gravifon.domain.track.compare.VirtualTrackComparator
 import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
+import org.gravidence.gravifon.domain.track.virtualTrackComparator
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
@@ -101,7 +101,7 @@ class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryCo
             if (TrackQueryParser.validate(changed)) {
                 val selection = TrackQueryParser.execute(changed, library.allTracks())
                     // TODO sortOrder should be part of view state
-                    .sortedWith(VirtualTrackComparator.build(viewConfig.sortOrder))
+                    .sortedWith(virtualTrackComparator(viewConfig.sortOrder))
                     .map { TrackPlaylistItem(it) }
                 playlist.replace(selection)
                 playlistItems.value = playlist.items()
