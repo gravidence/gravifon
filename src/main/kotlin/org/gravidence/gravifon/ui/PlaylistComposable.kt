@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.dp
@@ -35,6 +36,15 @@ class PlaylistState(val playlistItems: MutableState<List<PlaylistItem>>, val pla
         return when (playlistItem) {
             is TrackPlaylistItem -> listOf("${playlistItem.track.getArtist()} - ${playlistItem.track.getTitle()}")
             is AlbumPlaylistItem -> TODO()
+        }
+    }
+
+    fun onPointerEvent(pointerEvent: PointerEvent, playlistItem: PlaylistItem) {
+        (pointerEvent.nativeEvent as? MouseEvent)?.apply {
+            if (button == 1 && clickCount == 2) {
+                playlist.moveToSpecific(playlistItem)
+                EventBus.publish(SubPlaylistPlayCurrentEvent())
+            }
         }
     }
 
@@ -86,15 +96,10 @@ fun PlaylistItemComposable(playlistItem: PlaylistItem, playlistState: PlaylistSt
             .background(color = Color.LightGray, shape = RoundedCornerShape(5.dp))
             .onPointerEvent(
                 eventType = PointerEventType.Release,
-                onEvent = { pointerEvent ->
-                    (pointerEvent.nativeEvent as? MouseEvent)?.apply {
-                        if (button == 1 && clickCount == 2) {
-                            println("doubleclick on $playlistItem!")
-                            playlistState.playlist.moveToSpecific(playlistItem)
-                            EventBus.publish(SubPlaylistPlayCurrentEvent())
-                        }
-                    }
-                })
+                onEvent = {
+                    playlistState.onPointerEvent(it, playlistItem)
+                }
+            )
     ) {
         playlistState.render(playlistItem).forEach {
             Text(
