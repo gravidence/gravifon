@@ -30,6 +30,7 @@ object TestUtil {
     }
 
     fun fixedFileVirtualTrack(
+        path: String = randomAlphanumericString(20),
         title: String? = null,
         artist: String? = null,
         album: String? = null,
@@ -37,8 +38,12 @@ object TestUtil {
         date: String? = null,
         comment: String? = null,
         genre: String? = null,
+        track: String? = null,
+        trackTotal: String? = null,
+        disc: String? = null,
+        discTotal: String? = null,
     ): FileVirtualTrack {
-        return FileVirtualTrack(path = randomAlphanumericString(20)).apply {
+        return FileVirtualTrack(path = path).apply {
             setTitle(title)
             setArtist(artist)
             setAlbum(album)
@@ -46,19 +51,23 @@ object TestUtil {
             setDate(date)
             setComment(comment)
             setGenre(genre)
+            setTrack(track)
+            setTrackTotal(trackTotal)
+            setDisc(disc)
+            setDiscTotal(discTotal)
         }
     }
 
     fun randomFileVirtualTrack(
-        artist: String? = null,
-        album: String? = null,
-        albumArtist: String? = null
+        artist: String = randomAlphabeticString(8),
+        album: String = randomAlphabeticString(12),
+        albumArtist: String = randomAlphabeticString(8)
     ): FileVirtualTrack {
         return fixedFileVirtualTrack(
             title = randomAlphabeticString(10),
-            artist = artist ?: randomAlphabeticString(8),
-            album = album ?: randomAlphabeticString(12),
-            albumArtist = albumArtist ?: randomAlphabeticString(8),
+            artist = artist,
+            album = album,
+            albumArtist = albumArtist,
             date = (1980..2020).random().toString(),
             comment = randomAlphabeticString(30),
             genre = randomAlphabeticString(6)
@@ -70,13 +79,13 @@ object TestUtil {
     }
 
     fun randomVirtualAlbum(
-        album: String? = null,
-        albumArtist: String? = null,
-        numberOfTracks: Int? = null
+        album: String = randomAlphabeticString(12),
+        albumArtist: String = randomAlphabeticString(8),
+        numberOfTracks: Int = (3..20).random()
     ): VirtualAlbum {
-        val albumResolved = album ?: randomAlphabeticString(12)
-        val albumArtistResolved = albumArtist ?: randomAlphabeticString(8)
-        val numberOfTracksResolved = numberOfTracks ?: (3..20).random()
+        val albumResolved = album
+        val albumArtistResolved = albumArtist
+        val numberOfTracksResolved = numberOfTracks
 
         val firstTrack = randomFileVirtualTrack(album = albumResolved, albumArtist = albumArtistResolved)
         val tracks = mutableListOf(firstTrack)

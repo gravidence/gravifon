@@ -116,4 +116,36 @@ sealed class VirtualTrack {
         setFieldValues(FieldKey.COMMENT, value)
     }
 
+    fun getTrack(): String? {
+        return getFieldValue(FieldKey.TRACK)
+    }
+
+    fun setTrack(value: String?) {
+        setFieldValues(FieldKey.TRACK, value)
+    }
+
+    fun getTrackTotal(): String? {
+        return getFieldValue(FieldKey.TRACK_TOTAL)
+    }
+
+    fun setTrackTotal(value: String?) {
+        setFieldValues(FieldKey.TRACK_TOTAL, value)
+    }
+
+    fun getDisc(): String? {
+        return getFieldValue(FieldKey.DISC_NO)
+    }
+
+    fun setDisc(value: String?) {
+        setFieldValues(FieldKey.DISC_NO, value)
+    }
+
+    fun getDiscTotal(): String? {
+        return getFieldValue(FieldKey.DISC_TOTAL)
+    }
+
+    fun setDiscTotal(value: String?) {
+        setFieldValues(FieldKey.DISC_TOTAL, value)
+    }
+
 }

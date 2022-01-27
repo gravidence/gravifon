@@ -22,6 +22,10 @@ internal class PhysicalTrackTest {
         assertEquals("Silence Track", virtualTrack.getTitle())
         assertEquals("Silence Genre", virtualTrack.getGenre())
         assertEquals("Silence Comment", virtualTrack.getComment())
+        assertEquals("2", virtualTrack.getTrack())
+        assertEquals("8", virtualTrack.getTrackTotal())
+        assertEquals("1", virtualTrack.getDisc())
+        assertEquals("2", virtualTrack.getDiscTotal())
     }
 
     @Test
@@ -39,6 +43,10 @@ internal class PhysicalTrackTest {
         assertEquals("Silence Track", virtualTrack.getTitle())
         assertEquals("Silence Genre", virtualTrack.getGenre())
         assertEquals("Silence Comment", virtualTrack.getComment())
+        assertEquals("2", virtualTrack.getTrack())
+        assertEquals("8", virtualTrack.getTrackTotal())
+        assertEquals("1", virtualTrack.getDisc())
+        assertEquals("2", virtualTrack.getDiscTotal())
     }
 
     @Test
@@ -56,6 +64,10 @@ internal class PhysicalTrackTest {
         assertEquals("Silence Track", virtualTrack.getTitle())
         assertEquals("Silence Genre", virtualTrack.getGenre())
         assertEquals("Silence Comment", virtualTrack.getComment())
+        assertEquals("2", virtualTrack.getTrack())
+        assertEquals("8", virtualTrack.getTrackTotal())
+        assertEquals("1", virtualTrack.getDisc())
+        assertEquals("2", virtualTrack.getDiscTotal())
     }
 
     @Test
@@ -74,6 +86,10 @@ internal class PhysicalTrackTest {
         // ID3v1 supports only predefined set of genres
         assertEquals("Blues", virtualTrack.getGenre())
         assertEquals("Silence Comment", virtualTrack.getComment())
+        assertEquals("2", virtualTrack.getTrack())
+        assertNull(virtualTrack.getTrackTotal())
+        assertNull(virtualTrack.getDisc())
+        assertNull(virtualTrack.getDiscTotal())
     }
 
     @Test
@@ -91,6 +107,10 @@ internal class PhysicalTrackTest {
         assertEquals("Silence Track", virtualTrack.getTitle())
         assertEquals("Silence Genre", virtualTrack.getGenre())
         assertEquals("Silence Comment", virtualTrack.getComment())
+        assertEquals("2", virtualTrack.getTrack())
+        assertEquals("8", virtualTrack.getTrackTotal())
+        assertEquals("1", virtualTrack.getDisc())
+        assertEquals("2", virtualTrack.getDiscTotal())
     }
 
 }
