@@ -1,19 +1,21 @@
 // Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
-import org.gravidence.gravifon.event.playback.*
-import org.gravidence.gravifon.event.playlist.SubPlaylistActivatePriorityPlaylistEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
+import org.gravidence.gravifon.ui.PlaybackControlComposable
+import org.gravidence.gravifon.ui.rememberPlaybackControlState
 import org.gravidence.gravifon.view.View
 import org.springframework.beans.factory.getBean
 
@@ -24,6 +26,7 @@ fun App() {
 
     var text by remember { mutableStateOf("Gravifon") }
 
+    val playbackControlState = rememberPlaybackControlState()
     val view: View by remember { mutableStateOf(Gravifon.ctx.getBean<org.gravidence.gravifon.view.LibraryView>()) }
 
     LaunchedEffect(Unit) {
@@ -47,32 +50,36 @@ fun App() {
                             }) {
                                 Text("Save")
                             }
-                            Button(onClick = {
-                                EventBus.publish(SubPlaylistActivatePriorityPlaylistEvent(null))
-                                EventBus.publish(SubPlaylistActivateRegularPlaylistEvent(null))
-                                EventBus.publish(SubPlaylistPlayNextEvent())
-                            }) {
-                                Text("Play")
-                            }
-                            Button(onClick = {
-                                EventBus.publish(SubPlaybackPauseEvent())
-                            }) {
-                                Text("Pause")
-                            }
-                            Button(onClick = {
-                                EventBus.publish(SubPlaybackStopEvent())
-                            }) {
-                                Text("Stop")
-                            }
                         }
                     )
                 },
-                bottomBar = {
-                    Row { Text("Bottom Bar") }
-                },
+//                bottomBar = {
+//                    Row { Text("Bottom Bar") }
+//                },
                 content = {
-//                    LibraryView()
-                    view.compose()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(5.dp)
+                    ) {
+                        Column() {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                            ) {
+                                PlaybackControlComposable(playbackControlState)
+                            }
+                            Divider(color = Color.Transparent, thickness = 5.dp)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                            ) {
+                                view.compose()
+                            }
+                        }
+                    }
                 }
             )
         }
@@ -96,63 +103,4 @@ fun PlaybackInformationPanel() {
     }
 
     Text(text = artist)
-}
-
-@Composable
-fun PlaybackControlPanel() {
-
-    var sliderStart: Float by remember { mutableStateOf(0f) }
-    var sliderFinish: Float by remember { mutableStateOf(0f) }
-    var sliderSteps: Int by remember { mutableStateOf(0) }
-    var sliderPosition: Float by remember { mutableStateOf(0f) }
-
-    EventBus.subscribe {
-        when (it) {
-            is PubPlaybackStartEvent -> {
-                sliderStart = 0f
-                sliderFinish = it.length.toFloat()
-                sliderSteps = it.length.toInt()
-            }
-            is SubPlaybackStopEvent -> {
-                sliderStart = 0f
-                sliderFinish = 0f
-                sliderSteps = 0
-            }
-            is PubPlaybackPositionEvent -> sliderPosition = it.position.toFloat()
-        }
-    }
-
-    Slider(
-        value = sliderPosition,
-        steps = sliderSteps,
-        valueRange = sliderStart..sliderFinish,
-        onValueChange = {
-            sliderPosition = it
-            EventBus.publish(SubPlaybackPositionEvent(it.toLong()))
-        })
-}
-
-@Composable
-fun LibraryView() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                PlaybackInformationPanel()
-            }
-            Divider()
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                PlaybackControlPanel()
-            }
-            Divider()
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Search Bar")
-            }
-            Divider()
-            Row(modifier = Modifier.fillMaxWidth().fillMaxHeight(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("Search Results")
-                }
-            }
-        }
-    }
 }

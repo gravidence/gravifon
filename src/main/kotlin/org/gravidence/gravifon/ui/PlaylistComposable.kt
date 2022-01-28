@@ -62,8 +62,6 @@ fun PlaylistComposable(playlistState: PlaylistState) {
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(10.dp)
             .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
     ) {
         LazyColumn(

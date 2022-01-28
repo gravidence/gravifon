@@ -1,6 +1,7 @@
 package org.gravidence.gravifon.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -122,18 +123,18 @@ class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryCo
         val libraryViewState = rememberLibraryViewState(playlist = playlist)
         val playlistState = rememberPlaylistState(libraryViewState.playlistItems, playlist)
 
-        Column {
-            Row(
-                modifier = Modifier
-                    .height(50.dp)
-                    .fillMaxWidth()
-                    .padding(5.dp)
-            ) {
-                QueryBar(libraryViewState)
-            }
-            Divider(thickness = 3.dp)
-            Row {
-                org.gravidence.gravifon.ui.PlaylistComposable(playlistState)
+        Box(
+            modifier = Modifier
+                .padding(5.dp)
+        ) {
+            Column {
+                Row {
+                    QueryBar(libraryViewState)
+                }
+                Divider(color = Color.Transparent, thickness = 2.dp)
+                Row {
+                    org.gravidence.gravifon.ui.PlaylistComposable(playlistState)
+                }
             }
         }
     }
@@ -142,19 +143,18 @@ class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryCo
     fun QueryBar(libraryViewState: LibraryViewState) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(color = Color.LightGray, shape = RoundedCornerShape(10.dp))
+                .height(50.dp)
+                .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                .background(color = Color.LightGray, shape = RoundedCornerShape(5.dp))
         ) {
             BasicTextField(
                 value = libraryViewState.query.value,
-                onValueChange = {
-                    libraryViewState.onQueryChange(it)
-                },
+                singleLine = true,
+                onValueChange = { libraryViewState.onQueryChange(it) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(5.dp)
-                    .align(Alignment.CenterStart),
-                singleLine = true
+                    .align(Alignment.CenterStart)
             )
         }
     }
