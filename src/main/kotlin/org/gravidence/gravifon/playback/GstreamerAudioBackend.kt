@@ -8,6 +8,9 @@ import org.freedesktop.gstreamer.elements.PlayBin
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 private val logger = KotlinLogging.logger {}
 
@@ -41,18 +44,19 @@ class GstreamerAudioBackend : AudioBackend {
         playbin.stop()
     }
 
-    override fun queryLength(): Long {
+    override fun queryLength(): Duration {
         return playbin.queryDuration(TimeUnit.MILLISECONDS).also {
-            if (it == 0L) logger.warn { "Track length is zero" }
-        }
+            if (it == 0L) logger.warn { "Gstreamer reports stream duration is zero" }
+        }.toDuration(DurationUnit.MILLISECONDS)
     }
 
-    override fun queryPosition(): Long {
+    override fun queryPosition(): Duration {
         return playbin.queryPosition(TimeUnit.MILLISECONDS)
+            .toDuration(DurationUnit.MILLISECONDS)
     }
 
-    override fun adjustPosition(position: Long) {
-        playbin.seek(position, TimeUnit.MILLISECONDS)
+    override fun adjustPosition(position: Duration) {
+        playbin.seek(position.inWholeMilliseconds, TimeUnit.MILLISECONDS)
     }
 
     override fun queryVolume(): Int {

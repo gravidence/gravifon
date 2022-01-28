@@ -14,6 +14,7 @@ import org.gravidence.gravifon.orchestration.OrchestratorConsumer
 import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
+import kotlin.time.Duration
 
 private val logger = KotlinLogging.logger {}
 
@@ -55,7 +56,13 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
         // launch with a small delay to workaround gstreamer query_duration API limitations
         Gravifon.scopeDefault.launch {
             delay(50)
-            publish(PubPlaybackStartEvent(track, audioBackend.queryLength()))
+            var trackLength = audioBackend.queryLength()
+            if (trackLength == Duration.ZERO) {
+                logger.warn { "Audio backend reports stream duration is zero (even after entering PLAYING state). Last chance to make it work by waiting a bit once again and re-query" }
+                delay(20)
+                trackLength = audioBackend.queryLength()
+            }
+            publish(PubPlaybackStartEvent(track, trackLength))
             publish(PubTrackStartEvent(track))
         }
 
@@ -77,7 +84,7 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
         currentTrack?.let { publish(PubTrackFinishEvent(it)) }
     }
 
-    private fun seek(position: Long) {
+    private fun seek(position: Duration) {
         audioBackend.adjustPosition(position)
         // not sending status update event since position change already initiated by UI, and there's no other party that could do so
     }

@@ -6,7 +6,6 @@ import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -18,26 +17,32 @@ import org.gravidence.gravifon.event.playlist.SubPlaylistActivatePriorityPlaylis
 import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.playback.PlaybackState
-import org.gravidence.gravifon.ui.state.SliderState
+import org.gravidence.gravifon.ui.state.PlaybackPositionState
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
-class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, val playbackState: MutableState<PlaybackState>, val playbackSliderState: SliderState) {
+class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, val playbackState: MutableState<PlaybackState>, val playbackPositionState: PlaybackPositionState) {
 
     init {
         EventBus.subscribe {
             when (it) {
                 is PubPlaybackStartEvent -> {
                     playbackState.value = PlaybackState.PLAYING
-                    playbackSliderState.positionRange.value = 0f..it.length.toFloat()
+                    playbackPositionState.endingPosition.value = it.length
                 }
                 is SubPlaybackPauseEvent -> {
                     playbackState.value = PlaybackState.PAUSED
                 }
                 is SubPlaybackStopEvent -> {
                     playbackState.value = PlaybackState.STOPPED
-                    playbackSliderState.position.value = 0f
-                    playbackSliderState.positionRange.value = 0f..0f
+                    // reposition to start
+                    playbackPositionState.runningPosition.value = Duration.ZERO
+                    playbackPositionState.endingPosition.value = Duration.ZERO
                 }
-                is PubPlaybackPositionEvent -> playbackSliderState.position.value = it.position.toFloat()
+                is PubPlaybackPositionEvent -> {
+                    playbackPositionState.runningPosition.value = it.position
+                }
             }
         }
     }
@@ -64,9 +69,10 @@ class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, 
 
     }
 
-    fun onPositionChange(position: Float) {
-        playbackSliderState.position.value = position
-        EventBus.publish(SubPlaybackPositionEvent(position.toLong()))
+    fun onPositionChange(rawPosition: Float) {
+        val position = rawPosition.toLong().toDuration(DurationUnit.MILLISECONDS)
+        playbackPositionState.runningPosition.value = position
+        EventBus.publish(SubPlaybackPositionEvent(position))
     }
 
 }
@@ -75,8 +81,8 @@ class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, 
 fun rememberPlaybackControlState(
     activeVirtualTrack: MutableState<VirtualTrack?> = Gravifon.activeVirtualTrack,
     playbackState: MutableState<PlaybackState> = Gravifon.playbackState,
-    playbackSliderState: SliderState = SliderState(mutableStateOf(0f), mutableStateOf(0f..0f))
-) = remember(activeVirtualTrack, playbackState, playbackSliderState) { PlaybackControlState(activeVirtualTrack, playbackState, playbackSliderState) }
+    playbackPositionState: PlaybackPositionState = PlaybackPositionState()
+) = remember(activeVirtualTrack, playbackState, playbackPositionState) { PlaybackControlState(activeVirtualTrack, playbackState, playbackPositionState) }
 
 @Composable
 fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
@@ -122,8 +128,10 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                     Text("Next")
                 }
                 Slider(
-                    value = playbackControlState.playbackSliderState.position.value,
-                    valueRange = playbackControlState.playbackSliderState.positionRange.value,
+                    value = playbackControlState.playbackPositionState.runningPosition.value
+                        .inWholeMilliseconds.toFloat(),
+                    valueRange = 0f..playbackControlState.playbackPositionState.endingPosition.value
+                        .inWholeMilliseconds.toFloat(),
                     onValueChange = {
                         playbackControlState.onPositionChange(it)
                     },

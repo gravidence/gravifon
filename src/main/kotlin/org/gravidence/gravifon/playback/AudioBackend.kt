@@ -1,6 +1,7 @@
 package org.gravidence.gravifon.playback
 
 import org.gravidence.gravifon.domain.track.VirtualTrack
+import kotlin.time.Duration
 
 interface AudioBackend {
 
@@ -8,9 +9,18 @@ interface AudioBackend {
     fun pause()
     fun stop()
 
-    fun queryLength(): Long
-    fun queryPosition(): Long
-    fun adjustPosition(position: Long)
+    /**
+     * Returns stream length.
+     */
+    fun queryLength(): Duration
+    /**
+     * Returns current stream position.
+     */
+    fun queryPosition(): Duration
+    /**
+     * Adjusts stream current position.
+     */
+    fun adjustPosition(position: Duration)
     fun queryVolume(): Int
     fun adjustVolume(volume: Int)
 
