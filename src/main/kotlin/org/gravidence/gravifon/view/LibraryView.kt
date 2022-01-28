@@ -45,7 +45,12 @@ private val logger = KotlinLogging.logger {}
 class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryConsumer {
 
     @Serializable
-    data class LibraryViewConfiguration(val playlistId: String, val sortOrder: MutableList<VirtualTrackSelectors> = mutableListOf())
+    data class LibraryViewConfiguration(
+        val playlistId: String,
+        val queryHistory: MutableList<String> = mutableListOf(),
+        val queryHistorySizeLimit: Int = 10,
+        val sortOrder: MutableList<VirtualTrackSelectors> = mutableListOf()
+    )
 
     private lateinit var viewConfig: LibraryViewConfiguration
 
@@ -106,6 +111,11 @@ class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryCo
                     .map { TrackPlaylistItem(it) }
                 playlist.replace(selection)
                 playlistItems.value = playlist.items()
+
+                if (viewConfig.queryHistory.size >= viewConfig.queryHistorySizeLimit) {
+                    viewConfig.queryHistory.removeLast()
+                }
+                viewConfig.queryHistory.add(0, changed)
             }
         }
 
@@ -120,8 +130,13 @@ class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryCo
 
     @Composable
     override fun compose() {
-        val libraryViewState = rememberLibraryViewState(playlist = playlist)
-        val playlistState = rememberPlaylistState(libraryViewState.playlistItems, playlist)
+        val libraryViewState = rememberLibraryViewState(
+            query = mutableStateOf(viewConfig.queryHistory.firstOrNull() ?: ""),
+            playlistItems = mutableStateOf(playlist.items()),
+            playlist = playlist)
+        val playlistState = rememberPlaylistState(
+            playlistItems = libraryViewState.playlistItems,
+            playlist = playlist)
 
         Box(
             modifier = Modifier
