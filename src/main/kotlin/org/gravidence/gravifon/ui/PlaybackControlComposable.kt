@@ -18,6 +18,7 @@ import org.gravidence.gravifon.event.playlist.SubPlaylistActivatePriorityPlaylis
 import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.playback.PlaybackState
+import org.gravidence.gravifon.ui.state.SliderState
 
 class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, val playbackState: MutableState<PlaybackState>, val playbackSliderState: SliderState) {
 
@@ -26,7 +27,6 @@ class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, 
             when (it) {
                 is PubPlaybackStartEvent -> {
                     playbackState.value = PlaybackState.PLAYING
-                    playbackSliderState.steps.value = it.length.toInt()
                     playbackSliderState.positionRange.value = 0f..it.length.toFloat()
                 }
                 is SubPlaybackPauseEvent -> {
@@ -34,7 +34,7 @@ class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, 
                 }
                 is SubPlaybackStopEvent -> {
                     playbackState.value = PlaybackState.STOPPED
-                    playbackSliderState.steps.value = 0
+                    playbackSliderState.position.value = 0f
                     playbackSliderState.positionRange.value = 0f..0f
                 }
                 is PubPlaybackPositionEvent -> playbackSliderState.position.value = it.position.toFloat()
@@ -75,7 +75,7 @@ class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, 
 fun rememberPlaybackControlState(
     activeVirtualTrack: MutableState<VirtualTrack?> = Gravifon.activeVirtualTrack,
     playbackState: MutableState<PlaybackState> = Gravifon.playbackState,
-    playbackSliderState: SliderState = SliderState(mutableStateOf(0f), mutableStateOf(0), mutableStateOf(0f..0f))
+    playbackSliderState: SliderState = SliderState(mutableStateOf(0f), mutableStateOf(0f..0f))
 ) = remember(activeVirtualTrack, playbackState, playbackSliderState) { PlaybackControlState(activeVirtualTrack, playbackState, playbackSliderState) }
 
 @Composable
@@ -123,9 +123,10 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                 }
                 Slider(
                     value = playbackControlState.playbackSliderState.position.value,
-                    steps = playbackControlState.playbackSliderState.steps.value,
                     valueRange = playbackControlState.playbackSliderState.positionRange.value,
-                    onValueChange = { playbackControlState.onPositionChange(it) },
+                    onValueChange = {
+                        playbackControlState.onPositionChange(it)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
 //                        .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))

@@ -68,7 +68,7 @@ class GstreamerAudioBackend : AudioBackend {
 
         playbin.stop()
         playbin.setURI(track.uri())
-        playbin.pause()
+        playbin.ready()
 
         logger.debug { "Ready to play $track" }
     }

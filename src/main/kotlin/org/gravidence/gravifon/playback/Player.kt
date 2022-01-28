@@ -1,6 +1,9 @@
 package org.gravidence.gravifon.playback
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
+import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
@@ -47,10 +50,14 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
         currentTrack = track
 
         audioBackend.prepare(track)
-        publish(PubPlaybackStartEvent(track, audioBackend.queryLength()))
-
         audioBackend.play()
-        publish(PubTrackStartEvent(track))
+
+        // launch with a small delay to workaround gstreamer query_duration API limitations
+        Gravifon.scopeDefault.launch {
+            delay(50)
+            publish(PubPlaybackStartEvent(track, audioBackend.queryLength()))
+            publish(PubTrackStartEvent(track))
+        }
 
         timer = fixedRateTimer(initialDelay = 1000, period = 100) {
             logger.trace { "Time to send playback status update events" }
