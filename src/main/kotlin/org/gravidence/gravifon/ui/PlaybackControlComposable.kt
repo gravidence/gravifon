@@ -7,7 +7,9 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.domain.track.VirtualTrack
@@ -18,6 +20,7 @@ import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylist
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.playback.PlaybackState
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
+import org.gravidence.gravifon.util.DurationUtil
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -75,6 +78,14 @@ class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, 
         EventBus.publish(SubPlaybackPositionEvent(position))
     }
 
+    fun elapsedTime(): String {
+        return DurationUtil.format(playbackPositionState.runningPosition.value)
+    }
+
+    fun remainingTime(): String {
+        return DurationUtil.format(playbackPositionState.endingPosition.value.minus(playbackPositionState.runningPosition.value))
+    }
+
 }
 
 @Composable
@@ -89,9 +100,10 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
     Box(
         modifier = Modifier
             .padding(5.dp)
-//            .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
     ) {
+        Column {
             Row(
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 modifier = Modifier
                     .padding(10.dp)
@@ -127,6 +139,7 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                 ) {
                     Text("Next")
                 }
+                Text(text = playbackControlState.elapsedTime(), fontWeight = FontWeight.Light)
                 Slider(
                     value = playbackControlState.playbackPositionState.runningPosition.value
                         .inWholeMilliseconds.toFloat(),
@@ -136,9 +149,10 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                         playbackControlState.onPositionChange(it)
                     },
                     modifier = Modifier
-                        .fillMaxWidth()
-//                        .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                        .fillMaxWidth(0.8f) // TODO workaround for https://github.com/JetBrains/compose-jb/issues/1765
                 )
+                Text(text = "-${playbackControlState.remainingTime()}", fontWeight = FontWeight.Light)
             }
+        }
     }
 }
