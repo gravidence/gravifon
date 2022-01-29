@@ -21,7 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
 import org.gravidence.gravifon.playlist.Playlist
@@ -30,7 +33,7 @@ import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import java.awt.event.MouseEvent
 
-class PlaylistState(val playlistItems: MutableState<List<PlaylistItem>>, val playlist: Playlist) {
+class PlaylistState(val activeVirtualTrack: MutableState<VirtualTrack?>, val playlistItems: MutableState<List<PlaylistItem>>, val playlist: Playlist) {
 
     fun render(playlistItem: PlaylistItem): List<String> {
         return when (playlistItem) {
@@ -52,9 +55,10 @@ class PlaylistState(val playlistItems: MutableState<List<PlaylistItem>>, val pla
 
 @Composable
 fun rememberPlaylistState(
+    activeVirtualTrack: MutableState<VirtualTrack?> = Gravifon.activeVirtualTrack,
     playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(listOf()),
     playlist: Playlist
-) = remember(playlistItems, playlist) { PlaylistState(playlistItems, playlist) }
+) = remember(activeVirtualTrack, playlistItems) { PlaylistState(activeVirtualTrack, playlistItems, playlist) }
 
 @Composable
 fun PlaylistComposable(playlistState: PlaylistState) {
@@ -87,6 +91,12 @@ fun PlaylistComposable(playlistState: PlaylistState) {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PlaylistItemComposable(playlistItem: PlaylistItem, playlistState: PlaylistState) {
+    val fontWeight = if ((playlistItem as? TrackPlaylistItem)?.track == playlistState.activeVirtualTrack.value) {
+        FontWeight.Bold
+    } else {
+        FontWeight.Normal
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -102,7 +112,9 @@ fun PlaylistItemComposable(playlistItem: PlaylistItem, playlistState: PlaylistSt
         playlistState.render(playlistItem).forEach {
             Text(
                 text = it,
-                modifier = Modifier.padding(5.dp)
+                fontWeight = fontWeight,
+                modifier = Modifier
+                    .padding(5.dp)
             )
         }
     }
