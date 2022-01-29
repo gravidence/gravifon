@@ -45,8 +45,7 @@ class PlaylistState(val activeVirtualTrack: MutableState<VirtualTrack?>, val pla
     fun onPointerEvent(pointerEvent: PointerEvent, playlistItem: PlaylistItem) {
         (pointerEvent.nativeEvent as? MouseEvent)?.apply {
             if (button == 1 && clickCount == 2) {
-                playlist.moveToSpecific(playlistItem)
-                EventBus.publish(SubPlaylistPlayCurrentEvent())
+                EventBus.publish(SubPlaylistPlayCurrentEvent(playlist, playlistItem))
             }
         }
     }

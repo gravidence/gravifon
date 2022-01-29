@@ -14,46 +14,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.domain.track.VirtualTrack
-import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.playback.PubPlaybackPositionEvent
-import org.gravidence.gravifon.event.playback.PubPlaybackStartEvent
-import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
-import org.gravidence.gravifon.event.playback.SubPlaybackStopEvent
 import org.gravidence.gravifon.playback.PlaybackState
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
 import org.gravidence.gravifon.util.DurationUtil
-import kotlin.time.Duration
 
 class PlaybackInformationState(
     val activeVirtualTrack: MutableState<VirtualTrack?>,
     val playbackState: MutableState<PlaybackState>,
     val playbackPositionState: PlaybackPositionState
 ) {
-
-    init {
-        EventBus.subscribe {
-            when (it) {
-                is PubPlaybackStartEvent -> {
-                    activeVirtualTrack.value = it.track
-                    playbackState.value = PlaybackState.PLAYING
-                    playbackPositionState.endingPosition.value = it.length
-                }
-                is SubPlaybackPauseEvent -> {
-                    playbackState.value = PlaybackState.PAUSED
-                }
-                is SubPlaybackStopEvent -> {
-                    activeVirtualTrack.value = null
-                    playbackState.value = PlaybackState.STOPPED
-                    // reposition to start
-                    playbackPositionState.runningPosition.value = Duration.ZERO
-                    playbackPositionState.endingPosition.value = Duration.ZERO
-                }
-                is PubPlaybackPositionEvent -> {
-                    playbackPositionState.runningPosition.value = it.position
-                }
-            }
-        }
-    }
 
     fun renderArtistInformation(): String {
         return activeVirtualTrack.value?.getArtist() ?: "<unknown artist>"
@@ -88,7 +57,7 @@ class PlaybackInformationState(
 fun rememberPlaybackInformationState(
     activeVirtualTrack: MutableState<VirtualTrack?> = Gravifon.activeVirtualTrack,
     playbackState: MutableState<PlaybackState> = Gravifon.playbackState,
-    playbackPositionState: PlaybackPositionState = PlaybackPositionState()
+    playbackPositionState: PlaybackPositionState = Gravifon.playbackPositionState
 ) = remember(activeVirtualTrack, playbackState, playbackPositionState) {
     PlaybackInformationState(
         activeVirtualTrack,

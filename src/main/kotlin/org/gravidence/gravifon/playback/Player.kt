@@ -23,15 +23,26 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
 
     private var timer = Timer()
 
-    private var currentTrack: VirtualTrack? = null
-
     override fun consume(event: Event) {
         when (event) {
-            is SubPlaybackStatusEvent -> sendStatusUpdate()
-            is SubPlaybackStartEvent -> start(event.track)
-            is SubPlaybackPauseEvent -> pause()
-            is SubPlaybackStopEvent -> stop()
-            is SubPlaybackPositionEvent -> seek(event.position)
+            is SubPlaybackStatusEvent -> {
+                sendStatusUpdate()
+            }
+            is SubPlaybackStartEvent -> {
+                Gravifon.playbackState.value = PlaybackState.PLAYING
+                start(event.track)
+            }
+            is SubPlaybackPauseEvent -> {
+                Gravifon.playbackState.value = PlaybackState.PAUSED
+                pause()
+            }
+            is SubPlaybackStopEvent -> {
+                Gravifon.playbackState.value = PlaybackState.STOPPED
+                stop()
+            }
+            is SubPlaybackPositionEvent -> {
+                seek(event.position)
+            }
         }
     }
 
@@ -48,9 +59,10 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
     }
 
     private fun start(track: VirtualTrack) {
-        currentTrack = track
-
         audioBackend.prepare(track)
+
+        Gravifon.activeVirtualTrack.value = track
+
         audioBackend.play()
 
         // launch with a small delay to workaround gstreamer query_duration API limitations
@@ -62,9 +74,11 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
                 delay(20)
                 trackLength = audioBackend.queryLength()
             }
-            publish(PubPlaybackStartEvent(track, trackLength))
-            publish(PubTrackStartEvent(track))
+
+            Gravifon.playbackPositionState.endingPosition.value = trackLength
         }
+
+        publish(PubTrackStartEvent(track))
 
         timer = fixedRateTimer(initialDelay = 1000, period = 100) {
             logger.trace { "Time to send playback status update events" }
@@ -81,16 +95,21 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
 
         audioBackend.stop()
 
-        currentTrack?.let { publish(PubTrackFinishEvent(it)) }
+        Gravifon.activeVirtualTrack.value?.let { publish(PubTrackFinishEvent(it)) }
+
+        Gravifon.activeVirtualTrack.value = null
+        Gravifon.playbackPositionState.runningPosition.value = Duration.ZERO
+        Gravifon.playbackPositionState.endingPosition.value = Duration.ZERO
     }
 
     private fun seek(position: Duration) {
         audioBackend.adjustPosition(position)
-        // not sending status update event since position change already initiated by UI, and there's no other party that could do so
+
+        Gravifon.playbackPositionState.runningPosition.value = position
     }
 
     private fun sendStatusUpdate() {
-        publish(PubPlaybackPositionEvent(audioBackend.queryPosition()))
+        Gravifon.playbackPositionState.runningPosition.value = audioBackend.queryPosition()
     }
 
 }

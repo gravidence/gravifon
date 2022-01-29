@@ -12,25 +12,19 @@ import kotlinx.coroutines.delay
 import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
-import org.gravidence.gravifon.event.track.PubTrackFinishEvent
-import org.gravidence.gravifon.event.track.PubTrackStartEvent
 import org.gravidence.gravifon.ui.PlaybackControlComposable
 import org.gravidence.gravifon.ui.PlaybackInformationComposable
 import org.gravidence.gravifon.ui.rememberPlaybackControlState
 import org.gravidence.gravifon.ui.rememberPlaybackInformationState
-import org.gravidence.gravifon.view.View
-import org.springframework.beans.factory.getBean
 
 @Composable
 @Preview
 fun App() {
-    val scope = rememberCoroutineScope()
-
     var text by remember { mutableStateOf("Gravifon") }
 
     val playbackInformationState = rememberPlaybackInformationState()
     val playbackControlState = rememberPlaybackControlState()
-    val view: View by remember { mutableStateOf(Gravifon.ctx.getBean<org.gravidence.gravifon.view.LibraryView>()) }
+    val activeView = remember { Gravifon.activeView }
 
     LaunchedEffect(Unit) {
         delay(2000)
@@ -87,7 +81,13 @@ fun App() {
                                     .fillMaxWidth()
                                     .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
                             ) {
-                                view.compose()
+                                val value = activeView.value
+                                if (value == null) {
+                                    // TODO make proper initialization indicator
+                                    Text("Initialization...")
+                                } else {
+                                    value.compose()
+                                }
                             }
                         }
                     }
@@ -95,23 +95,4 @@ fun App() {
             )
         }
     }
-}
-
-@Composable
-fun PlaybackInformationPanel() {
-
-    var artist: String by remember { mutableStateOf("---") }
-
-    EventBus.subscribe {
-        when (it) {
-            is PubTrackStartEvent -> {
-                artist = "${it.track.getArtist()} (${it.track.getDate()}) ${it.track.getAlbum()} - ${it.track.getTitle()}" ?: "---"
-            }
-            is PubTrackFinishEvent -> {
-                artist = "---"
-            }
-        }
-    }
-
-    Text(text = artist)
 }

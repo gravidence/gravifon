@@ -19,12 +19,11 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
 import org.gravidence.gravifon.domain.track.virtualTrackComparator
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
 import org.gravidence.gravifon.orchestration.LibraryConsumer
 import org.gravidence.gravifon.orchestration.PlaylistManagerConsumer
 import org.gravidence.gravifon.orchestration.SettingsConsumer
@@ -93,7 +92,9 @@ class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryCo
         playlist = playlistManager.getPlaylist(viewConfig.playlistId) ?: DynamicPlaylist(viewConfig.playlistId)
         playlistManager.addPlaylist(playlist)
 
-        EventBus.publish(SubPlaylistActivateRegularPlaylistEvent(viewConfig.playlistId))
+        if (settings.applicationConfig().activeView == this.javaClass.name) {
+            Gravifon.activeView.value = this
+        }
     }
 
     override fun libraryReady(library: Library) {

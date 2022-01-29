@@ -14,44 +14,28 @@ import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.playback.*
-import org.gravidence.gravifon.event.playlist.SubPlaylistActivatePriorityPlaylistEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
+import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
+import org.gravidence.gravifon.event.playback.SubPlaybackPositionEvent
+import org.gravidence.gravifon.event.playback.SubPlaybackStopEvent
+import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
+import org.gravidence.gravifon.event.playlist.SubPlaylistPlayPrevEvent
 import org.gravidence.gravifon.playback.PlaybackState
+import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
 import org.gravidence.gravifon.util.DurationUtil
-import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, val playbackState: MutableState<PlaybackState>, val playbackPositionState: PlaybackPositionState) {
-
-    init {
-        EventBus.subscribe {
-            when (it) {
-                is PubPlaybackStartEvent -> {
-                    playbackState.value = PlaybackState.PLAYING
-                    playbackPositionState.endingPosition.value = it.length
-                }
-                is SubPlaybackPauseEvent -> {
-                    playbackState.value = PlaybackState.PAUSED
-                }
-                is SubPlaybackStopEvent -> {
-                    playbackState.value = PlaybackState.STOPPED
-                    // reposition to start
-                    playbackPositionState.runningPosition.value = Duration.ZERO
-                    playbackPositionState.endingPosition.value = Duration.ZERO
-                }
-                is PubPlaybackPositionEvent -> {
-                    playbackPositionState.runningPosition.value = it.position
-                }
-            }
-        }
-    }
+class PlaybackControlState(
+    val activeVirtualTrack: MutableState<VirtualTrack?>,
+    val playbackState: MutableState<PlaybackState>,
+    val playbackPositionState: PlaybackPositionState,
+    val activePlaylist: MutableState<Playlist?>
+) {
 
     fun onPrev() {
-
+        activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayPrevEvent(it)) }
     }
 
     fun onStop() {
@@ -63,18 +47,15 @@ class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, 
     }
 
     fun onPlay() {
-        EventBus.publish(SubPlaylistActivatePriorityPlaylistEvent(null))
-        EventBus.publish(SubPlaylistActivateRegularPlaylistEvent(null))
-        EventBus.publish(SubPlaylistPlayNextEvent())
+        activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayCurrentEvent(it)) }
     }
 
     fun onNext() {
-
+        activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayNextEvent(it)) }
     }
 
     fun onPositionChange(rawPosition: Float) {
         val position = rawPosition.toLong().toDuration(DurationUnit.MILLISECONDS)
-        playbackPositionState.runningPosition.value = position
         EventBus.publish(SubPlaybackPositionEvent(position))
     }
 
@@ -92,8 +73,16 @@ class PlaybackControlState(val activeVirtualTrack: MutableState<VirtualTrack?>, 
 fun rememberPlaybackControlState(
     activeVirtualTrack: MutableState<VirtualTrack?> = Gravifon.activeVirtualTrack,
     playbackState: MutableState<PlaybackState> = Gravifon.playbackState,
-    playbackPositionState: PlaybackPositionState = PlaybackPositionState()
-) = remember(activeVirtualTrack, playbackState, playbackPositionState) { PlaybackControlState(activeVirtualTrack, playbackState, playbackPositionState) }
+    playbackPositionState: PlaybackPositionState = Gravifon.playbackPositionState,
+    activePlaylist: MutableState<Playlist?> = Gravifon.activePlaylist
+) = remember(activeVirtualTrack, playbackState, playbackPositionState, activePlaylist) {
+    PlaybackControlState(
+        activeVirtualTrack,
+        playbackState,
+        playbackPositionState,
+        activePlaylist
+    )
+}
 
 @Composable
 fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {

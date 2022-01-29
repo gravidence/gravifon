@@ -59,6 +59,7 @@ class QueueView : View(), SettingsConsumer, PlaylistManagerConsumer {
 
     override fun registerPlaylist() {
         if (playlistManager.getPlaylist(viewConfig.playlistId) == null) {
+            // by below call, Queue playlist is also activated automatically by PlaylistManager
             playlistManager.addPlaylist(Queue(viewConfig.playlistId))
         }
     }

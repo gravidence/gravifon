@@ -4,25 +4,25 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+import org.gravidence.gravifon.Gravifon
 import org.gravidence.gravifon.configuration.ConfigUtil.configHomeDir
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.playback.SubPlaybackStartEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistActivatePriorityPlaylistEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistActivateRegularPlaylistEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
+import org.gravidence.gravifon.event.playlist.SubPlaylistPlayPrevEvent
 import org.gravidence.gravifon.orchestration.OrchestratorConsumer
 import org.gravidence.gravifon.orchestration.PlaylistManagerConsumer
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.Queue
+import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import java.util.*
 import kotlin.io.path.createDirectories
 import kotlin.streams.toList
 
@@ -34,14 +34,9 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
     private val configuration = Configuration()
 
     private val regularPlaylists: MutableList<Playlist> = mutableListOf()
-    private var activeRegularPlaylistId: UUID? = null
-    private var currentRegularTrackPlaylistItem: TrackPlaylistItem? = null
-    private val priorityPlaylists: MutableList<Playlist> = mutableListOf()
-    private var activePriorityPlaylistId: UUID? = null
-    private var currentPriorityTrackPlaylistItem: TrackPlaylistItem? = null
 
-    private var activeRegularPlaylist: Playlist? = null
-    private var activePriorityPlaylist: Playlist? = null
+    // TODO think how to make it immutable
+    private var priorityPlaylist: Playlist? = null
 
     init {
         logger.info { "Consumer components registered: $consumers" }
@@ -50,10 +45,9 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
     override fun consume(event: Event) {
         when (event) {
             is SubApplicationConfigurationPersistEvent -> configuration.writeConfiguration()
-            is SubPlaylistActivatePriorityPlaylistEvent -> activatePriorityPlaylist(event.playlistId)
-            is SubPlaylistActivateRegularPlaylistEvent -> activateRegularPlaylist(event.playlistId)
-            is SubPlaylistPlayCurrentEvent -> playCurrent()
-            is SubPlaylistPlayNextEvent -> playNext()
+            is SubPlaylistPlayCurrentEvent -> playCurrent(event.playlist, event.playlistItem)
+            is SubPlaylistPlayNextEvent -> playNext(event.playlist)
+            is SubPlaylistPlayPrevEvent -> playPrev(event.playlist)
         }
     }
 
@@ -75,25 +69,9 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
         configuration.writeConfiguration()
     }
 
-    @Synchronized
-    fun activateRegularPlaylist(playlistId: String?) {
-        activeRegularPlaylist = regularPlaylists.firstOrNull { playlist ->
-            playlist.id() == playlistId
-        } ?: regularPlaylists.first() // TODO unsafe if previously there was activeRegularPlaylist
-    }
-
-    @Synchronized
-    fun activatePriorityPlaylist(playlistId: String?) {
-        activePriorityPlaylist = priorityPlaylists.firstOrNull { playlist ->
-            playlist.id() == playlistId
-        } ?: priorityPlaylists.firstOrNull() // TODO unsafe if previously there was priorityRegularPlaylist
-    }
-
-    @Synchronized
-    fun playCurrent(): TrackPlaylistItem? {
-        val trackPlaylistItem = activePriorityPlaylist?.moveToCurrentTrack() ?: activeRegularPlaylist?.moveToCurrentTrack()
-
+    private fun play(playlist: Playlist, trackPlaylistItem: TrackPlaylistItem?): TrackPlaylistItem? {
         if (trackPlaylistItem != null) {
+            Gravifon.activePlaylist.value = playlist
             publish(SubPlaybackStartEvent(trackPlaylistItem.track))
         }
 
@@ -101,30 +79,41 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
     }
 
     @Synchronized
-    fun playNext(): TrackPlaylistItem? {
-        val trackPlaylistItem = activePriorityPlaylist?.moveToNextTrack() ?: activeRegularPlaylist?.moveToNextTrack()
-
-        if (trackPlaylistItem != null) {
-            publish(SubPlaybackStartEvent(trackPlaylistItem.track))
+    fun playCurrent(playlist: Playlist, playlistItem: PlaylistItem?): TrackPlaylistItem? {
+        val currentTrack = if (playlistItem != null) {
+            playlist.moveToSpecific(playlistItem)
+            playlist.peekCurrentTrack()
+        } else {
+            priorityPlaylist?.moveToCurrentTrack() ?: playlist.moveToCurrentTrack()
         }
 
-        return trackPlaylistItem
+        return play(playlist, currentTrack)
     }
 
     @Synchronized
-    fun getPlaylist(playlistId: String, holder: MutableList<Playlist>): Playlist? {
+    fun playNext(playlist: Playlist): TrackPlaylistItem? {
+        return play(playlist, priorityPlaylist?.moveToNextTrack() ?: playlist.moveToNextTrack())
+    }
+
+    @Synchronized
+    fun playPrev(playlist: Playlist): TrackPlaylistItem? {
+        return play(playlist, priorityPlaylist?.moveToPrevTrack() ?: playlist.moveToPrevTrack())
+    }
+
+    @Synchronized
+    fun getPlaylist(playlistId: String, holder: List<Playlist>): Playlist? {
         return holder.firstOrNull { it.id() == playlistId }
     }
 
     @Synchronized
     fun getPlaylist(playlistId: String): Playlist? {
-        return getPlaylist(playlistId, regularPlaylists) ?: getPlaylist(playlistId, priorityPlaylists)
+        return getPlaylist(playlistId, regularPlaylists) ?: priorityPlaylist?.takeIf { playlistId == it.id() }
     }
 
     @Synchronized
     fun addPlaylist(playlist: Playlist) {
         when (playlist) {
-            is Queue -> addPlaylist(playlist, priorityPlaylists)
+            is Queue -> priorityPlaylist = playlist
             else -> addPlaylist(playlist, regularPlaylists)
         }
     }
@@ -167,30 +156,28 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
         }
 
         fun writeConfiguration() {
-            writePlaylists(regularPlaylists)
-            writePlaylists(priorityPlaylists)
+            regularPlaylists.forEach { writePlaylist(it) }
+            priorityPlaylist?.let { writePlaylist(it) }
         }
 
-        private fun writePlaylists(playlists: List<Playlist>) {
-            playlists.forEach { playlist ->
-                val playlistId = playlist.id()
-                val playlistFile = Path.of(playlistDir.toString(), playlistId).also {
-                    logger.debug { "Write playlist to $it" }
+        private fun writePlaylist(playlist: Playlist) {
+            val playlistId = playlist.id()
+            val playlistFile = Path.of(playlistDir.toString(), playlistId).also {
+                logger.debug { "Write playlist to $it" }
+            }
+            try {
+                val playlistAsString = Json.encodeToString(playlist).also {
+                    logger.trace { "Playlist ($playlistId) to be persisted: $it" }
                 }
-                try {
-                    val playlistAsString = Json.encodeToString(playlist).also {
-                        logger.trace { "Playlist ($playlistId) to be persisted: $it" }
-                    }
-                    Files.writeString(
-                        playlistFile,
-                        playlistAsString,
-                        StandardOpenOption.CREATE,
-                        StandardOpenOption.WRITE,
-                        StandardOpenOption.TRUNCATE_EXISTING
-                    )
-                } catch (e: Exception) {
-                    logger.error(e) { "Failed to write playlist to $playlistFile" }
-                }
+                Files.writeString(
+                    playlistFile,
+                    playlistAsString,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.TRUNCATE_EXISTING
+                )
+            } catch (e: Exception) {
+                logger.error(e) { "Failed to write playlist to $playlistFile" }
             }
         }
 
