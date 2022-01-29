@@ -15,7 +15,9 @@ import org.gravidence.gravifon.event.application.SubApplicationConfigurationPers
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
 import org.gravidence.gravifon.ui.PlaybackControlComposable
+import org.gravidence.gravifon.ui.PlaybackInformationComposable
 import org.gravidence.gravifon.ui.rememberPlaybackControlState
+import org.gravidence.gravifon.ui.rememberPlaybackInformationState
 import org.gravidence.gravifon.view.View
 import org.springframework.beans.factory.getBean
 
@@ -26,6 +28,7 @@ fun App() {
 
     var text by remember { mutableStateOf("Gravifon") }
 
+    val playbackInformationState = rememberPlaybackInformationState()
     val playbackControlState = rememberPlaybackControlState()
     val view: View by remember { mutableStateOf(Gravifon.ctx.getBean<org.gravidence.gravifon.view.LibraryView>()) }
 
@@ -63,6 +66,14 @@ fun App() {
                             .padding(5.dp)
                     ) {
                         Column() {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                            ) {
+                                PlaybackInformationComposable(playbackInformationState)
+                            }
+                            Divider(color = Color.Transparent, thickness = 5.dp)
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
