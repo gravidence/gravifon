@@ -5,7 +5,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
-import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
@@ -54,7 +54,7 @@ class Library(private val consumers: List<LibraryConsumer>) : Plugin(), Orchestr
     private fun init() {
         logger.info { "Initialize library (${roots.size} roots configured)" }
 
-        Gravifon.scopeIO.launch {
+        GravifonContext.scopeIO.launch {
             this@Library.roots
                 .filter { it.scanOnInit }
                 .forEach { it.scan() }

@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.playback.PlaybackState
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
@@ -55,9 +55,9 @@ class PlaybackInformationState(
 
 @Composable
 fun rememberPlaybackInformationState(
-    activeVirtualTrack: MutableState<VirtualTrack?> = Gravifon.activeVirtualTrack,
-    playbackState: MutableState<PlaybackState> = Gravifon.playbackState,
-    playbackPositionState: PlaybackPositionState = Gravifon.playbackPositionState
+    activeVirtualTrack: MutableState<VirtualTrack?> = GravifonContext.activeVirtualTrack,
+    playbackState: MutableState<PlaybackState> = GravifonContext.playbackState,
+    playbackPositionState: PlaybackPositionState = GravifonContext.playbackPositionState
 ) = remember(activeVirtualTrack, playbackState, playbackPositionState) {
     PlaybackInformationState(
         activeVirtualTrack,

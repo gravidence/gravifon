@@ -23,7 +23,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
@@ -54,7 +54,7 @@ class PlaylistState(val activeVirtualTrack: MutableState<VirtualTrack?>, val pla
 
 @Composable
 fun rememberPlaylistState(
-    activeVirtualTrack: MutableState<VirtualTrack?> = Gravifon.activeVirtualTrack,
+    activeVirtualTrack: MutableState<VirtualTrack?> = GravifonContext.activeVirtualTrack,
     playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(listOf()),
     playlist: Playlist
 ) = remember(activeVirtualTrack, playlistItems) { PlaylistState(activeVirtualTrack, playlistItems, playlist) }

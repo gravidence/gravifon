@@ -3,7 +3,7 @@ package org.gravidence.gravifon.playback
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
@@ -29,15 +29,15 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
                 sendStatusUpdate()
             }
             is SubPlaybackStartEvent -> {
-                Gravifon.playbackState.value = PlaybackState.PLAYING
+                GravifonContext.playbackState.value = PlaybackState.PLAYING
                 start(event.track)
             }
             is SubPlaybackPauseEvent -> {
-                Gravifon.playbackState.value = PlaybackState.PAUSED
+                GravifonContext.playbackState.value = PlaybackState.PAUSED
                 pause()
             }
             is SubPlaybackStopEvent -> {
-                Gravifon.playbackState.value = PlaybackState.STOPPED
+                GravifonContext.playbackState.value = PlaybackState.STOPPED
                 stop()
             }
             is SubPlaybackPositionEvent -> {
@@ -61,12 +61,12 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
     private fun start(track: VirtualTrack) {
         audioBackend.prepare(track)
 
-        Gravifon.activeVirtualTrack.value = track
+        GravifonContext.activeVirtualTrack.value = track
 
         audioBackend.play()
 
         // launch with a small delay to workaround gstreamer query_duration API limitations
-        Gravifon.scopeDefault.launch {
+        GravifonContext.scopeDefault.launch {
             delay(50)
             var trackLength = audioBackend.queryLength()
             if (trackLength == Duration.ZERO) {
@@ -75,7 +75,7 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
                 trackLength = audioBackend.queryLength()
             }
 
-            Gravifon.playbackPositionState.endingPosition.value = trackLength
+            GravifonContext.playbackPositionState.endingPosition.value = trackLength
         }
 
         publish(PubTrackStartEvent(track))
@@ -95,21 +95,21 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
 
         audioBackend.stop()
 
-        Gravifon.activeVirtualTrack.value?.let { publish(PubTrackFinishEvent(it)) }
+        GravifonContext.activeVirtualTrack.value?.let { publish(PubTrackFinishEvent(it)) }
 
-        Gravifon.activeVirtualTrack.value = null
-        Gravifon.playbackPositionState.runningPosition.value = Duration.ZERO
-        Gravifon.playbackPositionState.endingPosition.value = Duration.ZERO
+        GravifonContext.activeVirtualTrack.value = null
+        GravifonContext.playbackPositionState.runningPosition.value = Duration.ZERO
+        GravifonContext.playbackPositionState.endingPosition.value = Duration.ZERO
     }
 
     private fun seek(position: Duration) {
         audioBackend.adjustPosition(position)
 
-        Gravifon.playbackPositionState.runningPosition.value = position
+        GravifonContext.playbackPositionState.runningPosition.value = position
     }
 
     private fun sendStatusUpdate() {
-        Gravifon.playbackPositionState.runningPosition.value = audioBackend.queryPosition()
+        GravifonContext.playbackPositionState.runningPosition.value = audioBackend.queryPosition()
     }
 
 }

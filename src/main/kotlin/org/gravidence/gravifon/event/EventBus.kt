@@ -4,7 +4,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
-import org.gravidence.gravifon.Gravifon.scopeDefault
+import org.gravidence.gravifon.GravifonContext
 
 private val logger = KotlinLogging.logger {}
 
@@ -14,14 +14,14 @@ object EventBus {
         MutableSharedFlow<Event>(extraBufferCapacity = 100, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     fun publish(event: Event) {
-        scopeDefault.launch {
+        GravifonContext.scopeDefault.launch {
             logger.trace { "$event published" }
             events.emit(event)
         }
     }
 
     fun subscribe(receive: (Event) -> Unit) {
-        scopeDefault.launch {
+        GravifonContext.scopeDefault.launch {
             events.collect {
                 try {
                     receive(it)

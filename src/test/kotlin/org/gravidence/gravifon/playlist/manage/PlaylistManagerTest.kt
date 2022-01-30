@@ -182,4 +182,20 @@ internal class PlaylistManagerTest {
         assertEquals(rt2, playlistManager.playNext(regularPlaylist))
     }
 
+    @Test
+    fun playPrev() {
+    }
+
+    @Test
+    fun getPlaylist() {
+    }
+
+    @Test
+    fun testGetPlaylist() {
+    }
+
+    @Test
+    fun addPlaylist() {
+    }
+
 }

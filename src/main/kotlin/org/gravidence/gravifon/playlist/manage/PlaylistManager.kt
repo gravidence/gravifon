@@ -4,7 +4,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
-import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.configHomeDir
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
@@ -71,7 +71,7 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
 
     private fun play(playlist: Playlist, trackPlaylistItem: TrackPlaylistItem?): TrackPlaylistItem? {
         if (trackPlaylistItem != null) {
-            Gravifon.activePlaylist.value = playlist
+            GravifonContext.activePlaylist.value = playlist
             publish(SubPlaybackStartEvent(trackPlaylistItem.track))
         }
 

@@ -19,7 +19,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
-import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
 import org.gravidence.gravifon.domain.track.virtualTrackComparator
@@ -93,8 +93,8 @@ class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryCo
         playlistManager.addPlaylist(playlist)
 
         if (settings.applicationConfig().activeView == this.javaClass.name) {
-            Gravifon.activeView.value = this
-            Gravifon.activePlaylist.value = playlist
+            GravifonContext.activeView.value = this
+            GravifonContext.activePlaylist.value = playlist
         }
     }
 

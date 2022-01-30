@@ -5,7 +5,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
-import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
@@ -86,7 +86,7 @@ class Settings(private val consumers: List<SettingsConsumer>) : EventHandler(), 
         consumers.forEach { it.persistConfig() }
 
         logger.debug { "Collect config updates from application itself" }
-        Gravifon.activeView.value?.let { config.application.activeView = it.javaClass.name }
+        GravifonContext.activeView.value?.let { config.application.activeView = it.javaClass.name }
 
         val configAsString = Json.encodeToString(config).also {
             logger.debug { "Application configuration to be persisted: $it" }

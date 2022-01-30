@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.ui.PlaybackControlComposable
@@ -24,7 +24,7 @@ fun App() {
 
     val playbackInformationState = rememberPlaybackInformationState()
     val playbackControlState = rememberPlaybackControlState()
-    val activeView = remember { Gravifon.activeView }
+    val activeView = remember { GravifonContext.activeView }
 
     LaunchedEffect(Unit) {
         delay(2000)

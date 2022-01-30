@@ -11,7 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
@@ -71,10 +71,10 @@ class PlaybackControlState(
 
 @Composable
 fun rememberPlaybackControlState(
-    activeVirtualTrack: MutableState<VirtualTrack?> = Gravifon.activeVirtualTrack,
-    playbackState: MutableState<PlaybackState> = Gravifon.playbackState,
-    playbackPositionState: PlaybackPositionState = Gravifon.playbackPositionState,
-    activePlaylist: MutableState<Playlist?> = Gravifon.activePlaylist
+    activeVirtualTrack: MutableState<VirtualTrack?> = GravifonContext.activeVirtualTrack,
+    playbackState: MutableState<PlaybackState> = GravifonContext.playbackState,
+    playbackPositionState: PlaybackPositionState = GravifonContext.playbackPositionState,
+    activePlaylist: MutableState<Playlist?> = GravifonContext.activePlaylist
 ) = remember(activeVirtualTrack, playbackState, playbackPositionState, activePlaylist) {
     PlaybackControlState(
         activeVirtualTrack,
