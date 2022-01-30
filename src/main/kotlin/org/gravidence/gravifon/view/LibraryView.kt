@@ -94,6 +94,7 @@ class LibraryView : View(), SettingsConsumer, PlaylistManagerConsumer, LibraryCo
 
         if (settings.applicationConfig().activeView == this.javaClass.name) {
             Gravifon.activeView.value = this
+            Gravifon.activePlaylist.value = playlist
         }
     }
 
