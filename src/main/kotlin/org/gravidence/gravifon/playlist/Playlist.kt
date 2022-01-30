@@ -15,6 +15,9 @@ sealed class Playlist {
 
     protected abstract val id: String
     protected abstract val items: MutableList<PlaylistItem>
+    /**
+     * Represents active playlist item position. Zero would mean playlist isn't "activated", i.e. no items played yet.
+     */
     protected abstract var position: Int
     protected abstract var playbackOrder: PlaybackOrder
     protected abstract var playlistStructure: PlaylistStructure
@@ -97,14 +100,26 @@ sealed class Playlist {
     }
 
     open fun peekSpecific(position: Int): PlaylistItem? {
-        return items.elementAtOrNull(position - 1)
+        val refinedPosition = if (this.position == 0 && position < 1) {
+            1
+        } else {
+            position
+        }
+
+        return items.elementAtOrNull(refinedPosition - 1)
     }
 
     open fun peekSpecificTrack(position: Int, lookupDirection: LookupDirection): TrackPlaylistItem? {
         return when (lookupDirection) {
             LookupDirection.FORWARD -> {
+                val refinedPosition = if (this.position == 0 && position < 1) {
+                    1
+                } else {
+                    position
+                }
+
                 items
-                    .drop(max(0, position - 1))
+                    .drop(max(0, refinedPosition - 1))
                     .filterIsInstance<TrackPlaylistItem>()
                     .firstOrNull()
             }

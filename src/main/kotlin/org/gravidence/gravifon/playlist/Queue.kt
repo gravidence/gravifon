@@ -6,13 +6,14 @@ import org.gravidence.gravifon.playlist.behavior.PlaybackOrder
 import org.gravidence.gravifon.playlist.behavior.PlaylistStructure
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import java.util.*
+import kotlin.collections.ArrayDeque
 
 @Serializable
 @SerialName("queue")
 class Queue(
     override val id: String = UUID.randomUUID().toString(),
-    override val items: MutableList<PlaylistItem> = ArrayList(),
-    override var position: Int = 1,
+    override val items: MutableList<PlaylistItem> = ArrayDeque(),
+    override var position: Int = 0,
     override var playbackOrder: PlaybackOrder = PlaybackOrder.SEQUENTIAL,
     override var playlistStructure: PlaylistStructure = PlaylistStructure.TRACK
 ) : Playlist() {

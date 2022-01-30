@@ -136,7 +136,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.peekCurrent()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -178,7 +178,7 @@ internal class QueuePlaylistTest {
         assertNotNull(actualPlaylistItem)
         assertEquals(album1track1, actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -188,7 +188,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.peekCurrentTrack()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -240,7 +240,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.moveToCurrentTrack()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -311,7 +311,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.peekNext()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -371,7 +371,7 @@ internal class QueuePlaylistTest {
         assertNotNull(actualPlaylistItem)
         assertEquals(album1track1, actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -381,7 +381,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.peekNextTrack()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -403,7 +403,7 @@ internal class QueuePlaylistTest {
     }
 
     @Test
-    fun moveToNextTrack_TrackPlaylist() {
+    fun moveToNextTrack_TrackPlaylistNotActivated() {
         val playlist = Queue(
             items = mutableListOf(
                 album2track1,
@@ -412,6 +412,24 @@ internal class QueuePlaylistTest {
             )
         )
 
+        val actualPlaylistItem = playlist.moveToNextTrack()
+        assertNotNull(actualPlaylistItem)
+        assertEquals(album2track1, actualPlaylistItem)
+
+        assertEquals(1, playlist.position())
+    }
+
+    @Test
+    fun moveToNextTrack_TrackPlaylistActivated() {
+        val playlist = Queue(
+            items = mutableListOf(
+                album2track1,
+                album2track2,
+                album2track3,
+            )
+        )
+
+        playlist.moveToFirstTrack()
         val actualPlaylistItem = playlist.moveToNextTrack()
         assertNotNull(actualPlaylistItem)
         assertEquals(album2track2, actualPlaylistItem)
@@ -450,7 +468,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.moveToNextTrack()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -521,7 +539,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.peekPrev()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -592,7 +610,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.peekPrevTrack()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -662,7 +680,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.moveToPrevTrack()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -679,7 +697,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.moveToPrevTrack()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -721,7 +739,7 @@ internal class QueuePlaylistTest {
         assertNotNull(actualPlaylistItem)
         assertEquals(album1, actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -731,7 +749,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.peekFirst()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -784,7 +802,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.peekFirstTrack()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -855,7 +873,7 @@ internal class QueuePlaylistTest {
         val actualPlaylistItem = playlist.moveToFirstTrack()
         assertNull(actualPlaylistItem)
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -968,13 +986,13 @@ internal class QueuePlaylistTest {
         val playlist = Queue()
 
         assertNull(playlist.peekSpecific(0))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
 
         assertNull(playlist.peekSpecific(1))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
 
         assertNull(playlist.peekSpecific(10))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -1068,19 +1086,19 @@ internal class QueuePlaylistTest {
         val playlist = Queue()
 
         assertNull(playlist.peekSpecificTrack(0, LookupDirection.FORWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
         assertNull(playlist.peekSpecificTrack(0, LookupDirection.BACKWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
 
         assertNull(playlist.peekSpecificTrack(1, LookupDirection.FORWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
         assertNull(playlist.peekSpecificTrack(1, LookupDirection.BACKWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
 
         assertNull(playlist.peekSpecificTrack(2, LookupDirection.FORWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
         assertNull(playlist.peekSpecificTrack(2, LookupDirection.BACKWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -1130,19 +1148,19 @@ internal class QueuePlaylistTest {
         val playlist = Queue()
 
         assertNull(playlist.moveToSpecific(0))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
         assertNull(playlist.moveToSpecific(0))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
 
         assertNull(playlist.moveToSpecific(1))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
         assertNull(playlist.moveToSpecific(1))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
 
         assertNull(playlist.moveToSpecific(5))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
         assertNull(playlist.moveToSpecific(5))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test
@@ -1234,19 +1252,19 @@ internal class QueuePlaylistTest {
         val playlist = Queue()
 
         assertNull(playlist.moveToSpecificTrack(0, LookupDirection.FORWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
         assertNull(playlist.moveToSpecificTrack(0, LookupDirection.BACKWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
 
         assertNull(playlist.moveToSpecificTrack(1, LookupDirection.FORWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
         assertNull(playlist.moveToSpecificTrack(1, LookupDirection.BACKWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
 
         assertNull(playlist.moveToSpecificTrack(5, LookupDirection.FORWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
         assertNull(playlist.moveToSpecificTrack(5, LookupDirection.BACKWARD))
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
     }
 
     @Test

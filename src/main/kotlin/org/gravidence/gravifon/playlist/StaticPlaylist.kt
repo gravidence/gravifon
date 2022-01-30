@@ -12,7 +12,7 @@ import java.util.*
 class StaticPlaylist(
     override val id: String = UUID.randomUUID().toString(),
     override val items: MutableList<PlaylistItem> = ArrayList(),
-    override var position: Int = 1,
+    override var position: Int = 0,
     override var playbackOrder: PlaybackOrder = PlaybackOrder.SEQUENTIAL,
     override var playlistStructure: PlaylistStructure = PlaylistStructure.TRACK
 ) : Playlist() {
