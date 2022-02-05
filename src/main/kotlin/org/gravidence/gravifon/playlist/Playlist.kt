@@ -30,6 +30,10 @@ sealed class Playlist {
         return items.toList()
     }
 
+    fun length(): Int {
+        return items.size
+    }
+
     open fun position(): Int {
         return position
     }
@@ -215,11 +219,17 @@ sealed class Playlist {
     }
 
     open fun remove(item: PlaylistItem) {
-        TODO("Not yet implemented")
+        items.remove(item)
+        position--
+    }
+
+    open fun remove(position: Int) {
+        items.removeAt(position - 1)
+        this.position--
     }
 
     open fun remove(positionRange: IntRange) {
-        TODO("Not yet implemented")
+        positionRange.forEach { remove(it) }
     }
 
     open fun replace(items: List<PlaylistItem>) {
