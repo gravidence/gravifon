@@ -4,10 +4,9 @@ import org.gravidence.gravifon.TestUtil
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-internal class QueuePlaylistTest {
+internal class QueuePlaylistLiveTest {
 
     private val album1track1 = TrackPlaylistItem(
         TestUtil.fixedFileVirtualTrack(
@@ -75,62 +74,7 @@ internal class QueuePlaylistTest {
     )
 
     @Test
-    fun moveToNextTrack_EmptyPlaylist() {
-        val playlist = Queue()
-
-        val actualPlaylistItem = playlist.moveToNextTrack()
-        assertNull(actualPlaylistItem)
-
-        assertEquals(0, playlist.position())
-    }
-
-    @Test
-    fun moveToNextTrack_TailOfPlaylist() {
-        val playlist = Queue(
-            items = mutableListOf(
-                album1track4,
-            ),
-            position = 1
-        )
-
-        val actualPlaylistItem = playlist.moveToNextTrack()
-        assertNull(actualPlaylistItem)
-
-        assertEquals(0, playlist.position())
-        assertEquals(0, playlist.length())
-    }
-
-    @Test
-    fun peekPrev_TrackPlaylist() {
-        val playlist = Queue(
-            items = mutableListOf(
-                album1track1,
-                album1track2,
-                album1track3,
-                album1track4,
-            ),
-            position = 1
-        )
-
-        val actualPlaylistItem = playlist.peekPrev()
-        assertNotNull(actualPlaylistItem)
-        assertEquals(album1track1, actualPlaylistItem)
-
-        assertEquals(1, playlist.position())
-    }
-
-    @Test
-    fun peekPrev_EmptyPlaylist() {
-        val playlist = Queue()
-
-        val actualPlaylistItem = playlist.peekPrev()
-        assertNull(actualPlaylistItem)
-
-        assertEquals(0, playlist.position())
-    }
-
-    @Test
-    fun peekPrevTrack_TrackPlaylist() {
+    fun moveToNextTrack_FromStartSequentially() {
         val playlist = Queue(
             items = mutableListOf(
                 album1track1,
@@ -141,50 +85,50 @@ internal class QueuePlaylistTest {
             position = 0
         )
 
-        val actualPlaylistItem = playlist.peekPrevTrack()
-        assertNotNull(actualPlaylistItem)
-        assertEquals(album1track1, actualPlaylistItem)
+        assertEquals(album1track1, playlist.moveToNextTrack())
+        assertEquals(1, playlist.position())
+        assertEquals(4, playlist.length())
 
-        assertEquals(0, playlist.position())
-    }
-
-    @Test
-    fun peekPrevTrack_EmptyPlaylist() {
-        val playlist = Queue()
-
-        val actualPlaylistItem = playlist.peekPrevTrack()
-        assertNull(actualPlaylistItem)
-
-        assertEquals(0, playlist.position())
-    }
-
-    @Test
-    fun moveToPrevTrack_TrackPlaylist() {
-        val playlist = Queue(
-            items = mutableListOf(
-                album2track1,
-                album2track2,
-                album2track3,
-            ),
-            position = 1
-        )
-
-        val actualPlaylistItem = playlist.moveToPrevTrack()
-        assertNotNull(actualPlaylistItem)
-        assertEquals(album2track1, actualPlaylistItem)
-
+        assertEquals(album1track2, playlist.moveToNextTrack())
         assertEquals(1, playlist.position())
         assertEquals(3, playlist.length())
+
+        assertEquals(album1track3, playlist.moveToNextTrack())
+        assertEquals(1, playlist.position())
+        assertEquals(2, playlist.length())
+
+        assertEquals(album1track4, playlist.moveToNextTrack())
+        assertEquals(1, playlist.position())
+        assertEquals(1, playlist.length())
+
+        assertNull(playlist.moveToNextTrack())
+        assertEquals(0, playlist.position())
+        assertEquals(0, playlist.length())
     }
 
     @Test
-    fun moveToPrevTrack_EmptyPlaylist() {
-        val playlist = Queue()
+    fun moveToNextTrack_RemoveCurrent() {
+        val playlist = Queue(
+            items = mutableListOf(
+                album1track1,
+                album1track2,
+                album1track3,
+                album1track4,
+            ),
+            position = 0
+        )
 
-        val actualPlaylistItem = playlist.moveToPrevTrack()
-        assertNull(actualPlaylistItem)
+        assertEquals(album1track1, playlist.moveToNextTrack())
+        assertEquals(1, playlist.position())
+        assertEquals(4, playlist.length())
 
+        playlist.remove(1..1)
         assertEquals(0, playlist.position())
+        assertEquals(3, playlist.length())
+
+        assertEquals(album1track2, playlist.moveToNextTrack())
+        assertEquals(1, playlist.position())
+        assertEquals(3, playlist.length())
     }
 
 }

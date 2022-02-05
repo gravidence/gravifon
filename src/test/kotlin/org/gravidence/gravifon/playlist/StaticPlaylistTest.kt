@@ -2,8 +2,6 @@ package org.gravidence.gravifon.playlist
 
 import org.gravidence.gravifon.TestUtil
 import org.gravidence.gravifon.playlist.behavior.LookupDirection
-import org.gravidence.gravifon.playlist.behavior.PlaybackOrder
-import org.gravidence.gravifon.playlist.behavior.PlaylistStructure
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.junit.jupiter.api.Test
@@ -1297,34 +1295,6 @@ internal class StaticPlaylistTest {
     }
 
     @Test
-    fun init() {
-        val expectedItems = mutableListOf(
-            album1,
-            album1track1,
-            album1track2,
-            album1track3,
-            album1track4,
-            album2,
-            album2track1,
-            album2track2,
-            album2track3,
-        )
-
-        val playlist = StaticPlaylist()
-        playlist.init(
-            items = expectedItems,
-            position = 4,
-            playbackOrder = PlaybackOrder.REPEAT_PLAYLIST,
-            playlistStructure = PlaylistStructure.TRACK
-        )
-
-        assertEquals(expectedItems, playlist.view())
-        assertEquals(4, playlist.position())
-        assertEquals(PlaybackOrder.REPEAT_PLAYLIST, playlist.playbackOrder())
-        assertEquals(PlaylistStructure.TRACK, playlist.structure())
-    }
-
-    @Test
     fun shuffle() {
         val expectedItems = mutableListOf(
             album1,
@@ -1343,7 +1313,7 @@ internal class StaticPlaylistTest {
         )
 
         val playlist = StaticPlaylist()
-        playlist.init(items = expectedItems)
+        playlist.append(expectedItems)
 
         playlist.shuffle()
 

@@ -167,16 +167,6 @@ sealed class Playlist {
         return playlistItem
     }
 
-    open fun init(items: List<PlaylistItem>, position: Int = 1, playbackOrder: PlaybackOrder = PlaybackOrder.SEQUENTIAL, playlistStructure: PlaylistStructure = PlaylistStructure.TRACK) {
-        this.items.clear()
-        this.items.addAll(items)
-        // TODO re-build playlist
-
-        this.position = normalisePosition(position)
-        playbackOrder(playbackOrder)
-        structure(playlistStructure)
-    }
-
     open fun view(): List<PlaylistItem> {
         return items.toMutableList()
     }
@@ -220,16 +210,15 @@ sealed class Playlist {
 
     open fun remove(item: PlaylistItem) {
         items.remove(item)
-        position--
-    }
-
-    open fun remove(position: Int) {
-        items.removeAt(position - 1)
-        this.position--
     }
 
     open fun remove(positionRange: IntRange) {
-        positionRange.forEach { remove(it) }
+        positionRange.reversed().forEach { items.removeAt(it - 1) }
+        if (position in positionRange) {
+            position = positionRange.first - 1
+        } else if (position > positionRange.last) {
+            position -= positionRange.count()
+        }
     }
 
     open fun replace(items: List<PlaylistItem>) {
