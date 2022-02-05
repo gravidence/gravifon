@@ -2,21 +2,22 @@
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import kotlinx.coroutines.cancel
-import org.gravidence.gravifon.Gravifon
+import org.gravidence.gravifon.GravifonStarter
+import org.gravidence.gravifon.GravifonContext
 
 fun main() = application {
     Window(
         onCloseRequest = {
-            Gravifon.orchestrator.shutdown()
+            GravifonStarter.orchestrator.shutdown()
 
-            Gravifon.scopeDefault.cancel()
-            Gravifon.scopeIO.cancel()
+            GravifonContext.scopeDefault.cancel()
+            GravifonContext.scopeIO.cancel()
 
             exitApplication()
         },
         title = "Gravifon"
     ) {
-        Gravifon.kickoff()
+        GravifonStarter.kickoff()
         App()
     }
 }
