@@ -79,6 +79,11 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
     }
 
     @Synchronized
+    fun resolveNext(playlist: Playlist): TrackPlaylistItem? {
+        return priorityPlaylist?.moveToNextTrack() ?: playlist.moveToNextTrack()
+    }
+
+    @Synchronized
     fun playCurrent(playlist: Playlist, playlistItem: PlaylistItem?): TrackPlaylistItem? {
         val currentTrack = if (playlistItem != null) {
             playlist.moveToSpecific(playlistItem)
@@ -92,7 +97,7 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
 
     @Synchronized
     fun playNext(playlist: Playlist): TrackPlaylistItem? {
-        return play(playlist, priorityPlaylist?.moveToNextTrack() ?: playlist.moveToNextTrack())
+        return play(playlist, resolveNext(playlist))
     }
 
     @Synchronized

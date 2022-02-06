@@ -19,7 +19,7 @@ import kotlin.time.Duration
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Player(private val audioBackend: AudioBackend) : EventHandler(), OrchestratorConsumer {
+class Player(private val audioBackend: AudioBackend, private val audioFlow: AudioFlow) : EventHandler(), OrchestratorConsumer {
 
     private var timer = Timer()
 
@@ -47,7 +47,49 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
     }
 
     override fun startup() {
-        // do nothing
+        audioBackend.registerCallback(
+            aboutToFinishCallback = {
+                audioFlow.next()?.let {
+                    start(it, false)
+                }
+            },
+            audioStreamChangedCallback = { nextTrack ->
+                // TODO enrich PubTrackFinishEvent with required details (playback duration, etc)
+                GravifonContext.activeVirtualTrack.value?.let {
+                    publish(PubTrackFinishEvent(it))
+                }
+
+                GravifonContext.activeVirtualTrack.value = nextTrack?.also {
+                    logger.debug { "Switch over to next track: $it" }
+                }
+
+                // launch with a small delay to workaround gstreamer query_duration API limitations
+                GravifonContext.scopeDefault.launch {
+                    if (audioBackend.queryLength() == null) {
+                        delay(50)
+                    } else {
+                        // TODO that's way too much, but for smaller values gstreamer returns prev stream length, investigation needed
+                        delay(1500)
+                    }
+                    var trackLength = audioBackend.queryLength()
+
+                    if (trackLength == Duration.ZERO) {
+                        logger.warn { "Audio backend reports stream duration is zero (even after entering PLAYING state). Last chance to make it work by waiting a bit once again and re-query" }
+                        delay(20)
+                        trackLength = audioBackend.queryLength()
+                    }
+
+                    GravifonContext.playbackPositionState.endingPosition.value = (trackLength ?: Duration.ZERO).also {
+                        logger.debug { "Calculated track length: $it" }
+                    }
+                }
+
+                nextTrack?.let { publish(PubTrackStartEvent(it)) }
+            },
+            endOfStreamCallback = {
+                publish(SubPlaybackStopEvent())
+            }
+        )
     }
 
     override fun afterStartup() {
@@ -58,31 +100,21 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
         stop()
     }
 
-    private fun start(track: VirtualTrack) {
-        audioBackend.prepare(track)
-
-        GravifonContext.activeVirtualTrack.value = track
-
-        audioBackend.play()
-
-        // launch with a small delay to workaround gstreamer query_duration API limitations
-        GravifonContext.scopeDefault.launch {
-            delay(50)
-            var trackLength = audioBackend.queryLength()
-            if (trackLength == Duration.ZERO) {
-                logger.warn { "Audio backend reports stream duration is zero (even after entering PLAYING state). Last chance to make it work by waiting a bit once again and re-query" }
-                delay(20)
-                trackLength = audioBackend.queryLength()
-            }
-
-            GravifonContext.playbackPositionState.endingPosition.value = trackLength
+    private fun start(track: VirtualTrack, forcePlay: Boolean = true) {
+        // TODO check if really needed
+        if (forcePlay) {
+            audioBackend.stop()
         }
 
-        publish(PubTrackStartEvent(track))
+        audioBackend.prepareNext(track)
 
-        timer = fixedRateTimer(initialDelay = 1000, period = 100) {
-            logger.trace { "Time to send playback status update events" }
-            sendStatusUpdate()
+        if (forcePlay) {
+            audioBackend.play()
+
+            timer = fixedRateTimer(initialDelay = 1000, period = 100) {
+                logger.trace { "Time to send playback status update events" }
+                sendStatusUpdate()
+            }
         }
     }
 
@@ -95,6 +127,7 @@ class Player(private val audioBackend: AudioBackend) : EventHandler(), Orchestra
 
         audioBackend.stop()
 
+        // TODO this call potentially duplicated the one of audioStreamChangedCallback
         GravifonContext.activeVirtualTrack.value?.let { publish(PubTrackFinishEvent(it)) }
 
         GravifonContext.activeVirtualTrack.value = null
