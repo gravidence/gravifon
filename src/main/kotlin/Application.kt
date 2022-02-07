@@ -12,10 +12,8 @@ import kotlinx.coroutines.delay
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
-import org.gravidence.gravifon.ui.PlaybackControlComposable
-import org.gravidence.gravifon.ui.PlaybackInformationComposable
-import org.gravidence.gravifon.ui.rememberPlaybackControlState
-import org.gravidence.gravifon.ui.rememberPlaybackInformationState
+import org.gravidence.gravifon.ui.*
+import kotlin.concurrent.fixedRateTimer
 
 @Composable
 @Preview
@@ -24,7 +22,12 @@ fun App() {
 
     val playbackInformationState = rememberPlaybackInformationState()
     val playbackControlState = rememberPlaybackControlState()
+    val contextInformationState = rememberContextInformationState()
     val activeView = remember { GravifonContext.activeView }
+
+    val contextInformationTimer = fixedRateTimer(initialDelay = 1000, period = 1000) {
+        contextInformationState.refresh()
+    }
 
     LaunchedEffect(Unit) {
         delay(2000)
@@ -50,9 +53,6 @@ fun App() {
                         }
                     )
                 },
-//                bottomBar = {
-//                    Row { Text("Bottom Bar") }
-//                },
                 content = {
                     Box(
                         modifier = Modifier
@@ -88,6 +88,14 @@ fun App() {
                                 } else {
                                     value.compose()
                                 }
+                            }
+                            Divider(color = Color.Transparent, thickness = 5.dp)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                            ) {
+                                ContextInformationComposable(contextInformationState)
                             }
                         }
                     }
