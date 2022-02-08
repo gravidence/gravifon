@@ -7,7 +7,7 @@ interface AudioBackend {
 
     fun registerCallback(
         aboutToFinishCallback: () -> Unit,
-        audioStreamChangedCallback: (VirtualTrack?) -> Unit,
+        audioStreamChangedCallback: (VirtualTrack?, Duration) -> Unit,
         endOfStreamCallback: () -> Unit
     )
 

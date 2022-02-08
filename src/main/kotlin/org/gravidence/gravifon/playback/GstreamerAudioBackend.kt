@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import org.freedesktop.gstreamer.*
 import org.freedesktop.gstreamer.elements.PlayBin
 import org.gravidence.gravifon.domain.track.VirtualTrack
+import org.gravidence.gravifon.util.Stopwatch
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
@@ -20,6 +21,8 @@ class GstreamerAudioBackend : AudioBackend {
 
     private val playbin: PlayBin
 
+    private var stopwatch: Stopwatch = Stopwatch()
+
     private var nextTrack: VirtualTrack? = null
 
     init {
@@ -31,7 +34,7 @@ class GstreamerAudioBackend : AudioBackend {
 
     override fun registerCallback(
         aboutToFinishCallback: () -> Unit,
-        audioStreamChangedCallback: (VirtualTrack?) -> Unit,
+        audioStreamChangedCallback: (VirtualTrack?, Duration) -> Unit,
         endOfStreamCallback: () -> Unit
     ) {
         logger.debug { "Register callbacks" }
@@ -44,7 +47,8 @@ class GstreamerAudioBackend : AudioBackend {
 
         playbin.connect(PlayBin.AUDIO_CHANGED {
             logger.debug { "Audio stream changed. Now points to ${it.get("current-uri")}" }
-            audioStreamChangedCallback(nextTrack)
+            audioStreamChangedCallback(nextTrack, stopwatch.stop())
+            stopwatch.count()
         })
         logger.debug { "Callback 'audio-changed' registered" }
 
@@ -69,8 +73,15 @@ class GstreamerAudioBackend : AudioBackend {
 
     override fun pause() {
         when (playbin.state) {
-            State.PLAYING -> playbin.pause()
-            State.PAUSED -> playbin.play()
+            State.PLAYING -> {
+                playbin.pause()
+                stopwatch.pause()
+            }
+            State.PAUSED -> {
+                // TODO probably better call this.play()
+                playbin.play()
+                stopwatch.count()
+            }
             else -> {
                 // keep current state
             }
@@ -79,6 +90,8 @@ class GstreamerAudioBackend : AudioBackend {
 
     override fun stop() {
         playbin.stop()
+        // make sure stopwatch is stopped (all related logic is executed in AUDIO_CHANGED event handler)
+        stopwatch.stop()
     }
 
     override fun queryLength(): Duration? {

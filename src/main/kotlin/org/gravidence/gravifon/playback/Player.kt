@@ -53,10 +53,11 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                     start(it, false)
                 }
             },
-            audioStreamChangedCallback = { nextTrack ->
-                // TODO enrich PubTrackFinishEvent with required details (playback duration, etc)
+            audioStreamChangedCallback = { nextTrack, duration ->
                 GravifonContext.activeVirtualTrack.value?.let {
-                    publish(PubTrackFinishEvent(it))
+                    if (duration > Duration.ZERO) {
+                        publish(PubTrackFinishEvent(it, duration))
+                    }
                 }
 
                 GravifonContext.activeVirtualTrack.value = nextTrack?.also {
@@ -126,9 +127,6 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
         timer.cancel()
 
         audioBackend.stop()
-
-        // TODO this call potentially duplicated the one of audioStreamChangedCallback
-        GravifonContext.activeVirtualTrack.value?.let { publish(PubTrackFinishEvent(it)) }
 
         GravifonContext.activeVirtualTrack.value = null
         GravifonContext.playbackPositionState.runningPosition.value = Duration.ZERO
