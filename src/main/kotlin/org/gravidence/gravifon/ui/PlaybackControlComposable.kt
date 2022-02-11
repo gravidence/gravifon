@@ -138,7 +138,8 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                         playbackControlState.onPositionChange(it)
                     },
                     modifier = Modifier
-                        .fillMaxWidth(0.8f) // TODO workaround for https://github.com/JetBrains/compose-jb/issues/1765
+                        .weight(1f)
+                        .fillMaxWidth()
                 )
                 Text(text = "-${playbackControlState.remainingTime()}", fontWeight = FontWeight.Light)
             }
