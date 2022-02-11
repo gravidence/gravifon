@@ -2,16 +2,14 @@ package org.gravidence.gravifon.view
 
 import androidx.compose.runtime.Composable
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.Settings
+import org.gravidence.gravifon.configuration.readConfig
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.orchestration.PlaylistManagerConsumer
 import org.gravidence.gravifon.orchestration.SettingsConsumer
 import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
-import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.springframework.stereotype.Component
 
 private val logger = KotlinLogging.logger {}
@@ -35,22 +33,14 @@ class QueueView : View(), SettingsConsumer, PlaylistManagerConsumer {
     override fun settingsReady(settings: Settings) {
         this.settings = settings
 
-        val viewConfigAsString = readConfig()
-        viewConfig = if (viewConfigAsString == null) {
-            logger.debug { "Create new configuration" }
+        viewConfig = readConfig {
 //            QueueViewConfiguration(playlistId = UUID.randomUUID().toString())
             QueueViewConfiguration(playlistId = "b743b278-413d-4d47-b673-b2a26e4bbdc4")
-        } else {
-            logger.debug { "Use configuration: $viewConfigAsString" }
-            gravifonSerializer.decodeFromString(viewConfigAsString)
         }
     }
 
     override fun persistConfig() {
-        val viewConfigAsString = gravifonSerializer.encodeToString(viewConfig).also {
-            logger.debug { "Persist configuration: $it" }
-        }
-        writeConfig(viewConfigAsString)
+        writeConfig(viewConfig)
     }
 
     override fun playlistManagerReady(playlistManager: PlaylistManager) {
