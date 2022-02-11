@@ -89,7 +89,11 @@ class GstreamerAudioBackend : AudioBackend {
     }
 
     override fun stop() {
+        // clear next track, so it won't affect AUDIO_CHANGED event logic
+        nextTrack = null
+
         playbin.stop()
+
         // make sure stopwatch is stopped (all related logic is executed in AUDIO_CHANGED event handler)
         stopwatch.stop()
     }

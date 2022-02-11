@@ -60,32 +60,36 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                     }
                 }
 
-                GravifonContext.activeVirtualTrack.value = nextTrack?.also {
-                    logger.debug { "Switch over to next track: $it" }
+                if (nextTrack != null) {
+                    GravifonContext.activeVirtualTrack.value = nextTrack.also {
+                        logger.debug { "Switch over to next track: $it" }
+                    }
+
+                    // launch with a small delay to workaround gstreamer query_duration API limitations
+                    GravifonContext.scopeDefault.launch {
+                        if (audioBackend.queryLength() == null) {
+                            delay(50)
+                        } else {
+                            // TODO that's way too much, but for smaller values gstreamer returns prev stream length, investigation needed
+                            delay(1500)
+                        }
+                        var trackLength = audioBackend.queryLength()
+
+                        if (trackLength == Duration.ZERO) {
+                            logger.warn { "Audio backend reports stream duration is zero (even after entering PLAYING state). Last chance to make it work by waiting a bit once again and re-query" }
+                            delay(20)
+                            trackLength = audioBackend.queryLength()
+                        }
+
+                        GravifonContext.playbackPositionState.endingPosition.value = (trackLength ?: Duration.ZERO).also {
+                            logger.debug { "Calculated track length: $it" }
+                        }
+                    }
+
+                    publish(PubTrackStartEvent(nextTrack))
+                } else {
+                    GravifonContext.playbackPositionState.endingPosition.value = Duration.ZERO
                 }
-
-                // launch with a small delay to workaround gstreamer query_duration API limitations
-                GravifonContext.scopeDefault.launch {
-                    if (audioBackend.queryLength() == null) {
-                        delay(50)
-                    } else {
-                        // TODO that's way too much, but for smaller values gstreamer returns prev stream length, investigation needed
-                        delay(1500)
-                    }
-                    var trackLength = audioBackend.queryLength()
-
-                    if (trackLength == Duration.ZERO) {
-                        logger.warn { "Audio backend reports stream duration is zero (even after entering PLAYING state). Last chance to make it work by waiting a bit once again and re-query" }
-                        delay(20)
-                        trackLength = audioBackend.queryLength()
-                    }
-
-                    GravifonContext.playbackPositionState.endingPosition.value = (trackLength ?: Duration.ZERO).also {
-                        logger.debug { "Calculated track length: $it" }
-                    }
-                }
-
-                nextTrack?.let { publish(PubTrackStartEvent(it)) }
             },
             endOfStreamCallback = {
                 publish(SubPlaybackStopEvent())
