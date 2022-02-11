@@ -71,7 +71,7 @@ fun PlaylistComposable(playlistState: PlaylistState) {
 
     Box(
         modifier = Modifier
-            .fillMaxHeight(0.8f) // TODO get rid of workaround once https://github.com/JetBrains/compose-jb/issues/1805 resolved
+            .fillMaxHeight()
             .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
     ) {
         LazyColumn(

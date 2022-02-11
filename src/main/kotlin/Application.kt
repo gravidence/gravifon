@@ -79,6 +79,7 @@ fun App() {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
+                                    .weight(1f)
                                     .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
                             ) {
                                 val value = activeView.value
