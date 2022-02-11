@@ -8,12 +8,12 @@ interface Configurable {
 
     var settings: Settings
 
-    fun writeConfig(config: Any) {
-        val configAsString = gravifonSerializer.encodeToString(config)
+}
 
-        settings.componentConfig(this.javaClass.name, configAsString)
-    }
+inline fun <reified T> Configurable.writeConfig(config: T) {
+    val configAsString = gravifonSerializer.encodeToString(config)
 
+    settings.componentConfig(this.javaClass.name, configAsString)
 }
 
 inline fun <reified T> Configurable.readConfig(defaultConfig: () -> T): T {
