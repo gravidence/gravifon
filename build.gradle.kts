@@ -28,6 +28,7 @@ dependencies {
 
     implementation("ch.qos.logback:logback-classic:1.2.10")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
+    implementation("org.http4k:http4k-core:4.19.1.0")
     implementation("org.slf4j:jcl-over-slf4j:1.7.33")
     implementation("org.slf4j:jul-to-slf4j:1.7.33")
     implementation("org.slf4j:log4j-over-slf4j:1.7.33")
