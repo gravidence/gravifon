@@ -35,7 +35,7 @@ class QueueView : View(), SettingsConsumer, PlaylistManagerConsumer {
     override fun settingsReady(settings: Settings) {
         this.settings = settings
 
-        val viewConfigAsString = readViewConfig()
+        val viewConfigAsString = readConfig()
         viewConfig = if (viewConfigAsString == null) {
             logger.debug { "Create new configuration" }
 //            QueueViewConfiguration(playlistId = UUID.randomUUID().toString())
@@ -50,7 +50,7 @@ class QueueView : View(), SettingsConsumer, PlaylistManagerConsumer {
         val viewConfigAsString = gravifonSerializer.encodeToString(viewConfig).also {
             logger.debug { "Persist configuration: $it" }
         }
-        writeViewConfig(viewConfigAsString)
+        writeConfig(viewConfigAsString)
     }
 
     override fun playlistManagerReady(playlistManager: PlaylistManager) {
