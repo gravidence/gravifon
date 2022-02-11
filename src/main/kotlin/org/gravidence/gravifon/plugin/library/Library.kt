@@ -3,7 +3,6 @@ package org.gravidence.gravifon.plugin.library
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
@@ -13,6 +12,7 @@ import org.gravidence.gravifon.event.component.PubLibraryReadyEvent
 import org.gravidence.gravifon.orchestration.LibraryConsumer
 import org.gravidence.gravifon.orchestration.OrchestratorConsumer
 import org.gravidence.gravifon.plugin.Plugin
+import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.springframework.stereotype.Component
 import org.springframework.util.Base64Utils
 import java.nio.file.Files
@@ -110,7 +110,7 @@ class Library(private val consumers: List<LibraryConsumer>) : Plugin(), Orchestr
                 logger.debug { "Read library root configuration from $libraryRootConfigFile" }
 
                 try {
-                    addRoot(Json.decodeFromString(Files.readString(libraryRootConfigFile))).also {
+                    addRoot(gravifonSerializer.decodeFromString(Files.readString(libraryRootConfigFile))).also {
                         logger.trace { "Library root configuration loaded: $it" }
                     }
                 } catch (e: Exception) {
@@ -124,7 +124,7 @@ class Library(private val consumers: List<LibraryConsumer>) : Plugin(), Orchestr
         fun writeConfiguration() {
             getRoots().forEach {
                 val rootId = encode(it.rootDir)
-                val libraryRootConfigAsString = Json.encodeToString(it).also {
+                val libraryRootConfigAsString = gravifonSerializer.encodeToString(it).also {
                     logger.trace { "Library root ($rootId) configuration to be persisted: $it" }
                 }
                 val rootConfigFile = Path.of(libraryDir.toString(), rootId).also {

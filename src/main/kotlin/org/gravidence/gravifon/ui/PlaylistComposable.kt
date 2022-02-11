@@ -31,13 +31,19 @@ import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
+import org.gravidence.gravifon.util.DurationUtil
 import java.awt.event.MouseEvent
 
 class PlaylistState(val activeVirtualTrack: MutableState<VirtualTrack?>, val playlistItems: MutableState<List<PlaylistItem>>, val playlist: Playlist) {
 
     fun render(playlistItem: PlaylistItem): List<String> {
         return when (playlistItem) {
-            is TrackPlaylistItem -> listOf("${playlistItem.track.getArtist()} - ${playlistItem.track.getTitle()}")
+            is TrackPlaylistItem -> {
+                val artist = playlistItem.track.getArtist()
+                val title = playlistItem.track.getTitle()
+                val length = DurationUtil.format(playlistItem.track.getLength())
+                listOf("$artist - $title ($length)")
+            }
             is AlbumPlaylistItem -> TODO()
         }
     }

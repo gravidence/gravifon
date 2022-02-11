@@ -1,5 +1,6 @@
 package org.gravidence.gravifon.domain.track
 
+import org.gravidence.gravifon.domain.header.Headers
 import org.gravidence.gravifon.domain.tag.FieldValues
 import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
@@ -11,6 +12,8 @@ import org.jaudiotagger.tag.id3.AbstractID3v2Tag
 import org.jaudiotagger.tag.id3.Id3SupportingTag
 import java.io.File
 import java.net.URI
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class PhysicalTrack(val file: AudioFile) {
 
@@ -28,7 +31,11 @@ class PhysicalTrack(val file: AudioFile) {
             }
         }
 
-        return FileVirtualTrack(file.file.path, fields)
+        return FileVirtualTrack(
+            path = file.file.path,
+            headers = Headers(length = file.audioHeader.preciseTrackLength.toDuration(DurationUnit.SECONDS)),
+            fields = fields
+        )
     }
 
     private fun extractFieldValues(fieldKey: FieldKey): FieldValues? {

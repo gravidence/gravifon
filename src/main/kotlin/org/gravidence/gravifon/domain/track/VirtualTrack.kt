@@ -1,10 +1,12 @@
 package org.gravidence.gravifon.domain.track
 
 import kotlinx.serialization.Serializable
+import org.gravidence.gravifon.domain.header.Headers
 import org.gravidence.gravifon.domain.tag.FieldValues
 import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
 import org.jaudiotagger.tag.FieldKey
 import java.net.URI
+import kotlin.time.Duration
 
 val dateRegex = """^(\d{4})(-\d{2}(-\d{2})?)?""".toRegex()
 
@@ -22,6 +24,7 @@ fun virtualTrackComparator(selectors: List<VirtualTrackSelectors> = listOf(Virtu
 @Serializable
 sealed class VirtualTrack {
 
+    abstract val headers: Headers
     abstract val fields: MutableMap<FieldKey, FieldValues>
 
     abstract fun uri(): URI
@@ -52,6 +55,10 @@ sealed class VirtualTrack {
 
     fun clearField(key: FieldKey) {
         fields.remove(key)
+    }
+
+    fun getLength(): Duration? {
+        return headers.length
     }
 
     fun getArtist(): String? {

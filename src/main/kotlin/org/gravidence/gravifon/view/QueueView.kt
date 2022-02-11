@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.event.Event
@@ -12,6 +11,7 @@ import org.gravidence.gravifon.orchestration.PlaylistManagerConsumer
 import org.gravidence.gravifon.orchestration.SettingsConsumer
 import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
+import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.springframework.stereotype.Component
 
 private val logger = KotlinLogging.logger {}
@@ -42,12 +42,12 @@ class QueueView : View(), SettingsConsumer, PlaylistManagerConsumer {
             QueueViewConfiguration(playlistId = "b743b278-413d-4d47-b673-b2a26e4bbdc4")
         } else {
             logger.debug { "Use configuration: $viewConfigAsString" }
-            Json.decodeFromString(viewConfigAsString)
+            gravifonSerializer.decodeFromString(viewConfigAsString)
         }
     }
 
     override fun persistConfig() {
-        val viewConfigAsString = Json.encodeToString(viewConfig).also {
+        val viewConfigAsString = gravifonSerializer.encodeToString(viewConfig).also {
             logger.debug { "Persist configuration: $it" }
         }
         writeViewConfig(viewConfigAsString)

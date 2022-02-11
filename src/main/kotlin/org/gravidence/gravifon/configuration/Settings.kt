@@ -3,7 +3,6 @@ package org.gravidence.gravifon.configuration
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
@@ -13,6 +12,7 @@ import org.gravidence.gravifon.event.application.SubApplicationConfigurationPers
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationUpdateEvent
 import org.gravidence.gravifon.orchestration.OrchestratorConsumer
 import org.gravidence.gravifon.orchestration.SettingsConsumer
+import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.gravidence.gravifon.view.LibraryView
 import org.springframework.stereotype.Component
 import java.nio.file.Files
@@ -75,7 +75,7 @@ class Settings(private val consumers: List<SettingsConsumer>) : EventHandler(), 
         logger.info { "Read application configuration from $settingsFile" }
 
         try {
-            config = Json.decodeFromString(Files.readString(settingsFile))
+            config = gravifonSerializer.decodeFromString(Files.readString(settingsFile))
         } catch (e: Exception) {
             logger.error(e) { "Failed to read application configuration from $settingsFile" }
         }
@@ -88,7 +88,7 @@ class Settings(private val consumers: List<SettingsConsumer>) : EventHandler(), 
         logger.debug { "Collect config updates from application itself" }
         GravifonContext.activeView.value?.let { config.application.activeView = it.javaClass.name }
 
-        val configAsString = Json.encodeToString(config).also {
+        val configAsString = gravifonSerializer.encodeToString(config).also {
             logger.debug { "Application configuration to be persisted: $it" }
         }
         logger.info { "Write application configuration to $settingsFile" }

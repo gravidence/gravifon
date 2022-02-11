@@ -2,7 +2,6 @@ package org.gravidence.gravifon.playlist.manage
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.configHomeDir
@@ -19,6 +18,7 @@ import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
+import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.Path
@@ -151,7 +151,7 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
                 logger.debug { "Read playlist from $playlistConfigFile" }
 
                 try {
-                    addPlaylist(Json.decodeFromString(Files.readString(playlistConfigFile))).also {
+                    addPlaylist(gravifonSerializer.decodeFromString(Files.readString(playlistConfigFile))).also {
                         logger.trace { "Playlist loaded: $it" }
                     }
                 } catch (e: Exception) {
@@ -171,7 +171,7 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
                 logger.debug { "Write playlist to $it" }
             }
             try {
-                val playlistAsString = Json.encodeToString(playlist).also {
+                val playlistAsString = gravifonSerializer.encodeToString(playlist).also {
                     logger.trace { "Playlist ($playlistId) to be persisted: $it" }
                 }
                 Files.writeString(
