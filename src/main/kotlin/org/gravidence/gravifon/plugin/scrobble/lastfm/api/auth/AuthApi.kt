@@ -6,9 +6,9 @@ import org.gravidence.gravifon.plugin.scrobble.lastfm.api.LastfmApiClient
 import org.gravidence.gravifon.plugin.scrobble.lastfm.api.LastfmApiMethod
 import org.gravidence.gravifon.plugin.scrobble.lastfm.api.paramToken
 import org.gravidence.gravifon.plugin.scrobble.lastfm.misc.Param
+import org.gravidence.gravifon.plugin.scrobble.lastfm.misc.serialization.lastfmSerializer
 import org.gravidence.gravifon.plugin.scrobble.lastfm.misc.lfmQueryParams
 import org.gravidence.gravifon.plugin.scrobble.lastfm.misc.toJsonObject
-import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
@@ -44,7 +44,7 @@ class AuthApi(private var session: Session? = null, private val client: LastfmAp
     private fun refreshToken(): Token {
         val response = client.get(LastfmApiMethod.AUTH_GETTOKEN)
 
-        return gravifonSerializer.decodeFromJsonElement(response.toJsonObject())
+        return lastfmSerializer.decodeFromJsonElement(response.toJsonObject())
     }
 
     private fun refreshSession(token: Token): Session {
@@ -54,7 +54,7 @@ class AuthApi(private var session: Session? = null, private val client: LastfmAp
             )
         )
 
-        return gravifonSerializer.decodeFromJsonElement<SessionResponse>(response.toJsonObject())
+        return lastfmSerializer.decodeFromJsonElement<SessionResponse>(response.toJsonObject())
             .session
     }
 

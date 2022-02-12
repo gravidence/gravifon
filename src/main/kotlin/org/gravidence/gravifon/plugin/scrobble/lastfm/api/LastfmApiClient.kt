@@ -5,7 +5,7 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.plugin.scrobble.lastfm.exception.LastfmErrorException
 import org.gravidence.gravifon.plugin.scrobble.lastfm.exception.LastfmException
 import org.gravidence.gravifon.plugin.scrobble.lastfm.misc.*
-import org.gravidence.gravifon.util.serialization.gravifonSerializer
+import org.gravidence.gravifon.plugin.scrobble.lastfm.misc.serialization.lastfmSerializer
 import org.http4k.client.JavaHttpClient
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
@@ -30,7 +30,11 @@ class LastfmApiClient(
         }
 
         if (!response.status.successful) {
-            throw LastfmErrorException(gravifonSerializer.decodeFromJsonElement(response.toJsonObject()))
+            if (response.body.length == null || response.body.length == 0L) {
+                throw LastfmException(response.status.toString())
+            } else {
+                throw LastfmErrorException(lastfmSerializer.decodeFromJsonElement(response.toJsonObject()))
+            }
         }
 
         return response

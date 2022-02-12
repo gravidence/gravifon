@@ -4,8 +4,8 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import mu.KotlinLogging
 import org.gravidence.gravifon.plugin.scrobble.lastfm.api.*
 import org.gravidence.gravifon.plugin.scrobble.lastfm.api.auth.Session
+import org.gravidence.gravifon.plugin.scrobble.lastfm.misc.serialization.lastfmSerializer
 import org.gravidence.gravifon.plugin.scrobble.lastfm.misc.toJsonObject
-import org.gravidence.gravifon.util.serialization.gravifonSerializer
 
 private val logger = KotlinLogging.logger {}
 
@@ -25,7 +25,7 @@ class TrackApi(private var session: Session?, private val client: LastfmApiClien
             )
         )
 
-        return gravifonSerializer.decodeFromJsonElement(response.toJsonObject())
+        return lastfmSerializer.decodeFromJsonElement(response.toJsonObject())
     }
 
     fun scrobble(scrobbles: List<Scrobble>): BatchScrobbleResponse {
@@ -47,10 +47,10 @@ class TrackApi(private var session: Session?, private val client: LastfmApiClien
         )
 
         return if (scrobbles.size == 1) {
-            gravifonSerializer.decodeFromJsonElement<ScrobbleResponse>(response.toJsonObject())
+            lastfmSerializer.decodeFromJsonElement<ScrobbleResponse>(response.toJsonObject())
                 .toBatchScrobbleResponse()
         } else {
-            gravifonSerializer.decodeFromJsonElement<BatchScrobbleResponse>(response.toJsonObject())
+            lastfmSerializer.decodeFromJsonElement<BatchScrobbleResponse>(response.toJsonObject())
         }
     }
 
