@@ -58,7 +58,7 @@ class ScrobbleResult(
     val albumArtistCorrectionSummary: ParamCorrectionSummary,
 )
 
-@Serializable(with = IgnoreStatus.IgnoreStatusAsStringSerializer::class)
+@Serializable(with = IgnoreStatus.AsStringSerializer::class)
 enum class IgnoreStatus(val code: Int) {
 
     OK(0),
@@ -74,7 +74,7 @@ enum class IgnoreStatus(val code: Int) {
         }
     }
 
-    object IgnoreStatusAsStringSerializer : KSerializer<IgnoreStatus> {
+    object AsStringSerializer : KSerializer<IgnoreStatus> {
 
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IgnoreStatus", PrimitiveKind.STRING)
 
@@ -98,7 +98,7 @@ class ScrobbleCorrectionSummary(
     val value: String
 )
 
-@Serializable(with = CorrectionStatus.CorrectionStatusAsStringSerializer::class)
+@Serializable(with = CorrectionStatus.AsStringSerializer::class)
 enum class CorrectionStatus(val code: Int) {
 
     UNCHANGED(0),
@@ -110,7 +110,7 @@ enum class CorrectionStatus(val code: Int) {
         }
     }
 
-    object CorrectionStatusAsStringSerializer : KSerializer<CorrectionStatus> {
+    object AsStringSerializer : KSerializer<CorrectionStatus> {
 
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("CorrectionStatus", PrimitiveKind.STRING)
 
