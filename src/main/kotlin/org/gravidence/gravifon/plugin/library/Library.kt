@@ -91,7 +91,7 @@ class Library(private val consumers: List<LibraryConsumer>) : Plugin(), Orchestr
 
     inner class Configuration {
 
-        private val libraryDir: Path = configHomeDir.resolve("library")
+        private val libraryDir: Path = pluginConfigHomeDir.resolve("library")
 
         init {
             libraryDir.createDirectories()

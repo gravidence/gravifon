@@ -4,5 +4,5 @@ import org.gravidence.gravifon.configuration.ConfigUtil
 import org.gravidence.gravifon.event.EventHandler
 import java.nio.file.Path
 
-abstract class Plugin(var configHomeDir: Path = ConfigUtil.configHomeDir) : EventHandler() {
+abstract class Plugin(var pluginConfigHomeDir: Path = ConfigUtil.configHomeDir.resolve("plugin")) : EventHandler() {
 }
