@@ -62,8 +62,8 @@ class ScrobbleResult(
 enum class IgnoreStatus(val code: Int) {
 
     OK(0),
-    FILTERED_ARTIST(1),
-    FILTERED_TRACK(2),
+    ARTIST_IGNORED(1),
+    TRACK_IGNORED(2),
     TIMESTAMP_IN_THE_PAST(3),
     TIMESTAMP_IN_THE_FUTURE(4),
     DAILY_SCROBBLE_LIMIT_EXCEEDED(5);

@@ -2,7 +2,7 @@ package org.gravidence.gravifon.plugin.scrobble.lastfm.api
 
 import kotlinx.serialization.json.decodeFromJsonElement
 import mu.KotlinLogging
-import org.gravidence.gravifon.plugin.scrobble.lastfm.exception.LastfmErrorException
+import org.gravidence.gravifon.plugin.scrobble.lastfm.exception.LastfmApiException
 import org.gravidence.gravifon.plugin.scrobble.lastfm.exception.LastfmException
 import org.gravidence.gravifon.plugin.scrobble.lastfm.misc.*
 import org.gravidence.gravifon.plugin.scrobble.lastfm.misc.serialization.lastfmSerializer
@@ -33,7 +33,7 @@ class LastfmApiClient(
             if (response.body.length == null || response.body.length == 0L) {
                 throw LastfmException(response.status.toString())
             } else {
-                throw LastfmErrorException(lastfmSerializer.decodeFromJsonElement(response.toJsonObject()))
+                throw LastfmApiException(lastfmSerializer.decodeFromJsonElement(response.toJsonObject()))
             }
         }
 
