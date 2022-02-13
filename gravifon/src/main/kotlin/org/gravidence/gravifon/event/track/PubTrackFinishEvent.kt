@@ -5,4 +5,14 @@ import kotlinx.datetime.Instant
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import kotlin.time.Duration
 
-class PubTrackFinishEvent(override val track: VirtualTrack, val duration: Duration, val timestamp: Instant = Clock.System.now()) : TrackEvent()
+class PubTrackFinishEvent(
+    override val track: VirtualTrack,
+    /**
+     * The duration the track actually played (could less or more than track length).
+     */
+    val duration: Duration,
+    /**
+     * The time the track finished playing.
+     */
+    val timestamp: Instant = Clock.System.now()
+) : TrackEvent()

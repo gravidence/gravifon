@@ -5,6 +5,9 @@ import org.gravidence.gravifon.event.Event
 
 abstract class TrackEvent() : Event {
 
+    /**
+     * The track to handle.
+     */
     abstract val track: VirtualTrack
 
 }
