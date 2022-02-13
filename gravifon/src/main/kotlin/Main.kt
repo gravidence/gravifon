@@ -2,10 +2,15 @@
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import kotlinx.coroutines.cancel
-import org.gravidence.gravifon.GravifonStarter
+import kotlinx.coroutines.launch
 import org.gravidence.gravifon.GravifonContext
+import org.gravidence.gravifon.GravifonStarter
 
 fun main() = application {
+    GravifonContext.scopeDefault.launch {
+        GravifonStarter.orchestrator.startup()
+    }
+
     Window(
         onCloseRequest = {
             GravifonStarter.orchestrator.shutdown()
@@ -17,7 +22,6 @@ fun main() = application {
         },
         title = "Gravifon"
     ) {
-        GravifonStarter.kickoff()
         App()
     }
 }
