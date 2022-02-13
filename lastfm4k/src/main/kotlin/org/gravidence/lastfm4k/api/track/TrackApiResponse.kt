@@ -143,8 +143,8 @@ class ScrobbleSummary(
 fun ScrobbleResponse.toBatchScrobbleResponse(): BatchScrobbleResponse {
     return BatchScrobbleResponse(
         BatchScrobbleResponseHolder(
-        results = listOf(responseHolder.result),
-        summary = responseHolder.summary
-    )
+            results = listOf(responseHolder.result),
+            summary = responseHolder.summary
+        )
     )
 }

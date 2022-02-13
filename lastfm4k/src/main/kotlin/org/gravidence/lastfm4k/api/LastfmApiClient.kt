@@ -4,7 +4,9 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import mu.KotlinLogging
 import org.gravidence.lastfm4k.exception.LastfmApiException
 import org.gravidence.lastfm4k.exception.LastfmException
+import org.gravidence.lastfm4k.exception.LastfmNetworkException
 import org.gravidence.lastfm4k.misc.*
+import org.gravidence.lastfm4k.resilience.Retry
 import org.http4k.client.JavaHttpClient
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
@@ -22,21 +24,25 @@ class LastfmApiClient(
 
     private val httpClient: HttpHandler = JavaHttpClient()
 
+    private val retry: Retry = Retry()
+
     @Throws(LastfmException::class)
     private fun call(request: Request): Response {
-        val response = httpClient(request).also {
-            logger.debug { "Response: $it" }
-        }
-
-        if (!response.status.successful) {
-            if (response.body.length == null || response.body.length == 0L) {
-                throw LastfmException(response.status.toString())
-            } else {
-                throw LastfmApiException(lastfmSerializer.decodeFromJsonElement(response.toJsonObject()))
+        return retry.wrap {
+            val response = httpClient(request).also {
+                logger.debug { "Response: $it" }
             }
-        }
 
-        return response
+            if (!response.status.successful) {
+                if (response.body.length == null || response.body.length == 0L) {
+                    throw LastfmNetworkException(response)
+                } else {
+                    throw LastfmApiException(lastfmSerializer.decodeFromJsonElement(response.toJsonObject()))
+                }
+            }
+
+            return@wrap response
+        }
     }
 
     @Throws(LastfmException::class)
