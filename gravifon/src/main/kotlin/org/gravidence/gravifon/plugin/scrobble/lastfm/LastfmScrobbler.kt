@@ -32,6 +32,10 @@ import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Plugin to send scrobbles to Last.fm service.
+ * Reference: [https://www.last.fm/api/scrobbling].
+ */
 @Component
 class LastfmScrobbler : Plugin(), SettingsConsumer {
 

@@ -1,5 +1,9 @@
 package org.gravidence.lastfm4k.misc
 
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import org.http4k.core.Request
@@ -55,4 +59,8 @@ fun String.toMD5(): String {
 
 fun ByteArray.toHex(): String {
     return joinToString("") { "%02x".format(it) }
+}
+
+fun Instant.toLocalDateTime(): LocalDateTime {
+    return toLocalDateTime(TimeZone.currentSystemDefault())
 }

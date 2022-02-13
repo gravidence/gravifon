@@ -1,14 +1,12 @@
 package org.gravidence.lastfm4k.resilience
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.*
 import mu.KotlinLogging
 import org.gravidence.lastfm4k.api.error.LastfmApiError
 import org.gravidence.lastfm4k.exception.LastfmApiException
 import org.gravidence.lastfm4k.exception.LastfmException
 import org.gravidence.lastfm4k.exception.LastfmNetworkException
+import org.gravidence.lastfm4k.misc.toLocalDateTime
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -50,8 +48,7 @@ class Retry(
                 throw exc
             }
         } else {
-            val localDateTime = retryAfterFixed.toLocalDateTime(TimeZone.currentSystemDefault())
-            throw LastfmException("Skip Last.fm service call, next retry after $localDateTime")
+            throw LastfmException("Skip Last.fm service call, next retry after ${retryAfterFixed.toLocalDateTime()}")
         }
     }
 
@@ -71,7 +68,7 @@ class Retry(
         }
 
         retryAfter = Clock.System.now().plus(nextWaitDuration).also {
-            logger.info { "Failed to to call Last.fm service, next retry after ${it.toLocalDateTime(TimeZone.currentSystemDefault())}" }
+            logger.info { "Failed to to call Last.fm service, next retry after ${it.toLocalDateTime()}" }
         }
     }
 
