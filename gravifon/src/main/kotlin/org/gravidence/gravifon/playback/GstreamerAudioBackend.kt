@@ -102,14 +102,13 @@ class GstreamerAudioBackend : AudioBackend {
         stopwatch.stop()
     }
 
-    override fun queryLength(): Duration? {
-        return if (!playbin.isPlaying) {
-            null
-        } else {
-            playbin.queryDuration(TimeUnit.MILLISECONDS).also {
-                if (it == 0L) logger.warn { "Gstreamer reports stream duration is zero" }
-            }.toDuration(DurationUnit.MILLISECONDS)
-        }
+    /**
+     * Queries actual audio stream length from Gstreamer. The value is cached the framework until audio stream is not changed.
+     */
+    override fun queryLength(): Duration {
+        return playbin.queryDuration(TimeUnit.MILLISECONDS).also {
+            if (it == 0L) logger.warn { "Gstreamer reports stream duration is zero" }
+        }.toDuration(DurationUnit.MILLISECONDS)
     }
 
     override fun queryPosition(): Duration {

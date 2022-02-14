@@ -21,7 +21,7 @@ import org.gravidence.gravifon.util.DurationUtil
 class PlaybackInformationState(
     val activeVirtualTrack: MutableState<VirtualTrack?>,
     val playbackState: MutableState<PlaybackState>,
-    val playbackPositionState: PlaybackPositionState
+    val playbackPositionState: MutableState<PlaybackPositionState>
 ) {
 
     fun renderArtistInformation(): String {
@@ -33,7 +33,7 @@ class PlaybackInformationState(
     }
 
     fun renderTrackExtraInformation(): String {
-        return "(" + DurationUtil.format(playbackPositionState.endingPosition.value) + ")"
+        return "(" + DurationUtil.format(playbackPositionState.value.endingPosition) + ")"
     }
 
     fun renderAlbumInformation(): String {
@@ -57,7 +57,7 @@ class PlaybackInformationState(
 fun rememberPlaybackInformationState(
     activeVirtualTrack: MutableState<VirtualTrack?> = GravifonContext.activeVirtualTrack,
     playbackState: MutableState<PlaybackState> = GravifonContext.playbackState,
-    playbackPositionState: PlaybackPositionState = GravifonContext.playbackPositionState
+    playbackPositionState: MutableState<PlaybackPositionState> = GravifonContext.playbackPositionState
 ) = remember(activeVirtualTrack, playbackState, playbackPositionState) {
     PlaybackInformationState(
         activeVirtualTrack,

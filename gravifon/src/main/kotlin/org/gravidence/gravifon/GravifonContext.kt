@@ -1,7 +1,6 @@
 package org.gravidence.gravifon
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.gravidence.gravifon.domain.track.VirtualTrack
@@ -20,6 +19,6 @@ object GravifonContext {
     val activeVirtualTrack: MutableState<VirtualTrack?> = mutableStateOf(null)
 
     val playbackState: MutableState<PlaybackState> = mutableStateOf(PlaybackState.STOPPED)
-    val playbackPositionState: PlaybackPositionState = PlaybackPositionState()
+    val playbackPositionState: MutableState<PlaybackPositionState> = mutableStateOf(PlaybackPositionState())
 
 }

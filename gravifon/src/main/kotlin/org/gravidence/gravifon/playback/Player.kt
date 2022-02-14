@@ -1,7 +1,5 @@
 package org.gravidence.gravifon.playback
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
@@ -11,6 +9,7 @@ import org.gravidence.gravifon.event.playback.*
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
 import org.gravidence.gravifon.orchestration.OrchestratorConsumer
+import org.gravidence.gravifon.ui.state.PlaybackPositionState
 import org.gravidence.gravifon.util.DurationUtil
 import org.springframework.stereotype.Component
 import java.util.*
@@ -27,7 +26,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
     override fun consume(event: Event) {
         when (event) {
             is SubPlaybackStatusEvent -> {
-                sendStatusUpdate()
+                updatePlaybackPositionState()
             }
             is SubPlaybackStartEvent -> {
                 GravifonContext.playbackState.value = PlaybackState.PLAYING
@@ -66,21 +65,11 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                     }
                 }
 
-                if (nextTrack != null) {
-                    GravifonContext.activeVirtualTrack.value = nextTrack.also {
-                        logger.debug { "Switch over to next track: $it" }
-                    }
-
-                    GravifonContext.scopeDefault.launch {
-                        GravifonContext.playbackPositionState.endingPosition.value = resolveTrackLength(nextTrack).also {
-                            logger.debug { "Calculated track length: $it" }
-                        }
-                    }
-
-                    publish(PubTrackStartEvent(nextTrack))
-                } else {
-                    GravifonContext.playbackPositionState.endingPosition.value = Duration.ZERO
-                }
+                nextTrack?.let {
+                    logger.debug { "Switch over to next track: $it" }
+                    GravifonContext.activeVirtualTrack.value = it
+                    publish(PubTrackStartEvent(it))
+                } // if there's no next track, endOfStreamCallback will handle post-playback state clean-up
             },
             endOfStreamCallback = {
                 publish(SubPlaybackStopEvent())
@@ -109,7 +98,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
 
             timer = fixedRateTimer(initialDelay = 1000, period = 100) {
                 logger.trace { "Time to send playback status update events" }
-                sendStatusUpdate()
+                updatePlaybackPositionState()
             }
         }
     }
@@ -124,37 +113,23 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
         audioBackend.stop()
 
         GravifonContext.activeVirtualTrack.value = null
-        GravifonContext.playbackPositionState.runningPosition.value = Duration.ZERO
-        GravifonContext.playbackPositionState.endingPosition.value = Duration.ZERO
+        updatePlaybackPositionState(Duration.ZERO, Duration.ZERO)
     }
 
     private fun seek(position: Duration) {
         audioBackend.adjustPosition(position)
 
-        GravifonContext.playbackPositionState.runningPosition.value = position
+        updatePlaybackPositionState(runningPositionOverride = position)
     }
 
-    private fun sendStatusUpdate() {
-        GravifonContext.playbackPositionState.runningPosition.value = audioBackend.queryPosition()
-    }
-
-    private suspend fun resolveTrackLength(track: VirtualTrack): Duration {
-        val knownTrackLength = track.getLength()
-
-        val trackLength = if (knownTrackLength == null) {
-            // launch with a small delay to workaround gstreamer query_duration API limitations
-            if (audioBackend.queryLength() == null) {
-                delay(50)
-            } else {
-                // TODO that's way too much, but for smaller values gstreamer returns prev stream length, investigation needed
-                delay(1500)
-            }
-            audioBackend.queryLength()
-        } else {
-            knownTrackLength
-        }
-
-        return trackLength ?: Duration.ZERO
+    private fun updatePlaybackPositionState(
+        runningPositionOverride: Duration? = null,
+        endingPositionOverride: Duration? = null
+    ) {
+        GravifonContext.playbackPositionState.value = PlaybackPositionState(
+            runningPosition = runningPositionOverride ?: audioBackend.queryPosition(),
+            endingPosition = endingPositionOverride ?: audioBackend.queryLength()
+        )
     }
 
 }

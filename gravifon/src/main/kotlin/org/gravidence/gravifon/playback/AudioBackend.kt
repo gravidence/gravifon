@@ -18,7 +18,7 @@ interface AudioBackend {
     /**
      * Returns stream length.
      */
-    fun queryLength(): Duration?
+    fun queryLength(): Duration
 
     /**
      * Returns current stream position.

@@ -12,10 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
-import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
 import org.gravidence.gravifon.event.playback.SubPlaybackAbsolutePositionEvent
+import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
 import org.gravidence.gravifon.event.playback.SubPlaybackStopEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
@@ -28,9 +27,8 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 class PlaybackControlState(
-    val activeVirtualTrack: MutableState<VirtualTrack?>,
     val playbackState: MutableState<PlaybackState>,
-    val playbackPositionState: PlaybackPositionState,
+    val playbackPositionState: MutableState<PlaybackPositionState>,
     val activePlaylist: MutableState<Playlist?>
 ) {
 
@@ -60,24 +58,22 @@ class PlaybackControlState(
     }
 
     fun elapsedTime(): String {
-        return DurationUtil.format(playbackPositionState.runningPosition.value)
+        return DurationUtil.format(playbackPositionState.value.runningPosition)
     }
 
     fun remainingTime(): String {
-        return DurationUtil.format(playbackPositionState.endingPosition.value.minus(playbackPositionState.runningPosition.value))
+        return DurationUtil.format(playbackPositionState.value.endingPosition.minus(playbackPositionState.value.runningPosition))
     }
 
 }
 
 @Composable
 fun rememberPlaybackControlState(
-    activeVirtualTrack: MutableState<VirtualTrack?> = GravifonContext.activeVirtualTrack,
     playbackState: MutableState<PlaybackState> = GravifonContext.playbackState,
-    playbackPositionState: PlaybackPositionState = GravifonContext.playbackPositionState,
+    playbackPositionState: MutableState<PlaybackPositionState> = GravifonContext.playbackPositionState,
     activePlaylist: MutableState<Playlist?> = GravifonContext.activePlaylist
-) = remember(activeVirtualTrack, playbackState, playbackPositionState, activePlaylist) {
+) = remember(playbackState, playbackPositionState, activePlaylist) {
     PlaybackControlState(
-        activeVirtualTrack,
         playbackState,
         playbackPositionState,
         activePlaylist
@@ -130,9 +126,9 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                 }
                 Text(text = playbackControlState.elapsedTime(), fontWeight = FontWeight.Light)
                 Slider(
-                    value = playbackControlState.playbackPositionState.runningPosition.value
+                    value = playbackControlState.playbackPositionState.value.runningPosition
                         .inWholeMilliseconds.toFloat(),
-                    valueRange = 0f..playbackControlState.playbackPositionState.endingPosition.value
+                    valueRange = 0f..playbackControlState.playbackPositionState.value.endingPosition
                         .inWholeMilliseconds.toFloat(),
                     onValueChange = {
                         playbackControlState.onPositionChange(it)
