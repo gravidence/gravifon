@@ -1,4 +1,5 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+package org.gravidence.gravifon.ui
+
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,7 +12,6 @@ import kotlinx.coroutines.delay
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
-import org.gravidence.gravifon.ui.*
 import kotlin.concurrent.fixedRateTimer
 
 @Composable
