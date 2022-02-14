@@ -46,7 +46,11 @@ class GstreamerAudioBackend : AudioBackend {
         logger.debug { "Callback 'about-to-finish' registered" }
 
         playbin.connect(PlayBin.AUDIO_CHANGED {
-            logger.debug { "Audio stream changed. Now points to ${it.get("current-uri")}" }
+            // print message only when there's actual next track, otherwise AUDIO_CHANGE event means playback is being stopped
+            if (nextTrack != null) {
+                logger.debug { "Audio stream changed. Now points to ${it.get("current-uri")}" }
+            }
+
             audioStreamChangedCallback(nextTrack, stopwatch.stop())
             stopwatch.count()
         })

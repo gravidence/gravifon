@@ -34,8 +34,10 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                 start(event.track)
             }
             is SubPlaybackPauseEvent -> {
-                GravifonContext.playbackState.value = PlaybackState.PAUSED
-                pause()
+                if (GravifonContext.playbackState.value != PlaybackState.STOPPED) {
+                    GravifonContext.playbackState.value = PlaybackState.PAUSED
+                    pause()
+                }
             }
             is SubPlaybackStopEvent -> {
                 GravifonContext.playbackState.value = PlaybackState.STOPPED
