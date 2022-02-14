@@ -1,5 +1,4 @@
 // Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,8 +15,7 @@ import org.gravidence.gravifon.ui.*
 import kotlin.concurrent.fixedRateTimer
 
 @Composable
-@Preview
-fun App() {
+fun AppBody() {
     var text by remember { mutableStateOf("Gravifon") }
 
     val playbackInformationState = rememberPlaybackInformationState()

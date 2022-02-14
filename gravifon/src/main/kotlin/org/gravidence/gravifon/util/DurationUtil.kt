@@ -18,4 +18,8 @@ object DurationUtil {
         } ?: "--:--"
     }
 
+    fun max(a: Duration, b: Duration): Duration {
+        return if (a >= b) a else b
+    }
+
 }

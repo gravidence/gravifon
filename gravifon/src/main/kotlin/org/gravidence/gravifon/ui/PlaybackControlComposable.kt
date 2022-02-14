@@ -15,7 +15,7 @@ import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
-import org.gravidence.gravifon.event.playback.SubPlaybackPositionEvent
+import org.gravidence.gravifon.event.playback.SubPlaybackAbsolutePositionEvent
 import org.gravidence.gravifon.event.playback.SubPlaybackStopEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
@@ -56,7 +56,7 @@ class PlaybackControlState(
 
     fun onPositionChange(rawPosition: Float) {
         val position = rawPosition.toLong().toDuration(DurationUnit.MILLISECONDS)
-        EventBus.publish(SubPlaybackPositionEvent(position))
+        EventBus.publish(SubPlaybackAbsolutePositionEvent(position))
     }
 
     fun elapsedTime(): String {

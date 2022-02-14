@@ -11,6 +11,7 @@ import org.gravidence.gravifon.event.playback.*
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
 import org.gravidence.gravifon.orchestration.OrchestratorConsumer
+import org.gravidence.gravifon.util.DurationUtil
 import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
@@ -40,8 +41,11 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                 GravifonContext.playbackState.value = PlaybackState.STOPPED
                 stop()
             }
-            is SubPlaybackPositionEvent -> {
+            is SubPlaybackAbsolutePositionEvent -> {
                 seek(event.position)
+            }
+            is SubPlaybackRelativePositionEvent -> {
+                seek(DurationUtil.max(Duration.ZERO, audioBackend.queryPosition() + event.position))
             }
         }
     }
