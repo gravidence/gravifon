@@ -24,7 +24,7 @@ import kotlin.streams.toList
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Library(private val consumers: List<LibraryConsumer>) : Plugin(), OrchestratorConsumer {
+class Library(private val consumers: List<LibraryConsumer>) : Plugin(title = "Library", description = "Library v0.1"), OrchestratorConsumer {
 
     private val configuration = Configuration()
     private val roots: MutableList<Root> = ArrayList()

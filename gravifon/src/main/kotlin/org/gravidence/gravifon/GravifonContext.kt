@@ -18,6 +18,8 @@ object GravifonContext {
     val activePlaylist: MutableState<Playlist?> = mutableStateOf(null)
     val activeVirtualTrack: MutableState<VirtualTrack?> = mutableStateOf(null)
 
+    val pluginSettingsDialogVisible: MutableState<Boolean> = mutableStateOf(false)
+
     val playbackState: MutableState<PlaybackState> = mutableStateOf(PlaybackState.STOPPED)
     val playbackPositionState: MutableState<PlaybackPositionState> = mutableStateOf(PlaybackPositionState())
 

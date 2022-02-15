@@ -37,7 +37,7 @@ private val logger = KotlinLogging.logger {}
  * Reference: [https://www.last.fm/api/scrobbling].
  */
 @Component
-class LastfmScrobbler : Plugin(), SettingsConsumer {
+class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.fm Scrobbler v0.1"), SettingsConsumer {
 
     private val absoluteMinScrobbleDuration = 30.seconds
     private val absoluteEnoughScrobbleDuration = 4.minutes

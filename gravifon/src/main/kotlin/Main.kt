@@ -1,4 +1,3 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyShortcut
@@ -13,6 +12,8 @@ import org.gravidence.gravifon.GravifonStarter
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
 import org.gravidence.gravifon.event.playback.SubPlaybackRelativePositionEvent
+import org.gravidence.gravifon.ui.AppBody
+import org.gravidence.gravifon.ui.dialog.PluginSettingsDialog
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -67,7 +68,7 @@ fun main() = application {
             }
             Menu(text = "Settings") {
                 Item(text = "Application...", onClick = {})
-                Item(text = "Plugin...", onClick = {})
+                Item(text = "Plugin...", onClick = { GravifonContext.pluginSettingsDialogVisible.value = true })
             }
             Menu(text = "About") {
 
@@ -75,5 +76,7 @@ fun main() = application {
         }
 
         AppBody()
+
+        PluginSettingsDialog()
     }
 }
