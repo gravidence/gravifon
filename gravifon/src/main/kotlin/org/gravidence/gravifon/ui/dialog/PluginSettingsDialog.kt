@@ -3,6 +3,7 @@ package org.gravidence.gravifon.ui.dialog
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -39,7 +40,7 @@ class PluginSettingsState(val selectedPlugin: MutableState<Plugin?>) {
 
 @Composable
 fun rememberPluginSettingsState(
-    selectedPlugin: MutableState<Plugin?> = mutableStateOf(null),
+    selectedPlugin: MutableState<Plugin?> = mutableStateOf(GravifonStarter.plugins.firstOrNull()),
 ) = remember(selectedPlugin) { PluginSettingsState(selectedPlugin) }
 
 @Composable
@@ -158,15 +159,27 @@ fun pluginListItem(plugin: Plugin, pluginSettingsState: PluginSettingsState) {
 
 @Composable
 fun pluginContent(pluginSettingsState: PluginSettingsState) {
-    Box {
-        Column {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                pluginSettingsState.selectedPlugin.value?.let {
-                    Text(it.description)
+    pluginSettingsState.selectedPlugin.value?.let { plugin ->
+        Box {
+            Column {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp)
+                ) {
+                    Text(plugin.description)
+                }
+                Divider(
+                    thickness = 2.dp,
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                )
+                Row(
+                    modifier = Modifier
+                        .padding(10.dp)
+                ) {
+                    plugin.composeSettings()
                 }
             }
         }

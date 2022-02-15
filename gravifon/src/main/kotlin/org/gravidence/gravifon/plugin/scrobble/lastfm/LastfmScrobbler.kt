@@ -1,5 +1,7 @@
 package org.gravidence.gravifon.plugin.scrobble.lastfm
 
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -244,6 +246,11 @@ class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.
             }
         }
 
+    }
+
+    @Composable
+    override fun composeSettings() {
+        Text("TBD")
     }
 
 }

@@ -1,5 +1,7 @@
 package org.gravidence.gravifon.plugin.library
 
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -153,6 +155,11 @@ class Library(private val consumers: List<LibraryConsumer>) : Plugin(title = "Li
             return String(Base64Utils.decodeFromUrlSafeString(encodedPath))
         }
 
+    }
+
+    @Composable
+    override fun composeSettings() {
+        Text("TBD")
     }
 
 }

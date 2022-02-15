@@ -36,9 +36,9 @@ object GravifonStarter {
         views = ctx.getBeansOfType<View>().values.also {
             logger.info { "Views configured: $it" }
         }
-        plugins = ctx.getBeansOfType<Plugin>().values.also {
-            logger.info { "Plugins configured: $it" }
-        }
+        plugins = ctx.getBeansOfType<Plugin>().values
+            .sortedBy { it.title }
+            .also { logger.info { "Plugins configured: $it" } }
     }
 
 }
