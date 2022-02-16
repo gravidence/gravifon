@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
@@ -50,7 +51,10 @@ fun PluginSettingsDialog() {
     Dialog(
         title = "Plugin Settings",
         visible = GravifonContext.pluginSettingsDialogVisible.value, // wrap dialog with if-clause to dispose it after closure
-        state = rememberDialogState(position = WindowPosition(Alignment.Center)),
+        state = rememberDialogState(
+            position = WindowPosition(Alignment.Center),
+            size = DpSize(600.dp, 400.dp)
+        ),
         onCloseRequest = { GravifonContext.pluginSettingsDialogVisible.value = false }
     ) {
         val pluginListHScrollState = rememberScrollState()

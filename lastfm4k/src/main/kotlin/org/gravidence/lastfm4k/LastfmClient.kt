@@ -15,7 +15,7 @@ class LastfmClient(
     val apiRoot: String = "http://ws.audioscrobbler.com/2.0/",
     val apiKey: String,
     val apiSecret: String,
-    val session: Session? = null
+    var session: Session? = null
 ) {
 
     private val apiClient: LastfmApiClient = LastfmApiClient(apiRoot, apiKey, apiSecret)
@@ -31,8 +31,12 @@ class LastfmClient(
     }
 
     @Throws(LastfmException::class)
-    fun authorizeStep2(token: Token): Session {
-        return authApi.getSession(token)
+    fun authorizeStep2(token: Token, useNewSession: Boolean = true): Session {
+        return authApi.getSession(token).also {
+            if (useNewSession) {
+                session = it
+            }
+        }
     }
 
 }

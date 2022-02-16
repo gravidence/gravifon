@@ -1,7 +1,20 @@
 package org.gravidence.gravifon.plugin.scrobble.lastfm
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.Button
+import androidx.compose.material.Divider
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -16,14 +29,19 @@ import org.gravidence.gravifon.event.track.PubTrackStartEvent
 import org.gravidence.gravifon.orchestration.SettingsConsumer
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
+import org.gravidence.gravifon.ui.tooltip
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.gravidence.lastfm4k.LastfmClient
 import org.gravidence.lastfm4k.api.auth.Session
+import org.gravidence.lastfm4k.api.auth.Token
 import org.gravidence.lastfm4k.api.track.IgnoreStatus
 import org.gravidence.lastfm4k.api.track.Track
 import org.gravidence.lastfm4k.exception.LastfmApiException
 import org.gravidence.lastfm4k.exception.LastfmException
+import org.http4k.core.Uri
 import org.springframework.stereotype.Component
+import java.awt.Desktop
+import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -46,7 +64,7 @@ class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.
 
     @Serializable
     data class LastfmScrobblerConfiguration(
-        val session: Session? = null
+        var session: Session? = null
     )
 
     private lateinit var appConfig: LastfmScrobblerConfiguration
@@ -248,9 +266,136 @@ class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.
 
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     override fun composeSettings() {
-        Text("TBD")
+        var session: Session? by remember { mutableStateOf(appConfig.session) }
+        var authorization: Pair<Token, Uri>? by remember { mutableStateOf(null) }
+
+        Box(
+            modifier = Modifier
+                .widthIn(min = 400.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    TooltipArea(
+                        delayMillis = 600,
+                        tooltip = { tooltip("Session key used by Gravifon to access your Last.fm account") }
+                    ) {
+                        Text("Session Key:")
+                    }
+                    BasicTextField(
+                        value = session?.key ?: "",
+                        singleLine = true,
+                        readOnly = true,
+                        onValueChange = {},
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                            .padding(5.dp)
+                    )
+                }
+                Divider(
+                    thickness = 2.dp,
+                    modifier = Modifier
+                        .padding(horizontal = 30.dp, vertical = 5.dp)
+                )
+                if (session == null) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = """
+                            Gravifon isn't authorized to access your Last.fm account. Few steps are required to sort it out.
+                            1. Request token
+                            2. Allow Gravifon to access your Last.fm account. For that, please open Authorization URL in your browser and follow instructions. You need to be logged-in to complete this step.
+                            3. Request session
+                            """.trimIndent(),
+                            fontStyle = FontStyle.Italic
+                        )
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        TooltipArea(
+                            delayMillis = 600,
+                            tooltip = { tooltip("Please this URL to authorize Gravifon to access your Last.fm account") }
+                        ) {
+                            Text("Authorization URL:")
+                        }
+                        BasicTextField(
+                            value = authorization?.second?.toString() ?: "",
+                            singleLine = true,
+                            readOnly = true,
+                            onValueChange = {},
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                                .padding(5.dp)
+                        )
+                        Button(
+                            enabled = authorization != null,
+                            contentPadding = PaddingValues(0.dp),
+                            onClick = {
+                                Desktop.getDesktop().browse(URI(authorization?.second.toString()))
+                            },
+//                            modifier = Modifier
+//                                .size(30.dp)
+                        ) {
+//                            Text("⏵")
+                            Text(">>")
+                        }
+                    }
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Button(
+                        enabled = session == null && authorization == null,
+                        onClick = {
+                            // TODO add error handling
+                            authorization = lastfmClient.authorizeStep1()
+                        }
+                    ) {
+                        Text("Request Token")
+                    }
+                    if (session == null) {
+                        Button(
+                            enabled = authorization != null,
+                            onClick = {
+                                // TODO add error handling
+                                authorization?.let {
+                                    appConfig.session = lastfmClient.authorizeStep2(token = it.first)
+                                    session = appConfig.session
+                                }
+                            }
+                        ) {
+                            Text("Request Session")
+                        }
+
+                    } else {
+                        Button(
+                            onClick = {
+                                appConfig.session = null
+                                session = null
+                            }
+                        ) {
+                            Text("Clear Session")
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }
