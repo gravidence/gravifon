@@ -29,17 +29,14 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                 updatePlaybackPositionState()
             }
             is SubPlaybackStartEvent -> {
-                GravifonContext.playbackState.value = PlaybackState.PLAYING
                 start(event.track)
             }
             is SubPlaybackPauseEvent -> {
                 if (GravifonContext.playbackState.value != PlaybackState.STOPPED) {
-                    GravifonContext.playbackState.value = PlaybackState.PAUSED
                     pause()
                 }
             }
             is SubPlaybackStopEvent -> {
-                GravifonContext.playbackState.value = PlaybackState.STOPPED
                 stop()
             }
             is SubPlaybackAbsolutePositionEvent -> {
@@ -86,15 +83,17 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
     }
 
     private fun start(track: VirtualTrack, forcePlay: Boolean = true) {
-        // TODO check if really needed
         if (forcePlay) {
-            audioBackend.stop()
+            // do clean-up (timer, etc)
+            stop()
         }
 
         audioBackend.prepareNext(track)
 
         if (forcePlay) {
-            audioBackend.play()
+            audioBackend.play().also {
+                GravifonContext.playbackState.value = PlaybackState.PLAYING
+            }
 
             timer = fixedRateTimer(initialDelay = 1000, period = 100) {
                 logger.trace { "Time to send playback status update events" }
@@ -104,13 +103,17 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
     }
 
     private fun pause() {
-        audioBackend.pause()
+        audioBackend.pause().also {
+            GravifonContext.playbackState.value = PlaybackState.PAUSED
+        }
     }
 
     private fun stop() {
         timer.cancel()
 
-        audioBackend.stop()
+        audioBackend.stop().also {
+            GravifonContext.playbackState.value = PlaybackState.STOPPED
+        }
 
         GravifonContext.activeVirtualTrack.value = null
         updatePlaybackPositionState(Duration.ZERO, Duration.ZERO)
