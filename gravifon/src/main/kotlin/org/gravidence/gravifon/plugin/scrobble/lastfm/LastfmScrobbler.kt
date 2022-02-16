@@ -38,6 +38,7 @@ import org.gravidence.lastfm4k.api.track.IgnoreStatus
 import org.gravidence.lastfm4k.api.track.Track
 import org.gravidence.lastfm4k.exception.LastfmApiException
 import org.gravidence.lastfm4k.exception.LastfmException
+import org.gravidence.lastfm4k.exception.LastfmNetworkException
 import org.http4k.core.Uri
 import org.springframework.stereotype.Component
 import java.awt.Desktop
@@ -271,6 +272,7 @@ class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.
     override fun composeSettings() {
         var session: Session? by remember { mutableStateOf(appConfig.session) }
         var authorization: Pair<Token, Uri>? by remember { mutableStateOf(null) }
+        var error: String? by remember { mutableStateOf(null) }
 
         Box(
             modifier = Modifier
@@ -319,6 +321,20 @@ class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.
                             fontStyle = FontStyle.Italic
                         )
                     }
+                    error?.let {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp)
+                        ) {
+                            Text(
+                                text = it,
+                                color = Color.Red,
+                                fontStyle = FontStyle.Italic
+                            )
+                        }
+                    }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -363,8 +379,9 @@ class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.
                     Button(
                         enabled = session == null && authorization == null,
                         onClick = {
-                            // TODO add error handling
-                            authorization = lastfmClient.authorizeStep1()
+                            error = handleLastfmException {
+                                authorization = lastfmClient.authorizeStep1()
+                            }
                         }
                     ) {
                         Text("Request Token")
@@ -373,10 +390,11 @@ class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.
                         Button(
                             enabled = authorization != null,
                             onClick = {
-                                // TODO add error handling
                                 authorization?.let {
-                                    appConfig.session = lastfmClient.authorizeStep2(token = it.first)
-                                    session = appConfig.session
+                                    error = handleLastfmException {
+                                        appConfig.session = lastfmClient.authorizeStep2(token = it.first)
+                                        session = appConfig.session
+                                    }
                                 }
                             }
                         ) {
@@ -386,7 +404,9 @@ class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.
                     } else {
                         Button(
                             onClick = {
+                                // TODO too many assignments wrt same thing...
                                 appConfig.session = null
+                                lastfmClient.session(null)
                                 session = null
                             }
                         ) {
@@ -395,6 +415,19 @@ class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.
                     }
                 }
             }
+        }
+    }
+
+    private fun handleLastfmException(block: () -> Unit): String? {
+        return try {
+            block()
+            null
+        } catch (exc: LastfmApiException) {
+            "Error received from Last.fm service: ${exc.message}"
+        } catch (exc: LastfmNetworkException) {
+            "Failed to call Last.fm service: HTTP ${exc.response.status.code}"
+        } catch (exc: LastfmException) {
+            "Failed to call Last.fm service, please see logs for details"
         }
     }
 

@@ -2,20 +2,19 @@ package org.gravidence.lastfm4k.api.track
 
 import kotlinx.serialization.json.decodeFromJsonElement
 import mu.KotlinLogging
-import org.gravidence.lastfm4k.api.auth.Session
 import org.gravidence.lastfm4k.api.*
 import org.gravidence.lastfm4k.misc.lastfmSerializer
 import org.gravidence.lastfm4k.misc.toJsonObject
 
 private val logger = KotlinLogging.logger {}
 
-class TrackApi(private var session: Session?, private val client: LastfmApiClient) {
+class TrackApi(private val context: LastfmApiContext) {
 
     fun updateNowPlaying(track: Track): NowPlayingResponse {
-        val response = client.post(
+        val response = context.client.post(
             LastfmApiMethod.TRACK_UPDATENOWPLAYING,
             listOf(
-                session?.paramSessionKey(),
+                context.session?.paramSessionKey(),
                 track.paramArtist(),
                 track.paramTrack(),
                 track.paramAlbum(),
@@ -43,9 +42,9 @@ class TrackApi(private var session: Session?, private val client: LastfmApiClien
             )
         }
 
-        val response = client.post(
+        val response = context.client.post(
             LastfmApiMethod.TRACK_SCROBBLE,
-            scrobbleParams + session?.paramSessionKey()
+            scrobbleParams + context.session?.paramSessionKey()
         )
 
         return if (scrobbles.size == 1) {
