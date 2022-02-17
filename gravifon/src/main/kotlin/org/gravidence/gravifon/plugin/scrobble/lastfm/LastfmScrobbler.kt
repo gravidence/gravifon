@@ -31,6 +31,7 @@ import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
 import org.gravidence.gravifon.ui.tooltip
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
+import org.gravidence.gravifon.plugin.View
 import org.gravidence.lastfm4k.LastfmClient
 import org.gravidence.lastfm4k.api.auth.Session
 import org.gravidence.lastfm4k.api.auth.Token
@@ -58,7 +59,7 @@ private val logger = KotlinLogging.logger {}
  * Reference: [https://www.last.fm/api/scrobbling].
  */
 @Component
-class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.fm Scrobbler v0.1"), SettingsConsumer {
+class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.fm Scrobbler v0.1"), View, SettingsConsumer {
 
     private val absoluteMinScrobbleDuration = 30.seconds
     private val absoluteEnoughScrobbleDuration = 4.minutes
@@ -429,6 +430,11 @@ class LastfmScrobbler : Plugin(title = "Last.fm Scrobbler", description = "Last.
         } catch (exc: LastfmException) {
             "Failed to call Last.fm service, please see logs for details"
         }
+    }
+
+    @Composable
+    override fun composeView() {
+        TODO("Not yet implemented")
     }
 
 }

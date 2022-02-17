@@ -12,8 +12,8 @@ import org.gravidence.gravifon.event.application.SubApplicationConfigurationPers
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationUpdateEvent
 import org.gravidence.gravifon.orchestration.OrchestratorConsumer
 import org.gravidence.gravifon.orchestration.SettingsConsumer
+import org.gravidence.gravifon.plugin.library.Library
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
-import org.gravidence.gravifon.view.LibraryView
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -27,7 +27,7 @@ class Settings(private val consumers: List<SettingsConsumer>) : EventHandler(), 
     data class GConfig(val application: GApplication = GApplication(), val component: MutableMap<String, String> = mutableMapOf())
 
     @Serializable
-    data class GApplication(var activeView: String = LibraryView::class.qualifiedName!!)
+    data class GApplication(var activeView: String = Library::class.qualifiedName!!)
 
     private var config: GConfig = GConfig()
 

@@ -85,7 +85,7 @@ fun AppBody() {
                                     // TODO make proper initialization indicator
                                     Text("Initialization...")
                                 } else {
-                                    value.compose()
+                                    value.composeView()
                                 }
                             }
                             Divider(color = Color.Transparent, thickness = 5.dp)

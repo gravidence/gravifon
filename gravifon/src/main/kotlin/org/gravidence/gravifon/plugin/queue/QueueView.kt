@@ -1,5 +1,6 @@
-package org.gravidence.gravifon.view
+package org.gravidence.gravifon.plugin.queue
 
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
@@ -11,12 +12,14 @@ import org.gravidence.gravifon.orchestration.PlaylistManagerConsumer
 import org.gravidence.gravifon.orchestration.SettingsConsumer
 import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
+import org.gravidence.gravifon.plugin.Plugin
+import org.gravidence.gravifon.plugin.View
 import org.springframework.stereotype.Component
 
 private val logger = KotlinLogging.logger {}
 
 @Component
-class QueueView : View(), SettingsConsumer, PlaylistManagerConsumer {
+class Queue : Plugin(title = "Queue", description = "Queue v0.1"), View, SettingsConsumer, PlaylistManagerConsumer {
 
     @Serializable
     data class QueueViewConfiguration(val playlistId: String)
@@ -56,7 +59,12 @@ class QueueView : View(), SettingsConsumer, PlaylistManagerConsumer {
     }
 
     @Composable
-    override fun compose() {
+    override fun composeSettings() {
+        Text("TBD")
+    }
+
+    @Composable
+    override fun composeView() {
         TODO("Not yet implemented")
     }
 

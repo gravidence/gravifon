@@ -7,7 +7,7 @@ import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.playback.PlaybackState
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
-import org.gravidence.gravifon.view.View
+import org.gravidence.gravifon.plugin.View
 
 object GravifonContext {
 

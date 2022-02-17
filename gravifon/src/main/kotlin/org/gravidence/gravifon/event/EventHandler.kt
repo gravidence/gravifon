@@ -4,10 +4,12 @@ import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-abstract class EventHandler(subscribe: ((Event) -> Unit) -> Unit = EventBus::subscribe, val publish: (Event) -> Unit = EventBus::publish) {
+abstract class EventHandler {
+
+    val publish: (Event) -> Unit = EventBus::publish
 
     init {
-        subscribe(::receive)
+        EventBus.subscribe(::receive)
     }
 
     private fun receive(event: Event) {
