@@ -44,7 +44,7 @@ import org.gravidence.gravifon.query.TrackQueryParser
 import org.gravidence.gravifon.ui.PlaylistComposable
 import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
-import org.gravidence.gravifon.plugin.View
+import org.gravidence.gravifon.ui.View
 import org.springframework.stereotype.Component
 import org.springframework.util.Base64Utils
 import java.nio.file.Files
@@ -58,8 +58,9 @@ import kotlin.streams.toList
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Library(private val consumers: List<LibraryConsumer>) : Plugin(title = "Library", description = "Library v0.1"), View, OrchestratorConsumer,
-    SettingsConsumer, PlaylistManagerConsumer {
+class Library(private val consumers: List<LibraryConsumer>) :
+    Plugin(pluginDisplayName = "Library", pluginDescription = "Library v0.1"), View,
+    OrchestratorConsumer, SettingsConsumer, PlaylistManagerConsumer {
 
     private val configuration = Configuration()
     private val roots: MutableList<Root> = ArrayList()
@@ -230,13 +231,18 @@ class Library(private val consumers: List<LibraryConsumer>) : Plugin(title = "Li
         playlist = playlistManager.getPlaylist(viewConfig.playlistId) ?: DynamicPlaylist(viewConfig.playlistId)
         playlistManager.addPlaylist(playlist)
 
+        // TODO think how to do last used view activation in centralized manner
         if (settings.applicationConfig().activeView == this.javaClass.name) {
-            GravifonContext.activeView.value = this
+            activate()
             GravifonContext.activePlaylist.value = playlist
         }
     }
 
-    inner class LibraryViewState(val query: MutableState<String>, val playlistItems: MutableState<List<PlaylistItem>>, val playlist: Playlist) {
+    inner class LibraryViewState(
+        val query: MutableState<String>,
+        val playlistItems: MutableState<List<PlaylistItem>>,
+        val playlist: Playlist
+    ) {
 
         fun onQueryChange(changed: String) {
             query.value = changed
@@ -264,15 +270,21 @@ class Library(private val consumers: List<LibraryConsumer>) : Plugin(title = "Li
         playlist: Playlist
     ) = remember(query, playlistItems) { LibraryViewState(query, playlistItems, playlist) }
 
+    override fun viewDisplayName(): String {
+        return pluginDisplayName
+    }
+
     @Composable
     override fun composeView() {
         val libraryViewState = rememberLibraryViewState(
             query = mutableStateOf(viewConfig.queryHistory.firstOrNull() ?: ""),
             playlistItems = mutableStateOf(playlist.items()),
-            playlist = playlist)
+            playlist = playlist
+        )
         val playlistState = rememberPlaylistState(
             playlistItems = libraryViewState.playlistItems,
-            playlist = playlist)
+            playlist = playlist
+        )
 
         Box(
             modifier = Modifier

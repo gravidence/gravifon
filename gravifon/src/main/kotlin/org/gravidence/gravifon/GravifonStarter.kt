@@ -3,7 +3,7 @@ package org.gravidence.gravifon
 import mu.KotlinLogging
 import org.gravidence.gravifon.orchestration.Orchestrator
 import org.gravidence.gravifon.plugin.Plugin
-import org.gravidence.gravifon.plugin.View
+import org.gravidence.gravifon.ui.View
 import org.slf4j.bridge.SLF4JBridgeHandler
 import org.springframework.beans.factory.getBean
 import org.springframework.beans.factory.getBeansOfType
@@ -37,7 +37,7 @@ object GravifonStarter {
             logger.info { "Views configured: $it" }
         }
         plugins = ctx.getBeansOfType<Plugin>().values
-            .sortedBy { it.title }
+            .sortedBy { it.pluginDisplayName }
             .also { logger.info { "Plugins configured: $it" } }
     }
 

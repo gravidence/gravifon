@@ -70,6 +70,14 @@ fun main() = application {
                 Item(text = "Application...", onClick = {})
                 Item(text = "Plugin...", onClick = { GravifonContext.pluginSettingsDialogVisible.value = true })
             }
+            Menu(text = "View") {
+                GravifonStarter.views.forEach {
+                    Item(
+                        text = it.viewDisplayName(),
+                        onClick = { it.activate() }
+                    )
+                }
+            }
             Menu(text = "About") {
 
             }

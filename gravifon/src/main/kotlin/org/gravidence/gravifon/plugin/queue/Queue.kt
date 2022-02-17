@@ -13,13 +13,15 @@ import org.gravidence.gravifon.orchestration.SettingsConsumer
 import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
 import org.gravidence.gravifon.plugin.Plugin
-import org.gravidence.gravifon.plugin.View
+import org.gravidence.gravifon.ui.View
 import org.springframework.stereotype.Component
 
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Queue : Plugin(title = "Queue", description = "Queue v0.1"), View, SettingsConsumer, PlaylistManagerConsumer {
+class Queue :
+    Plugin(pluginDisplayName = "Queue", pluginDescription = "Queue v0.1"), View,
+    SettingsConsumer, PlaylistManagerConsumer {
 
     @Serializable
     data class QueueViewConfiguration(val playlistId: String)
@@ -63,9 +65,13 @@ class Queue : Plugin(title = "Queue", description = "Queue v0.1"), View, Setting
         Text("TBD")
     }
 
+    override fun viewDisplayName(): String {
+        return pluginDisplayName
+    }
+
     @Composable
     override fun composeView() {
-        TODO("Not yet implemented")
+        Text("TBD")
     }
 
 }

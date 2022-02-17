@@ -6,8 +6,8 @@ import org.gravidence.gravifon.event.EventHandler
 import java.nio.file.Path
 
 abstract class Plugin(
-    val title: String,
-    val description: String,
+    val pluginDisplayName: String,
+    val pluginDescription: String,
 ) : EventHandler() {
 
     val pluginConfigHomeDir: Path = ConfigUtil.configHomeDir.resolve("plugin")

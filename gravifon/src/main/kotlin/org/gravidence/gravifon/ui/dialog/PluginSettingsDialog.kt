@@ -154,7 +154,7 @@ fun pluginListItem(plugin: Plugin, pluginSettingsState: PluginSettingsState) {
             )
     ) {
         Text(
-            text = plugin.title,
+            text = plugin.pluginDisplayName,
             modifier = Modifier
                 .padding(5.dp)
         )
@@ -172,7 +172,7 @@ fun pluginContent(pluginSettingsState: PluginSettingsState) {
                         .fillMaxWidth()
                         .padding(10.dp)
                 ) {
-                    Text(plugin.description)
+                    Text(plugin.pluginDescription)
                 }
                 Divider(
                     thickness = 2.dp,
