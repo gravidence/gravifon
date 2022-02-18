@@ -19,15 +19,13 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
+import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
-import org.gravidence.gravifon.orchestration.marker.Configurable
-import org.gravidence.gravifon.orchestration.marker.Viewable
-import org.gravidence.gravifon.orchestration.marker.readConfig
-import org.gravidence.gravifon.orchestration.marker.writeConfig
+import org.gravidence.gravifon.orchestration.marker.*
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
 import org.gravidence.gravifon.ui.tooltip
@@ -47,7 +45,6 @@ import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -60,7 +57,7 @@ private val logger = KotlinLogging.logger {}
  */
 @Component
 class LastfmScrobbler(override val settings: Settings) :
-    Plugin(pluginDisplayName = "Last.fm Scrobbler", pluginDescription = "Last.fm Scrobbler v0.1"), Viewable, Configurable {
+    Plugin(pluginDisplayName = "Last.fm Scrobbler", pluginDescription = "Last.fm Scrobbler v0.1"), Viewable, Configurable, Stateful {
 
     private val absoluteMinScrobbleDuration = 30.seconds
     private val absoluteEnoughScrobbleDuration = 4.minutes
@@ -76,7 +73,7 @@ class LastfmScrobbler(override val settings: Settings) :
     private val scrobbleCache: MutableList<Scrobble> = mutableListOf()
     private var pendingScrobble: Scrobble? = null
 
-    private val pluginConfig = Configuration()
+    override val fileStorage: FileStorage = LastfmScrobblerFileStorage()
 
     override fun consume(event: Event) {
         try {
@@ -96,7 +93,7 @@ class LastfmScrobbler(override val settings: Settings) :
     init {
         appConfig = readConfig { LastfmScrobblerConfiguration() }
 
-        pluginConfig.readConfiguration()
+        fileStorage.read()
 
         lastfmClient = LastfmClient(
 //            apiRoot = "http://ws.audioscrobbler.invalid/2.0/",
@@ -213,50 +210,6 @@ class LastfmScrobbler(override val settings: Settings) :
             track = track.toLastfmTrack()!!, // track is definitely not null if scrobble created already
             timestamp = startedAt.epochSeconds
         )
-    }
-
-    inner class Configuration {
-
-        private val pluginDir: Path = pluginConfigHomeDir.resolve("lastfm-scrobbler")
-        private val scrobbleCacheFile: Path = pluginDir.resolve("cache")
-
-        init {
-            pluginDir.createDirectories()
-        }
-
-        fun readConfiguration() {
-            logger.debug { "Read scrobble cache from $scrobbleCacheFile" }
-
-            try {
-                if (scrobbleCacheFile.exists()) {
-                    scrobbleCache.addAll(gravifonSerializer.decodeFromString(Files.readString(scrobbleCacheFile))).also {
-                        logger.trace { "Scrobble cache loaded: $it" }
-                    }
-                }
-            } catch (e: Exception) {
-                logger.error(e) { "Failed to read scrobble cache from $scrobbleCacheFile" }
-            }
-        }
-
-        fun writeConfiguration() {
-            logger.debug { "Write scrobble cache to $scrobbleCacheFile" }
-
-            try {
-                val playlistAsString = gravifonSerializer.encodeToString(scrobbleCache).also {
-                    logger.trace { "Scrobble cache to be persisted: $it" }
-                }
-                Files.writeString(
-                    scrobbleCacheFile,
-                    playlistAsString,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.WRITE,
-                    StandardOpenOption.TRUNCATE_EXISTING
-                )
-            } catch (e: Exception) {
-                logger.error(e) { "Failed to write scrobble cache to $scrobbleCacheFile" }
-            }
-        }
-
     }
 
     @OptIn(ExperimentalFoundationApi::class)
@@ -434,7 +387,45 @@ class LastfmScrobbler(override val settings: Settings) :
 
     override fun writeConfig() {
         writeConfig(appConfig)
-        pluginConfig.writeConfiguration()
+    }
+
+    inner class LastfmScrobblerFileStorage : FileStorage(storageDir = pluginConfigHomeDir.resolve("lastfm-scrobbler")) {
+
+        private val scrobbleCacheFile: Path = storageDir.resolve("cache")
+
+        override fun read() {
+            logger.debug { "Read scrobble cache from $scrobbleCacheFile" }
+
+            try {
+                if (scrobbleCacheFile.exists()) {
+                    scrobbleCache.addAll(gravifonSerializer.decodeFromString(Files.readString(scrobbleCacheFile))).also {
+                        logger.trace { "Scrobble cache loaded: $it" }
+                    }
+                }
+            } catch (e: Exception) {
+                logger.error(e) { "Failed to read scrobble cache from $scrobbleCacheFile" }
+            }
+        }
+
+        override fun write() {
+            logger.debug { "Write scrobble cache to $scrobbleCacheFile" }
+
+            try {
+                val playlistAsString = gravifonSerializer.encodeToString(scrobbleCache).also {
+                    logger.trace { "Scrobble cache to be persisted: $it" }
+                }
+                Files.writeString(
+                    scrobbleCacheFile,
+                    playlistAsString,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.TRUNCATE_EXISTING
+                )
+            } catch (e: Exception) {
+                logger.error(e) { "Failed to write scrobble cache to $scrobbleCacheFile" }
+            }
+        }
+
     }
 
 }

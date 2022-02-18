@@ -7,7 +7,7 @@ import org.gravidence.gravifon.GravifonContext
 private val logger = KotlinLogging.logger {}
 
 /**
- * Marker for a component that it has own composable view to render.
+ * Represents a component which has a composable view to render.
  */
 interface Viewable {
 

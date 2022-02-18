@@ -6,6 +6,9 @@ import org.gravidence.gravifon.playlist.Playlist
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Represents a component with playlist which is allowed to be a source to playback.
+ */
 interface Playable {
 
     val playlist: Playlist

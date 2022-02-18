@@ -21,6 +21,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
+import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
@@ -44,34 +45,34 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.util.*
-import kotlin.io.path.createDirectories
 import kotlin.streams.toList
 
 private val logger = KotlinLogging.logger {}
 
 @Component
 class Library(override val settings: Settings, private val playlistManager: PlaylistManager) :
-    Plugin(pluginDisplayName = "Library", pluginDescription = "Library v0.1"), Viewable, Playable, Configurable {
+    Plugin(pluginDisplayName = "Library", pluginDescription = "Library v0.1"), Viewable, Playable, Configurable, Stateful {
+
+    private val roots: MutableList<Root> = ArrayList()
 
     private val viewConfig: LibraryViewConfiguration
     override val playlist: Playlist
 
-    private val configuration = Configuration()
-    private val roots: MutableList<Root> = ArrayList()
+    override val fileStorage: FileStorage = LibraryFileStorage()
 
     override fun consume(event: Event) {
     }
 
     override fun writeConfig() {
         writeConfig(viewConfig)
-        configuration.writeConfiguration()
     }
 
     init {
-        configuration.readConfiguration()
         viewConfig = readConfig {
             LibraryViewConfiguration(playlistId = UUID.randomUUID().toString())
         }
+
+        fileStorage.read()
 
         playlist = playlistManager.getPlaylist(viewConfig.playlistId) ?: DynamicPlaylist(viewConfig.playlistId)
         playlistManager.addPlaylist(playlist)
@@ -106,70 +107,6 @@ class Library(override val settings: Settings, private val playlistManager: Play
         return roots
             .flatMap { root -> root.tracks }
             .toList()
-    }
-
-    inner class Configuration {
-
-        private val libraryDir: Path = pluginConfigHomeDir.resolve("library")
-
-        init {
-            libraryDir.createDirectories()
-        }
-
-        fun readConfiguration() {
-            val libraryRootConfigFiles = try {
-                Files.list(libraryDir).toList()
-            } catch (e: Exception) {
-                listOf()
-            }.also {
-                logger.info { "Discovered library root configuration files: $it" }
-            }
-
-            libraryRootConfigFiles.map { libraryRootConfigFile ->
-                logger.debug { "Read library root configuration from $libraryRootConfigFile" }
-
-                try {
-                    addRoot(gravifonSerializer.decodeFromString(Files.readString(libraryRootConfigFile))).also {
-                        logger.trace { "Library root configuration loaded: $it" }
-                    }
-                } catch (e: Exception) {
-                    logger.error(e) { "Failed to read library root configuration from $libraryRootConfigFile" }
-                }
-            }
-        }
-
-        fun writeConfiguration() {
-            getRoots().forEach {
-                val rootId = encode(it.rootDir)
-                val libraryRootConfigAsString = gravifonSerializer.encodeToString(it).also {
-                    logger.trace { "Library root ($rootId) configuration to be persisted: $it" }
-                }
-                val rootConfigFile = Path.of(libraryDir.toString(), rootId).also {
-                    logger.debug { "Write library root configuration to $it" }
-                }
-                try {
-                    Files.writeString(
-                        rootConfigFile,
-                        libraryRootConfigAsString,
-                        StandardOpenOption.CREATE,
-                        StandardOpenOption.WRITE,
-                        StandardOpenOption.TRUNCATE_EXISTING
-                    )
-                } catch (e: Exception) {
-                    logger.error(e) { "Failed to write library root configuration to $rootConfigFile" }
-                }
-            }
-        }
-
-
-        fun encode(originalPath: String): String {
-            return Base64Utils.encodeToUrlSafeString(originalPath.encodeToByteArray())
-        }
-
-        fun decode(encodedPath: String): String {
-            return String(Base64Utils.decodeFromUrlSafeString(encodedPath))
-        }
-
     }
 
     @Composable
@@ -267,6 +204,59 @@ class Library(override val settings: Settings, private val playlistManager: Play
                     .align(Alignment.CenterStart)
             )
         }
+    }
+
+    inner class LibraryFileStorage : FileStorage(storageDir = pluginConfigHomeDir.resolve("library")) {
+
+        override fun read() {
+            val libraryRootConfigFiles = try {
+                Files.list(storageDir).toList()
+            } catch (e: Exception) {
+                listOf()
+            }.also {
+                logger.info { "Discovered library root configuration files: $it" }
+            }
+
+            libraryRootConfigFiles.map { libraryRootConfigFile ->
+                logger.debug { "Read library root configuration from $libraryRootConfigFile" }
+
+                try {
+                    addRoot(gravifonSerializer.decodeFromString(Files.readString(libraryRootConfigFile))).also {
+                        logger.trace { "Library root configuration loaded: $it" }
+                    }
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to read library root configuration from $libraryRootConfigFile" }
+                }
+            }
+        }
+
+        override fun write() {
+            getRoots().forEach {
+                val rootId = encode(it.rootDir)
+                val libraryRootConfigAsString = gravifonSerializer.encodeToString(it).also {
+                    logger.trace { "Library root ($rootId) configuration to be persisted: $it" }
+                }
+                val rootConfigFile = Path.of(storageDir.toString(), rootId).also {
+                    logger.debug { "Write library root configuration to $it" }
+                }
+                try {
+                    Files.writeString(
+                        rootConfigFile,
+                        libraryRootConfigAsString,
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.TRUNCATE_EXISTING
+                    )
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to write library root configuration to $rootConfigFile" }
+                }
+            }
+        }
+
+        private fun encode(originalPath: String): String {
+            return Base64Utils.encodeToUrlSafeString(originalPath.encodeToByteArray())
+        }
+
     }
 
 }

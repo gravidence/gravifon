@@ -12,6 +12,7 @@ import org.gravidence.gravifon.event.application.SubApplicationConfigurationPers
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationUpdateEvent
 import org.gravidence.gravifon.orchestration.marker.ShutdownAware
 import org.gravidence.gravifon.orchestration.marker.Configurable
+import org.gravidence.gravifon.orchestration.marker.Stateful
 import org.gravidence.gravifon.plugin.library.Library
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.springframework.context.annotation.Lazy
@@ -22,7 +23,7 @@ import java.nio.file.StandardOpenOption
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Settings(@Lazy private val configurables: List<Configurable>) : EventHandler(), ShutdownAware {
+class Settings(@Lazy private val configurables: List<Configurable>, @Lazy private val statefuls: List<Stateful>) : EventHandler(), ShutdownAware {
 
     @Serializable
     data class GConfig(val application: GApplication = GApplication(), val component: MutableMap<String, String> = mutableMapOf())
@@ -72,13 +73,20 @@ class Settings(@Lazy private val configurables: List<Configurable>) : EventHandl
     }
 
     private fun write() {
-        logger.debug { "Collect config updates from components" }
-        configurables.forEach { it.writeConfig() }
+        logger.debug { "Persist component file storage: START" }
+        statefuls.forEach { it.fileStorage.write() }
+        logger.debug { "Persist component file storage: FINISH" }
 
-        logger.debug { "Collect config updates from application itself" }
+        logger.debug { "Collect component configuration updates: START" }
+        configurables.forEach { it.writeConfig() }
+        logger.debug { "Collect component configuration updates: FINISH" }
+
+        logger.debug { "Collect application configuration updates: START" }
         GravifonContext.activeView.value?.let { config.application.activeViewId = it.javaClass.name }
         GravifonContext.activePlaylist.value?.let { config.application.activePlaylistId = it.id() }
+        logger.debug { "Collect application configuration updates: END" }
 
+        logger.debug { "Persist application configuration: START" }
         val configAsString = gravifonSerializer.encodeToString(config).also {
             logger.debug { "Application configuration to be persisted: $it" }
         }
@@ -94,6 +102,7 @@ class Settings(@Lazy private val configurables: List<Configurable>) : EventHandl
         } catch (e: Exception) {
             logger.error(e) { "Failed to write application configuration to $settingsFile" }
         }
+        logger.debug { "Persist application configuration: END" }
     }
 
     private fun update(event: SubApplicationConfigurationUpdateEvent) {

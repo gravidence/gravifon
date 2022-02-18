@@ -5,15 +5,14 @@ import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.configHomeDir
-import org.gravidence.gravifon.configuration.Settings
+import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
-import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.playback.SubPlaybackStartEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayPrevEvent
-import org.gravidence.gravifon.orchestration.marker.Configurable
+import org.gravidence.gravifon.orchestration.marker.Stateful
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.item.PlaylistItem
@@ -23,36 +22,29 @@ import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import kotlin.io.path.createDirectories
 import kotlin.streams.toList
 
 private val logger = KotlinLogging.logger {}
 
 @Component
-class PlaylistManager(override val settings: Settings) : EventHandler(), Configurable {
-
-    private val configuration = Configuration()
+class PlaylistManager : EventHandler(), Stateful {
 
     private val regularPlaylists: MutableList<Playlist> = mutableListOf()
-
     // TODO think how to make it immutable
     private var priorityPlaylist: Playlist? = null
 
+    override val fileStorage: FileStorage = PlaylistManagerFileStorage()
+
     init {
-        configuration.readConfiguration()
+        fileStorage.read()
     }
 
     override fun consume(event: Event) {
         when (event) {
-            is SubApplicationConfigurationPersistEvent -> configuration.writeConfiguration()
             is SubPlaylistPlayCurrentEvent -> playCurrent(event.playlist, event.playlistItem)
             is SubPlaylistPlayNextEvent -> playNext(event.playlist)
             is SubPlaylistPlayPrevEvent -> playPrev(event.playlist)
         }
-    }
-
-    override fun writeConfig() {
-        configuration.writeConfiguration()
     }
 
     private fun play(playlist: Playlist, trackPlaylistItem: TrackPlaylistItem?): TrackPlaylistItem? {
@@ -116,17 +108,11 @@ class PlaylistManager(override val settings: Settings) : EventHandler(), Configu
         }
     }
 
-    inner class Configuration {
+    inner class PlaylistManagerFileStorage : FileStorage(storageDir = configHomeDir.resolve("playlist")) {
 
-        private val playlistDir: Path = configHomeDir.resolve("playlist")
-
-        init {
-            playlistDir.createDirectories()
-        }
-
-        fun readConfiguration() {
+        override fun read() {
             val playlistConfigFiles = try {
-                Files.list(playlistDir).toList()
+                Files.list(storageDir).toList()
             } catch (e: Exception) {
                 listOf()
             }.also {
@@ -146,14 +132,14 @@ class PlaylistManager(override val settings: Settings) : EventHandler(), Configu
             }
         }
 
-        fun writeConfiguration() {
+        override fun write() {
             regularPlaylists.forEach { writePlaylist(it) }
             priorityPlaylist?.let { writePlaylist(it) }
         }
 
         private fun writePlaylist(playlist: Playlist) {
             val playlistId = playlist.id()
-            val playlistFile = Path.of(playlistDir.toString(), playlistId).also {
+            val playlistFile = Path.of(storageDir.toString(), playlistId).also {
                 logger.debug { "Write playlist to $it" }
             }
             try {

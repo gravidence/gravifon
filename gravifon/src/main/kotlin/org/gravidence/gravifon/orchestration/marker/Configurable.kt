@@ -5,6 +5,10 @@ import kotlinx.serialization.encodeToString
 import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
 
+/**
+ * Represents a component which has configuration.
+ * The configuration is stored in global application configuration.
+ */
 interface Configurable {
 
     val settings: Settings

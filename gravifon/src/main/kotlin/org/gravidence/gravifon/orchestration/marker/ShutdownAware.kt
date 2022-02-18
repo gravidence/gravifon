@@ -1,5 +1,8 @@
 package org.gravidence.gravifon.orchestration.marker
 
+/**
+ * Represents a component which has to do some actions before application shutdown.
+ */
 interface ShutdownAware {
 
     /**
