@@ -22,18 +22,12 @@ import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.Settings
-import org.gravidence.gravifon.configuration.readConfig
-import org.gravidence.gravifon.configuration.writeConfig
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
 import org.gravidence.gravifon.domain.track.virtualTrackComparator
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.component.PubLibraryReadyEvent
-import org.gravidence.gravifon.orchestration.LibraryConsumer
-import org.gravidence.gravifon.orchestration.OrchestratorConsumer
-import org.gravidence.gravifon.orchestration.PlaylistManagerConsumer
-import org.gravidence.gravifon.orchestration.SettingsConsumer
+import org.gravidence.gravifon.orchestration.marker.*
 import org.gravidence.gravifon.playlist.DynamicPlaylist
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.PlaylistItem
@@ -44,50 +38,44 @@ import org.gravidence.gravifon.query.TrackQueryParser
 import org.gravidence.gravifon.ui.PlaylistComposable
 import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
-import org.gravidence.gravifon.ui.View
 import org.springframework.stereotype.Component
 import org.springframework.util.Base64Utils
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.io.path.createDirectories
 import kotlin.streams.toList
 
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Library(private val consumers: List<LibraryConsumer>) :
-    Plugin(pluginDisplayName = "Library", pluginDescription = "Library v0.1"), View,
-    OrchestratorConsumer, SettingsConsumer, PlaylistManagerConsumer {
+class Library(override val settings: Settings, private val playlistManager: PlaylistManager) :
+    Plugin(pluginDisplayName = "Library", pluginDescription = "Library v0.1"), Viewable, Playable, Configurable {
+
+    private val viewConfig: LibraryViewConfiguration
+    override val playlist: Playlist
 
     private val configuration = Configuration()
     private val roots: MutableList<Root> = ArrayList()
 
     override fun consume(event: Event) {
-        when (event) {
-            is SubApplicationConfigurationPersistEvent -> configuration.writeConfiguration()
-        }
     }
 
-    override fun startup() {
-        // do nothing
-    }
-
-    override fun afterStartup() {
-        configuration.readConfiguration()
-
-        logger.debug { "Notify components about library readiness" }
-        consumers.forEach { it.libraryReady(this) }
-    }
-
-    override fun beforeShutdown() {
+    override fun writeConfig() {
+        writeConfig(viewConfig)
         configuration.writeConfiguration()
     }
 
-    @Synchronized
-    private fun init() {
+    init {
+        configuration.readConfiguration()
+        viewConfig = readConfig {
+            LibraryViewConfiguration(playlistId = UUID.randomUUID().toString())
+        }
+
+        playlist = playlistManager.getPlaylist(viewConfig.playlistId) ?: DynamicPlaylist(viewConfig.playlistId)
+        playlistManager.addPlaylist(playlist)
+
         logger.info { "Initialize library (${roots.size} roots configured)" }
 
         GravifonContext.scopeIO.launch {
@@ -120,11 +108,6 @@ class Library(private val consumers: List<LibraryConsumer>) :
             .toList()
     }
 
-    @Synchronized
-    fun random(): VirtualTrack {
-        return roots.first().tracks.random()
-    }
-
     inner class Configuration {
 
         private val libraryDir: Path = pluginConfigHomeDir.resolve("library")
@@ -153,8 +136,6 @@ class Library(private val consumers: List<LibraryConsumer>) :
                     logger.error(e) { "Failed to read library root configuration from $libraryRootConfigFile" }
                 }
             }
-
-            init()
         }
 
         fun writeConfiguration() {
@@ -203,40 +184,6 @@ class Library(private val consumers: List<LibraryConsumer>) :
         val queryHistorySizeLimit: Int = 10,
         val sortOrder: MutableList<VirtualTrackSelectors> = mutableListOf()
     )
-
-    private lateinit var viewConfig: LibraryViewConfiguration
-
-    override lateinit var settings: Settings
-    private lateinit var playlistManager: PlaylistManager
-
-    private lateinit var playlist: Playlist
-
-    override fun settingsReady(settings: Settings) {
-        this.settings = settings
-
-        viewConfig = readConfig {
-            LibraryViewConfiguration(playlistId = UUID.randomUUID().toString())
-        }
-    }
-
-    override fun persistConfig() {
-        writeConfig(viewConfig)
-    }
-
-    override fun playlistManagerReady(playlistManager: PlaylistManager) {
-        this.playlistManager = playlistManager
-    }
-
-    override fun registerPlaylist() {
-        playlist = playlistManager.getPlaylist(viewConfig.playlistId) ?: DynamicPlaylist(viewConfig.playlistId)
-        playlistManager.addPlaylist(playlist)
-
-        // TODO think how to do last used view activation in centralized manner
-        if (settings.applicationConfig().activeView == this.javaClass.name) {
-            activate()
-            GravifonContext.activePlaylist.value = playlist
-        }
-    }
 
     inner class LibraryViewState(
         val query: MutableState<String>,

@@ -74,7 +74,7 @@ fun main() = application {
                 GravifonStarter.views.forEach {
                     Item(
                         text = it.viewDisplayName(),
-                        onClick = { it.activate() }
+                        onClick = { it.activateView() }
                     )
                 }
             }

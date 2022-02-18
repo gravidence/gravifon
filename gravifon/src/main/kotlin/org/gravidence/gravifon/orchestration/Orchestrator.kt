@@ -1,28 +1,41 @@
 package org.gravidence.gravifon.orchestration
 
 import mu.KotlinLogging
+import org.gravidence.gravifon.configuration.Settings
+import org.gravidence.gravifon.orchestration.marker.Playable
+import org.gravidence.gravifon.orchestration.marker.ShutdownAware
+import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.springframework.stereotype.Component
 
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Orchestrator(private val consumers: List<OrchestratorConsumer>) {
+class Orchestrator(
+    private val shutdownAwares: Collection<ShutdownAware>,
+    private val viewables: Collection<Viewable>,
+    private val playables: Collection<Playable>,
+    private val settings: Settings
+) {
 
     init {
-        logger.info { "Consumer components registered: $consumers" }
+        logger.info { "Shutdown aware components registered: $shutdownAwares" }
+        logger.info { "Viewable components registered: $viewables" }
+        logger.info { "Playable components registered: $playables" }
     }
 
     fun startup() {
-        logger.info { "Startup routine, started phase 1" }
-        consumers.forEach { it.startup() }
-        logger.info { "Startup routine, started phase 2" }
-        consumers.forEach { it.afterStartup() }
-        logger.info { "Startup routine, completed" }
+        val activeViewId = settings.applicationConfig().activeViewId
+        // TODO fallback to default view if not configured
+        viewables.find { it.javaClass.name == activeViewId }?.activateView()
+
+        val activePlaylistId = settings.applicationConfig().activePlaylistId
+        // TODO fallback to default playlist if not configured
+        playables.find { it.playlist.id() == activePlaylistId }?.activatePlaylist()
     }
 
     fun shutdown() {
         logger.info { "Shutdown routine, started" }
-        consumers.forEach { it.beforeShutdown() }
+        shutdownAwares.forEach { it.beforeShutdown() }
         logger.info { "Shutdown routine, completed" }
     }
 

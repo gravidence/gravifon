@@ -20,18 +20,18 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.Settings
-import org.gravidence.gravifon.configuration.readConfig
-import org.gravidence.gravifon.configuration.writeConfig
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
-import org.gravidence.gravifon.orchestration.SettingsConsumer
+import org.gravidence.gravifon.orchestration.marker.Configurable
+import org.gravidence.gravifon.orchestration.marker.Viewable
+import org.gravidence.gravifon.orchestration.marker.readConfig
+import org.gravidence.gravifon.orchestration.marker.writeConfig
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
 import org.gravidence.gravifon.ui.tooltip
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
-import org.gravidence.gravifon.ui.View
 import org.gravidence.lastfm4k.LastfmClient
 import org.gravidence.lastfm4k.api.auth.Session
 import org.gravidence.lastfm4k.api.auth.Token
@@ -59,9 +59,8 @@ private val logger = KotlinLogging.logger {}
  * Reference: [https://www.last.fm/api/scrobbling].
  */
 @Component
-class LastfmScrobbler :
-    Plugin(pluginDisplayName = "Last.fm Scrobbler", pluginDescription = "Last.fm Scrobbler v0.1"), View,
-    SettingsConsumer {
+class LastfmScrobbler(override val settings: Settings) :
+    Plugin(pluginDisplayName = "Last.fm Scrobbler", pluginDescription = "Last.fm Scrobbler v0.1"), Viewable, Configurable {
 
     private val absoluteMinScrobbleDuration = 30.seconds
     private val absoluteEnoughScrobbleDuration = 4.minutes
@@ -71,11 +70,9 @@ class LastfmScrobbler :
         var session: Session? = null
     )
 
-    private lateinit var appConfig: LastfmScrobblerConfiguration
+    private val appConfig: LastfmScrobblerConfiguration
 
-    override lateinit var settings: Settings
-
-    private lateinit var lastfmClient: LastfmClient
+    private val lastfmClient: LastfmClient
     private val scrobbleCache: MutableList<Scrobble> = mutableListOf()
     private var pendingScrobble: Scrobble? = null
 
@@ -96,9 +93,7 @@ class LastfmScrobbler :
         }
     }
 
-    override fun settingsReady(settings: Settings) {
-        this.settings = settings
-
+    init {
         appConfig = readConfig { LastfmScrobblerConfiguration() }
 
         pluginConfig.readConfiguration()
@@ -109,12 +104,6 @@ class LastfmScrobbler :
             apiSecret = "a05c02f0b955060fc782f7a9270eeab6",
             session = appConfig.session
         )
-    }
-
-    override fun persistConfig() {
-        writeConfig(appConfig)
-
-        pluginConfig.writeConfiguration()
     }
 
     private fun handle(event: PubTrackStartEvent) {
@@ -441,6 +430,11 @@ class LastfmScrobbler :
     @Composable
     override fun composeView() {
         Text("TBD")
+    }
+
+    override fun writeConfig() {
+        writeConfig(appConfig)
+        pluginConfig.writeConfiguration()
     }
 
 }

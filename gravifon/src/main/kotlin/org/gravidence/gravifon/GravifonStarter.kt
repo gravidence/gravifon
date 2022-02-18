@@ -2,8 +2,8 @@ package org.gravidence.gravifon
 
 import mu.KotlinLogging
 import org.gravidence.gravifon.orchestration.Orchestrator
+import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.plugin.Plugin
-import org.gravidence.gravifon.ui.View
 import org.slf4j.bridge.SLF4JBridgeHandler
 import org.springframework.beans.factory.getBean
 import org.springframework.beans.factory.getBeansOfType
@@ -18,7 +18,7 @@ object GravifonStarter {
 
     val orchestrator: Orchestrator
 
-    val views: Collection<View>
+    val views: Collection<Viewable>
     val plugins: Collection<Plugin>
 
     init {
@@ -33,12 +33,9 @@ object GravifonStarter {
 
         logger.debug { "Expose global beans" }
         orchestrator = ctx.getBean()
-        views = ctx.getBeansOfType<View>().values.also {
-            logger.info { "Views configured: $it" }
-        }
+        views = ctx.getBeansOfType<Viewable>().values
         plugins = ctx.getBeansOfType<Plugin>().values
             .sortedBy { it.pluginDisplayName }
-            .also { logger.info { "Plugins configured: $it" } }
     }
 
 }

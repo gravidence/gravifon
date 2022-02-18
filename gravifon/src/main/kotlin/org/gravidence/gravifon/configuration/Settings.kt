@@ -10,10 +10,11 @@ import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationUpdateEvent
-import org.gravidence.gravifon.orchestration.OrchestratorConsumer
-import org.gravidence.gravifon.orchestration.SettingsConsumer
+import org.gravidence.gravifon.orchestration.marker.ShutdownAware
+import org.gravidence.gravifon.orchestration.marker.Configurable
 import org.gravidence.gravifon.plugin.library.Library
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -21,18 +22,18 @@ import java.nio.file.StandardOpenOption
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Settings(private val consumers: List<SettingsConsumer>) : EventHandler(), OrchestratorConsumer {
+class Settings(@Lazy private val configurables: List<Configurable>) : EventHandler(), ShutdownAware {
 
     @Serializable
     data class GConfig(val application: GApplication = GApplication(), val component: MutableMap<String, String> = mutableMapOf())
 
     @Serializable
-    data class GApplication(var activeView: String = Library::class.qualifiedName!!)
+    data class GApplication(var activeViewId: String = Library::class.qualifiedName!!, var activePlaylistId: String? = null)
 
     private var config: GConfig = GConfig()
 
     init {
-        logger.info { "Consumer components registered: $consumers" }
+        read()
     }
 
     override fun consume(event: Event) {
@@ -40,17 +41,6 @@ class Settings(private val consumers: List<SettingsConsumer>) : EventHandler(), 
             is SubApplicationConfigurationUpdateEvent -> update(event)
             is SubApplicationConfigurationPersistEvent -> write()
         }
-    }
-
-    override fun startup() {
-        read()
-
-        logger.debug { "Notify components about application configuration readiness" }
-        consumers.forEach { it.settingsReady(this) }
-    }
-
-    override fun afterStartup() {
-        // do nothing
     }
 
     override fun beforeShutdown() {
@@ -83,10 +73,11 @@ class Settings(private val consumers: List<SettingsConsumer>) : EventHandler(), 
 
     private fun write() {
         logger.debug { "Collect config updates from components" }
-        consumers.forEach { it.persistConfig() }
+        configurables.forEach { it.writeConfig() }
 
         logger.debug { "Collect config updates from application itself" }
-        GravifonContext.activeView.value?.let { config.application.activeView = it.javaClass.name }
+        GravifonContext.activeView.value?.let { config.application.activeViewId = it.javaClass.name }
+        GravifonContext.activePlaylist.value?.let { config.application.activePlaylistId = it.id() }
 
         val configAsString = gravifonSerializer.encodeToString(config).also {
             logger.debug { "Application configuration to be persisted: $it" }

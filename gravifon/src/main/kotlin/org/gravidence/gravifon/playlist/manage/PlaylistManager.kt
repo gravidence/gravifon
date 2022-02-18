@@ -5,6 +5,7 @@ import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.configHomeDir
+import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.EventHandler
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
@@ -12,8 +13,7 @@ import org.gravidence.gravifon.event.playback.SubPlaybackStartEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayPrevEvent
-import org.gravidence.gravifon.orchestration.OrchestratorConsumer
-import org.gravidence.gravifon.orchestration.PlaylistManagerConsumer
+import org.gravidence.gravifon.orchestration.marker.Configurable
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.item.PlaylistItem
@@ -29,7 +29,7 @@ import kotlin.streams.toList
 private val logger = KotlinLogging.logger {}
 
 @Component
-class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : EventHandler(), OrchestratorConsumer {
+class PlaylistManager(override val settings: Settings) : EventHandler(), Configurable {
 
     private val configuration = Configuration()
 
@@ -39,7 +39,7 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
     private var priorityPlaylist: Playlist? = null
 
     init {
-        logger.info { "Consumer components registered: $consumers" }
+        configuration.readConfiguration()
     }
 
     override fun consume(event: Event) {
@@ -51,21 +51,7 @@ class PlaylistManager(private val consumers: List<PlaylistManagerConsumer>) : Ev
         }
     }
 
-    override fun startup() {
-        // do nothing
-    }
-
-    override fun afterStartup() {
-        configuration.readConfiguration()
-
-        logger.debug { "Notify components about playlist manager readiness" }
-        consumers.forEach { it.playlistManagerReady(this) }
-
-        logger.debug { "Ask components to register their playlists" }
-        consumers.forEach { it.registerPlaylist() }
-    }
-
-    override fun beforeShutdown() {
+    override fun writeConfig() {
         configuration.writeConfiguration()
     }
 
