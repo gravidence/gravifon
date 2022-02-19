@@ -58,7 +58,8 @@ private val logger = KotlinLogging.logger {}
  */
 @Component
 class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
-    Plugin(pluginDisplayName = "Last.fm Scrobbler", pluginDescription = "Last.fm Scrobbler v0.1"), Viewable, Configurable, Stateful {
+    Plugin(pluginDisplayName = "Last.fm Scrobbler", pluginDescription = "Last.fm Scrobbler v0.1"),
+    Viewable, Configurable, Stateful, EventAware {
 
     private val absoluteMinScrobbleDuration = 30.seconds
     private val absoluteEnoughScrobbleDuration = 4.minutes
