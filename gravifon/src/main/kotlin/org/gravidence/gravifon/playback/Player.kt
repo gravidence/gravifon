@@ -25,9 +25,6 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
 
     override fun consume(event: Event) {
         when (event) {
-            is SubPlaybackStatusEvent -> {
-                updatePlaybackPositionState()
-            }
             is SubPlaybackStartEvent -> {
                 start(event.track)
             }
