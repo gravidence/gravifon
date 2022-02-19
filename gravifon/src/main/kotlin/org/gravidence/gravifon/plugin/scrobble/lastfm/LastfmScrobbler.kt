@@ -21,7 +21,7 @@ import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.FileStorage
-import org.gravidence.gravifon.configuration.Settings
+import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
@@ -57,7 +57,7 @@ private val logger = KotlinLogging.logger {}
  * See [documentation](https://www.last.fm/api/scrobbling).
  */
 @Component
-class LastfmScrobbler(override val settings: Settings) :
+class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
     Plugin(pluginDisplayName = "Last.fm Scrobbler", pluginDescription = "Last.fm Scrobbler v0.1"), Viewable, Configurable, Stateful {
 
     private val absoluteMinScrobbleDuration = 30.seconds

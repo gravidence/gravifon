@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ComponentConfiguration
-import org.gravidence.gravifon.configuration.Settings
+import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.orchestration.marker.Configurable
 import org.gravidence.gravifon.orchestration.marker.Viewable
@@ -18,7 +18,7 @@ import java.util.*
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Queue(override val settings: Settings, private val playlistManager: PlaylistManager) :
+class Queue(override val configurationManager: ConfigurationManager, private val playlistManager: PlaylistManager) :
     Plugin(pluginDisplayName = "Queue", pluginDescription = "Queue v0.1"), Viewable, Configurable {
 
     override val componentConfiguration: QueueConfiguration

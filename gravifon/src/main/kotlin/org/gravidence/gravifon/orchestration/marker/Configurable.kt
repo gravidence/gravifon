@@ -1,11 +1,8 @@
 package org.gravidence.gravifon.orchestration.marker
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ComponentConfiguration
-import org.gravidence.gravifon.configuration.Settings
-import org.gravidence.gravifon.util.serialization.gravifonSerializer
+import org.gravidence.gravifon.configuration.ConfigurationManager
 
 private val logger = KotlinLogging.logger {}
 
@@ -15,7 +12,7 @@ private val logger = KotlinLogging.logger {}
  */
 interface Configurable {
 
-    val settings: Settings
+    val configurationManager: ConfigurationManager
 
     /**
      * Interface implementations must be registered in Gravifon serializers module.
@@ -29,22 +26,14 @@ interface Configurable {
     fun writeComponentConfiguration() {
         logger.debug { "Store component configuration: $componentConfiguration" }
 
-        val configAsString = gravifonSerializer.encodeToString(componentConfiguration)
-
-        settings.componentConfig(this.javaClass.name, configAsString)
+        configurationManager.componentConfig(this.javaClass.name, componentConfiguration)
     }
 
     /**
      * Reads component configuration (a bean) from application settings.
      */
     fun <T : ComponentConfiguration> readComponentConfiguration(defaultConfig: () -> T): T {
-        val configAsString = settings.componentConfig(this.javaClass.name)
-
-        return if (configAsString == null) {
-            defaultConfig()
-        } else {
-            gravifonSerializer.decodeFromString<ComponentConfiguration>(configAsString) as T
-        }.also {
+        return ((configurationManager.componentConfig(this.javaClass.name) as? T) ?: defaultConfig()).also {
             logger.debug { "Use component configuration: $it" }
         }
     }

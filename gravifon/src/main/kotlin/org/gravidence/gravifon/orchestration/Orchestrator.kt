@@ -1,7 +1,7 @@
 package org.gravidence.gravifon.orchestration
 
 import mu.KotlinLogging
-import org.gravidence.gravifon.configuration.Settings
+import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.orchestration.marker.Playable
 import org.gravidence.gravifon.orchestration.marker.ShutdownAware
 import org.gravidence.gravifon.orchestration.marker.Viewable
@@ -14,7 +14,7 @@ class Orchestrator(
     private val shutdownAwares: Collection<ShutdownAware>,
     private val viewables: Collection<Viewable>,
     private val playables: Collection<Playable>,
-    private val settings: Settings
+    private val configurationManager: ConfigurationManager
 ) {
 
     init {
@@ -24,11 +24,11 @@ class Orchestrator(
     }
 
     fun startup() {
-        val activeViewId = settings.applicationConfig().activeViewId
+        val activeViewId = configurationManager.applicationConfig().activeViewId
         // TODO fallback to default view if not configured
         viewables.find { it.javaClass.name == activeViewId }?.activateView()
 
-        val activePlaylistId = settings.applicationConfig().activePlaylistId
+        val activePlaylistId = configurationManager.applicationConfig().activePlaylistId
         // TODO fallback to default playlist if not configured
         playables.find { it.playlist.id() == activePlaylistId }?.activatePlaylist()
     }

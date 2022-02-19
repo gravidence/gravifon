@@ -22,14 +22,16 @@ import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ComponentConfiguration
+import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.configuration.FileStorage
-import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
 import org.gravidence.gravifon.domain.track.virtualTrackComparator
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.component.PubLibraryReadyEvent
-import org.gravidence.gravifon.orchestration.marker.*
+import org.gravidence.gravifon.orchestration.marker.Configurable
+import org.gravidence.gravifon.orchestration.marker.Playable
+import org.gravidence.gravifon.orchestration.marker.Stateful
+import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.playlist.DynamicPlaylist
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.PlaylistItem
@@ -51,7 +53,7 @@ import kotlin.streams.toList
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Library(override val settings: Settings, private val playlistManager: PlaylistManager) :
+class Library(override val configurationManager: ConfigurationManager, private val playlistManager: PlaylistManager) :
     Plugin(pluginDisplayName = "Library", pluginDescription = "Library v0.1"), Viewable, Playable, Configurable, Stateful {
 
     private val roots: MutableList<Root> = ArrayList()
@@ -81,8 +83,6 @@ class Library(override val settings: Settings, private val playlistManager: Play
                 .filter { it.scanOnInit }
                 .forEach { it.scan() }
         }
-
-        publish(PubLibraryReadyEvent(this))
     }
 
     @Synchronized
