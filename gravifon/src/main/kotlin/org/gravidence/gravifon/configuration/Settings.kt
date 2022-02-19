@@ -78,7 +78,7 @@ class Settings(@Lazy private val configurables: List<Configurable>, @Lazy privat
         logger.debug { "Persist component file storage: FINISH" }
 
         logger.debug { "Collect component configuration updates: START" }
-        configurables.forEach { it.writeConfig() }
+        configurables.forEach { it.writeComponentConfiguration() }
         logger.debug { "Collect component configuration updates: FINISH" }
 
         logger.debug { "Collect application configuration updates: START" }

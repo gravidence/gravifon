@@ -21,6 +21,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
+import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.domain.track.VirtualTrack
@@ -55,26 +56,22 @@ class Library(override val settings: Settings, private val playlistManager: Play
 
     private val roots: MutableList<Root> = ArrayList()
 
-    private val viewConfig: LibraryViewConfiguration
     override val playlist: Playlist
 
+    override val componentConfiguration: LibraryConfiguration
     override val fileStorage: FileStorage = LibraryFileStorage()
 
     override fun consume(event: Event) {
     }
 
-    override fun writeConfig() {
-        writeConfig(viewConfig)
-    }
-
     init {
-        viewConfig = readConfig {
-            LibraryViewConfiguration(playlistId = UUID.randomUUID().toString())
+        componentConfiguration = readComponentConfiguration {
+            LibraryConfiguration(playlistId = UUID.randomUUID().toString())
         }
 
         fileStorage.read()
 
-        playlist = playlistManager.getPlaylist(viewConfig.playlistId) ?: DynamicPlaylist(viewConfig.playlistId)
+        playlist = playlistManager.getPlaylist(componentConfiguration.playlistId) ?: DynamicPlaylist(componentConfiguration.playlistId)
         playlistManager.addPlaylist(playlist)
 
         logger.info { "Initialize library (${roots.size} roots configured)" }
@@ -114,14 +111,6 @@ class Library(override val settings: Settings, private val playlistManager: Play
         Text("TBD")
     }
 
-    @Serializable
-    data class LibraryViewConfiguration(
-        val playlistId: String,
-        val queryHistory: MutableList<String> = mutableListOf(),
-        val queryHistorySizeLimit: Int = 10,
-        val sortOrder: MutableList<VirtualTrackSelectors> = mutableListOf()
-    )
-
     inner class LibraryViewState(
         val query: MutableState<String>,
         val playlistItems: MutableState<List<PlaylistItem>>,
@@ -133,15 +122,15 @@ class Library(override val settings: Settings, private val playlistManager: Play
             if (TrackQueryParser.validate(changed)) {
                 val selection = TrackQueryParser.execute(changed, allTracks())
                     // TODO sortOrder should be part of view state
-                    .sortedWith(virtualTrackComparator(viewConfig.sortOrder))
+                    .sortedWith(virtualTrackComparator(componentConfiguration.sortOrder))
                     .map { TrackPlaylistItem(it) }
                 playlist.replace(selection)
                 playlistItems.value = playlist.items()
 
-                if (viewConfig.queryHistory.size >= viewConfig.queryHistorySizeLimit) {
-                    viewConfig.queryHistory.removeLast()
+                if (componentConfiguration.queryHistory.size >= componentConfiguration.queryHistorySizeLimit) {
+                    componentConfiguration.queryHistory.removeLast()
                 }
-                viewConfig.queryHistory.add(0, changed)
+                componentConfiguration.queryHistory.add(0, changed)
             }
         }
 
@@ -161,7 +150,7 @@ class Library(override val settings: Settings, private val playlistManager: Play
     @Composable
     override fun composeView() {
         val libraryViewState = rememberLibraryViewState(
-            query = mutableStateOf(viewConfig.queryHistory.firstOrNull() ?: ""),
+            query = mutableStateOf(componentConfiguration.queryHistory.firstOrNull() ?: ""),
             playlistItems = mutableStateOf(playlist.items()),
             playlist = playlist
         )
@@ -205,6 +194,14 @@ class Library(override val settings: Settings, private val playlistManager: Play
             )
         }
     }
+
+    @Serializable
+    data class LibraryConfiguration(
+        val playlistId: String,
+        val queryHistory: MutableList<String> = mutableListOf(),
+        val queryHistorySizeLimit: Int = 10,
+        val sortOrder: MutableList<VirtualTrackSelectors> = mutableListOf()
+    ) : ComponentConfiguration
 
     inner class LibraryFileStorage : FileStorage(storageDir = pluginConfigHomeDir.resolve("library")) {
 

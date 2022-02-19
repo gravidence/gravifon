@@ -4,16 +4,16 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
+import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.orchestration.marker.Configurable
 import org.gravidence.gravifon.orchestration.marker.Viewable
-import org.gravidence.gravifon.orchestration.marker.readConfig
-import org.gravidence.gravifon.orchestration.marker.writeConfig
 import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
 import org.gravidence.gravifon.plugin.Plugin
 import org.springframework.stereotype.Component
+import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -21,20 +21,16 @@ private val logger = KotlinLogging.logger {}
 class Queue(override val settings: Settings, private val playlistManager: PlaylistManager) :
     Plugin(pluginDisplayName = "Queue", pluginDescription = "Queue v0.1"), Viewable, Configurable {
 
-    @Serializable
-    data class QueueViewConfiguration(val playlistId: String)
-
-    private val viewConfig: QueueViewConfiguration
+    override val componentConfiguration: QueueConfiguration
 
     init {
-        viewConfig = readConfig {
-//            QueueViewConfiguration(playlistId = UUID.randomUUID().toString())
-            QueueViewConfiguration(playlistId = "b743b278-413d-4d47-b673-b2a26e4bbdc4")
+        componentConfiguration = readComponentConfiguration {
+            QueueConfiguration(playlistId = UUID.randomUUID().toString())
         }
 
-        if (playlistManager.getPlaylist(viewConfig.playlistId) == null) {
+        if (playlistManager.getPlaylist(componentConfiguration.playlistId) == null) {
             // by below call, Queue playlist is also activated automatically by PlaylistManager
-            playlistManager.addPlaylist(Queue(viewConfig.playlistId))
+            playlistManager.addPlaylist(Queue(componentConfiguration.playlistId))
         }
     }
 
@@ -57,8 +53,9 @@ class Queue(override val settings: Settings, private val playlistManager: Playli
         Text("TBD")
     }
 
-    override fun writeConfig() {
-        writeConfig(viewConfig)
-    }
+    @Serializable
+    data class QueueConfiguration(
+        val playlistId: String
+    ) : ComponentConfiguration
 
 }

@@ -1,0 +1,3 @@
+package org.gravidence.gravifon.configuration
+
+interface ComponentConfiguration

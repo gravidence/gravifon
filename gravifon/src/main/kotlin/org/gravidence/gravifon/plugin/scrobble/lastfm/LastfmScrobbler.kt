@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
+import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.configuration.Settings
 import org.gravidence.gravifon.domain.track.VirtualTrack
@@ -53,7 +54,7 @@ private val logger = KotlinLogging.logger {}
 
 /**
  * Plugin to send scrobbles to Last.fm service.
- * Reference: [https://www.last.fm/api/scrobbling].
+ * See [documentation](https://www.last.fm/api/scrobbling).
  */
 @Component
 class LastfmScrobbler(override val settings: Settings) :
@@ -62,17 +63,11 @@ class LastfmScrobbler(override val settings: Settings) :
     private val absoluteMinScrobbleDuration = 30.seconds
     private val absoluteEnoughScrobbleDuration = 4.minutes
 
-    @Serializable
-    data class LastfmScrobblerConfiguration(
-        var session: Session? = null
-    )
-
-    private val appConfig: LastfmScrobblerConfiguration
-
     private val lastfmClient: LastfmClient
     private val scrobbleCache: MutableList<Scrobble> = mutableListOf()
     private var pendingScrobble: Scrobble? = null
 
+    override val componentConfiguration: LastfmScrobblerConfiguration
     override val fileStorage: FileStorage = LastfmScrobblerFileStorage()
 
     override fun consume(event: Event) {
@@ -91,7 +86,7 @@ class LastfmScrobbler(override val settings: Settings) :
     }
 
     init {
-        appConfig = readConfig { LastfmScrobblerConfiguration() }
+        componentConfiguration = readComponentConfiguration { LastfmScrobblerConfiguration() }
 
         fileStorage.read()
 
@@ -99,7 +94,7 @@ class LastfmScrobbler(override val settings: Settings) :
 //            apiRoot = "http://ws.audioscrobbler.invalid/2.0/",
             apiKey = "3c3f2425f258b1bc2f7eddcd95194ef4",
             apiSecret = "a05c02f0b955060fc782f7a9270eeab6",
-            session = appConfig.session
+            session = componentConfiguration.session
         )
     }
 
@@ -169,7 +164,7 @@ class LastfmScrobbler(override val settings: Settings) :
 
     /**
      * Verify that scrobble meets Last.fm requirements regarding duration.
-     * Reference: [https://www.last.fm/api/scrobbling#when-is-a-scrobble-a-scrobble].
+     * See [documentation](https://www.last.fm/api/scrobbling#when-is-a-scrobble-a-scrobble).
      */
     private fun scrobbleDurationMeetsRequirements(scrobbleEvent: PubTrackFinishEvent): Boolean {
         val scrobbleDuration = scrobbleEvent.duration
@@ -215,7 +210,7 @@ class LastfmScrobbler(override val settings: Settings) :
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     override fun composeSettings() {
-        var session: Session? by remember { mutableStateOf(appConfig.session) }
+        var session: Session? by remember { mutableStateOf(componentConfiguration.session) }
         var authorization: Pair<Token, Uri>? by remember { mutableStateOf(null) }
         var error: String? by remember { mutableStateOf(null) }
 
@@ -337,8 +332,8 @@ class LastfmScrobbler(override val settings: Settings) :
                             onClick = {
                                 authorization?.let {
                                     error = handleLastfmException {
-                                        appConfig.session = lastfmClient.authorizeStep2(token = it.first)
-                                        session = appConfig.session
+                                        componentConfiguration.session = lastfmClient.authorizeStep2(token = it.first)
+                                        session = componentConfiguration.session
                                     }
                                 }
                             }
@@ -350,7 +345,7 @@ class LastfmScrobbler(override val settings: Settings) :
                         Button(
                             onClick = {
                                 // TODO too many assignments wrt same thing...
-                                appConfig.session = null
+                                componentConfiguration.session = null
                                 lastfmClient.session(null)
                                 session = null
                             }
@@ -385,9 +380,10 @@ class LastfmScrobbler(override val settings: Settings) :
         Text("TBD")
     }
 
-    override fun writeConfig() {
-        writeConfig(appConfig)
-    }
+    @Serializable
+    data class LastfmScrobblerConfiguration(
+        var session: Session? = null
+    ) : ComponentConfiguration
 
     inner class LastfmScrobblerFileStorage : FileStorage(storageDir = pluginConfigHomeDir.resolve("lastfm-scrobbler")) {
 
