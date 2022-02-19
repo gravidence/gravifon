@@ -2,7 +2,6 @@ package org.gravidence.gravifon.orchestration.marker
 
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ComponentConfiguration
-import org.gravidence.gravifon.configuration.ConfigurationManager
 
 private val logger = KotlinLogging.logger {}
 
@@ -10,9 +9,7 @@ private val logger = KotlinLogging.logger {}
  * Represents a component which has configuration.
  * The configuration is stored in global application configuration.
  */
-interface Configurable {
-
-    val configurationManager: ConfigurationManager
+interface Configurable : ConfigurationManagerAware {
 
     /**
      * Interface implementations must be registered in Gravifon serializers module.

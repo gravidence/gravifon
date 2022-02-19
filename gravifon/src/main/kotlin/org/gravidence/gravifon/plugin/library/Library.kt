@@ -52,7 +52,7 @@ import kotlin.streams.toList
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Library(override val configurationManager: ConfigurationManager, private val playlistManager: PlaylistManager) :
+class Library(override val configurationManager: ConfigurationManager, override val playlistManager: PlaylistManager) :
     Plugin(pluginDisplayName = "Library", pluginDescription = "Library v0.1"),
     Viewable, Playable, Configurable, Stateful {
 

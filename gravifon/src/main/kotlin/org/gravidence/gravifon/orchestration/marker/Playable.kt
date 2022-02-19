@@ -9,7 +9,7 @@ private val logger = KotlinLogging.logger {}
 /**
  * Represents a component with playlist which is allowed to be a source to playback.
  */
-interface Playable {
+interface Playable : PlaylistManagerAware {
 
     val playlist: Playlist
 
