@@ -11,12 +11,10 @@ import java.util.*
 @SerialName("static")
 class StaticPlaylist(
     override val id: String = UUID.randomUUID().toString(),
-    override val ownerName: String,
-    override var displayName: String,
+    override val ownerName: String = "Owner Name",
+    override var displayName: String = "Display Name",
     override val items: MutableList<PlaylistItem> = ArrayList(),
     override var position: Int = 0,
     override var playbackOrder: PlaybackOrder = PlaybackOrder.SEQUENTIAL,
     override var playlistStructure: PlaylistStructure = PlaylistStructure.TRACK
-) : Playlist() {
-
-}
+) : Playlist()
