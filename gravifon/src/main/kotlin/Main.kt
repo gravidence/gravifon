@@ -1,7 +1,5 @@
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyShortcut
-import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -34,7 +32,7 @@ fun main() = application {
         },
         onPreviewKeyEvent = {
             // TODO below doesn't work, see https://github.com/JetBrains/compose-jb/issues/1840
-            if (it.key == Key.MediaPlayPause) {
+            if (it.key == Key.MediaPlayPause && it.type == KeyEventType.KeyUp) {
                 EventBus.publish(SubPlaybackPauseEvent())
                 return@Window true
             }
