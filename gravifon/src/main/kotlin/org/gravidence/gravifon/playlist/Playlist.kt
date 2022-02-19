@@ -14,6 +14,8 @@ import kotlin.math.max
 sealed class Playlist {
 
     protected abstract val id: String
+    abstract val ownerName: String
+    abstract var displayName: String
     protected abstract val items: MutableList<PlaylistItem>
     /**
      * Represents active playlist item position. Zero would mean playlist isn't "activated", i.e. no items played yet.

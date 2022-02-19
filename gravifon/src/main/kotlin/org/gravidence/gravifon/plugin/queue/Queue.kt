@@ -27,7 +27,13 @@ class Queue(override val configurationManager: ConfigurationManager, private val
 
         if (playlistManager.getPlaylist(componentConfiguration.playlistId) == null) {
             // by below call, Queue playlist is also activated automatically by PlaylistManager
-            playlistManager.addPlaylist(Queue(componentConfiguration.playlistId))
+            playlistManager.addPlaylist(
+                Queue(
+                    id = componentConfiguration.playlistId,
+                    ownerName = pluginDisplayName,
+                    displayName = componentConfiguration.playlistId
+                )
+            )
         }
     }
 

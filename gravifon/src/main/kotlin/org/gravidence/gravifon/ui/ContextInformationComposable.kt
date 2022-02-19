@@ -10,8 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ch.qos.logback.core.util.FileSize
+import org.gravidence.gravifon.GravifonContext
+import org.gravidence.gravifon.playlist.Playlist
 
 class ContextInformationState(
+    val activePlaylist: MutableState<Playlist?>,
     // TODO FileSize has quite limited functionality, better to find proper alternative or implement your own
     val totalMemory: MutableState<FileSize>,
     val usedMemory: MutableState<FileSize>,
@@ -26,10 +29,12 @@ class ContextInformationState(
 
 @Composable
 fun rememberContextInformationState(
+    activePlaylist: MutableState<Playlist?> = GravifonContext.activePlaylist,
     totalMemory: MutableState<FileSize> = mutableStateOf(FileSize(Runtime.getRuntime().totalMemory())),
     usedMemory: MutableState<FileSize> = mutableStateOf(FileSize(Runtime.getRuntime().freeMemory())),
-) = remember(totalMemory, usedMemory) {
+) = remember(activePlaylist, totalMemory, usedMemory) {
     ContextInformationState(
+        activePlaylist,
         totalMemory,
         usedMemory,
     )
@@ -46,6 +51,8 @@ fun ContextInformationComposable(contextInformationState: ContextInformationStat
             modifier = Modifier
                 .fillMaxWidth()
         ) {
+            Text(text = "${contextInformationState.activePlaylist.value?.ownerName}", fontWeight = FontWeight.ExtraLight, modifier = Modifier.weight(1f))
+            Spacer(Modifier.width(10.dp))
             Text(text = "Total: ${contextInformationState.totalMemory.value}", fontWeight = FontWeight.ExtraLight)
             Spacer(Modifier.width(10.dp))
             Text(text = "Used: ${contextInformationState.usedMemory.value}", fontWeight = FontWeight.ExtraLight)

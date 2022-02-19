@@ -13,6 +13,8 @@ import kotlin.collections.ArrayDeque
 @SerialName("queue")
 class Queue(
     override val id: String = UUID.randomUUID().toString(),
+    override val ownerName: String,
+    override var displayName: String,
     override val items: MutableList<PlaylistItem> = ArrayDeque(),
     override var position: Int = 0,
     override var playbackOrder: PlaybackOrder = PlaybackOrder.SEQUENTIAL,

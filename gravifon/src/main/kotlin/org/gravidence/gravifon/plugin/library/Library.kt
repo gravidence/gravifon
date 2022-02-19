@@ -70,8 +70,12 @@ class Library(override val configurationManager: ConfigurationManager, override 
 
         fileStorage.read()
 
-        playlist = playlistManager.getPlaylist(componentConfiguration.playlistId) ?: DynamicPlaylist(componentConfiguration.playlistId)
-        playlistManager.addPlaylist(playlist)
+        playlist = playlistManager.getPlaylist(componentConfiguration.playlistId)
+            ?: DynamicPlaylist(
+                id = componentConfiguration.playlistId,
+                ownerName = pluginDisplayName,
+                displayName = componentConfiguration.playlistId
+            ).also { playlistManager.addPlaylist(it) }
 
         logger.info { "Initialize library (${roots.size} roots configured)" }
 
