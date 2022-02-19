@@ -34,18 +34,26 @@ class Orchestrator(
         }
 
         val activeViewId = configurationManager.applicationConfig().activeViewId
-        // TODO fallback to default view if not configured
-        viewables.find { it.javaClass.name == activeViewId }?.activateView()
+        val activeView = viewables.find { it.javaClass.name == activeViewId } ?: defaultView()
+        activeView.activateView()
 
         val activePlaylistId = configurationManager.applicationConfig().activePlaylistId
-        // TODO fallback to default playlist if not configured
-        playables.find { it.playlist.id() == activePlaylistId }?.activatePlaylist()
+        val activePlaylist = playables.find { it.playlist.id() == activePlaylistId } ?: defaultPlaylist(activeView)
+        activePlaylist?.activatePlaylist()
     }
 
     fun shutdown() {
         logger.info { "Shutdown routine, started" }
         shutdownAwares.forEach { it.beforeShutdown() }
         logger.info { "Shutdown routine, completed" }
+    }
+
+    private fun defaultView(): Viewable {
+        return viewables.find { it is Playable } ?: viewables.first()
+    }
+
+    private fun defaultPlaylist(activeView: Viewable): Playable? {
+        return activeView as? Playable
     }
 
 }
