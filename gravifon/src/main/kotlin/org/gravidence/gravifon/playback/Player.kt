@@ -4,10 +4,10 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventHandler
 import org.gravidence.gravifon.event.playback.*
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
+import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.ShutdownAware
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
 import org.gravidence.gravifon.util.DurationUtil
@@ -19,7 +19,7 @@ import kotlin.time.Duration
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Player(private val audioBackend: AudioBackend, private val audioFlow: AudioFlow) : EventHandler(), ShutdownAware {
+class Player(private val audioBackend: AudioBackend, private val audioFlow: AudioFlow) : EventAware, ShutdownAware {
 
     private var timer = Timer()
 

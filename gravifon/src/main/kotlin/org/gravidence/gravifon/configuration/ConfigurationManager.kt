@@ -6,9 +6,9 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventHandler
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.orchestration.marker.Configurable
+import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.ShutdownAware
 import org.gravidence.gravifon.orchestration.marker.Stateful
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
@@ -20,7 +20,7 @@ import java.nio.file.StandardOpenOption
 private val logger = KotlinLogging.logger {}
 
 @Component
-class ConfigurationManager(@Lazy private val configurables: List<Configurable>, @Lazy private val statefuls: List<Stateful>) : EventHandler(), ShutdownAware {
+class ConfigurationManager(@Lazy private val configurables: List<Configurable>, @Lazy private val statefuls: List<Stateful>) : EventAware, ShutdownAware {
 
     private val applicationConfiguration: GConfig
 

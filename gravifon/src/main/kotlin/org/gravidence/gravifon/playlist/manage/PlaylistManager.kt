@@ -7,11 +7,11 @@ import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.configHomeDir
 import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.EventHandler
 import org.gravidence.gravifon.event.playback.SubPlaybackStartEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayPrevEvent
+import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Stateful
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.Queue
@@ -27,7 +27,7 @@ import kotlin.streams.toList
 private val logger = KotlinLogging.logger {}
 
 @Component
-class PlaylistManager : EventHandler(), Stateful {
+class PlaylistManager : EventAware, Stateful {
 
     private val regularPlaylists: MutableList<Playlist> = mutableListOf()
     // TODO think how to make it immutable

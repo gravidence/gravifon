@@ -14,7 +14,7 @@ internal class PlaylistManagerTest {
 
     @BeforeEach
     internal fun setUp() {
-        playlistManager = PlaylistManager(consumers = listOf())
+        playlistManager = PlaylistManager()
     }
 
     @Test
