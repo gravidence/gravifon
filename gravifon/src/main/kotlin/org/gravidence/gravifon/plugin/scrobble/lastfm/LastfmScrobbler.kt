@@ -20,15 +20,19 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ComponentConfiguration
-import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.configuration.ConfigurationManager
+import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
-import org.gravidence.gravifon.orchestration.marker.*
+import org.gravidence.gravifon.orchestration.marker.Configurable
+import org.gravidence.gravifon.orchestration.marker.EventAware
+import org.gravidence.gravifon.orchestration.marker.Stateful
+import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
+import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.tooltip
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.gravidence.lastfm4k.LastfmClient
@@ -303,11 +307,10 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
                             onClick = {
                                 Desktop.getDesktop().browse(URI(authorization?.second.toString()))
                             },
-//                            modifier = Modifier
-//                                .size(30.dp)
+                            modifier = Modifier
+                                .size(30.dp)
                         ) {
-//                            Text("⏵")
-                            Text(">>")
+                            AppIcon(path = "icons8-upload-24.png", modifier = Modifier.size(16.dp))
                         }
                     }
                 }

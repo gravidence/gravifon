@@ -21,6 +21,7 @@ import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayPrevEvent
 import org.gravidence.gravifon.playback.PlaybackState
 import org.gravidence.gravifon.playlist.Playlist
+import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
 import org.gravidence.gravifon.util.DurationUtil
 import kotlin.time.DurationUnit
@@ -80,6 +81,13 @@ fun rememberPlaybackControlState(
     )
 }
 
+private val defaultPlaybackButtonModifier = Modifier
+    .size(48.dp)
+    .padding(0.dp)
+private val activePlaybackButtonModifier = Modifier
+    .size(52.dp)
+    .padding(0.dp)
+
 @Composable
 fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
     Box(
@@ -95,34 +103,45 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
             ) {
                 Button(
                     onClick = playbackControlState::onPrev,
+                    modifier = defaultPlaybackButtonModifier
                 ) {
-                    Text("Prev")
+                    AppIcon("icons8-skip-to-start-24.png")
                 }
                 Button(
                     onClick = playbackControlState::onStop,
-//                    modifier = if (playbackControlState.playbackState.value == PlaybackState.STOPPED) {
-//                        Modifier
-//                            .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
-//                    } else {
-//                        null
-//                    }
+                    modifier = if (playbackControlState.playbackState.value == PlaybackState.STOPPED) {
+                        activePlaybackButtonModifier
+                    } else {
+                        defaultPlaybackButtonModifier
+                    }
                 ) {
-                    Text("Stop")
+                    AppIcon("icons8-stop-24.png")
                 }
                 Button(
                     onClick = playbackControlState::onPause,
+                    modifier = if (playbackControlState.playbackState.value == PlaybackState.PAUSED) {
+                        activePlaybackButtonModifier
+                    } else {
+                        defaultPlaybackButtonModifier
+                    }
                 ) {
-                    Text("Pause")
+                    AppIcon("icons8-pause-24.png")
                 }
                 Button(
                     onClick = playbackControlState::onPlay,
+                    modifier = if (playbackControlState.playbackState.value == PlaybackState.PLAYING) {
+                        activePlaybackButtonModifier
+                    } else {
+                        defaultPlaybackButtonModifier
+                    }
                 ) {
-                    Text("Play")
+                    AppIcon("icons8-play-24.png")
                 }
                 Button(
                     onClick = playbackControlState::onNext,
+                    modifier = defaultPlaybackButtonModifier
                 ) {
-                    Text("Next")
+                    AppIcon("icons8-end-24.png")
                 }
                 Text(text = playbackControlState.elapsedTime(), fontWeight = FontWeight.Light)
                 Slider(
