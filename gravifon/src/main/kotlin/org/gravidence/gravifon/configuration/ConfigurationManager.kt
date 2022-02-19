@@ -64,10 +64,6 @@ class ConfigurationManager(@Lazy private val configurables: List<Configurable>, 
     }
 
     private fun persistApplicationConfiguration() {
-        logger.debug { "Persist component file storage: START" }
-        statefuls.forEach { it.fileStorage.write() }
-        logger.debug { "Persist component file storage: FINISH" }
-
         logger.debug { "Collect component configuration updates: START" }
         configurables.forEach { it.writeComponentConfiguration() }
         logger.debug { "Collect component configuration updates: FINISH" }
