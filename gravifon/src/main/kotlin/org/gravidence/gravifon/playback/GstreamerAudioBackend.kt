@@ -14,7 +14,8 @@ import kotlin.time.toDuration
 private val logger = KotlinLogging.logger {}
 
 /**
- * https://gstreamer.freedesktop.org/documentation/playback/playbin.html#playbin-page
+ * Gstreamer Playbin based audio backend.
+ * See [documentation](https://gstreamer.freedesktop.org/documentation/playback/playbin.html#playbin-page).
  */
 @Component
 class GstreamerAudioBackend : AudioBackend {
