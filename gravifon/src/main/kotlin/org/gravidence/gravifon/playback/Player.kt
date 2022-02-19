@@ -85,7 +85,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
 
         if (forcePlay) {
             audioBackend.play().also {
-                GravifonContext.playbackState.value = PlaybackState.PLAYING
+                GravifonContext.playbackState.value = it
             }
 
             timer = fixedRateTimer(initialDelay = 1000, period = 100) {
@@ -97,7 +97,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
 
     private fun pause() {
         audioBackend.pause().also {
-            GravifonContext.playbackState.value = PlaybackState.PAUSED
+            GravifonContext.playbackState.value = it
         }
     }
 
@@ -105,7 +105,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
         timer.cancel()
 
         audioBackend.stop().also {
-            GravifonContext.playbackState.value = PlaybackState.STOPPED
+            GravifonContext.playbackState.value = it
         }
 
         GravifonContext.activeVirtualTrack.value = null

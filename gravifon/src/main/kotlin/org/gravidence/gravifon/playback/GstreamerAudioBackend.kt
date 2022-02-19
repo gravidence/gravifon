@@ -67,33 +67,39 @@ class GstreamerAudioBackend : AudioBackend {
         })
     }
 
-    override fun play() {
+    override fun play(): PlaybackState {
         playbin.play().also {
-            logger.debug { "Playback state change result is $it" }
             if (it == StateChangeReturn.FAILURE) {
                 logger.warn { "Unable to play stream" }
+                return PlaybackState.STOPPED
             }
         }
+
+        return PlaybackState.PLAYING
     }
 
-    override fun pause() {
+    override fun pause(): PlaybackState {
         when (playbin.state) {
             State.PLAYING -> {
                 playbin.pause()
                 stopwatch.pause()
+                return PlaybackState.PAUSED
             }
             State.PAUSED -> {
-                // TODO probably better call this.play()
-                playbin.play()
-                stopwatch.count()
+                return play().also {
+                    if (it == PlaybackState.PLAYING) {
+                        stopwatch.count()
+                    }
+                }
             }
             else -> {
                 // keep current state
+                return PlaybackState.STOPPED
             }
         }
     }
 
-    override fun stop() {
+    override fun stop(): PlaybackState {
         // clear next track, so it won't affect AUDIO_CHANGED event logic
         nextTrack = null
 
@@ -101,6 +107,8 @@ class GstreamerAudioBackend : AudioBackend {
 
         // make sure stopwatch is stopped (all related logic is executed in AUDIO_CHANGED event handler)
         stopwatch.stop()
+
+        return PlaybackState.STOPPED
     }
 
     /**

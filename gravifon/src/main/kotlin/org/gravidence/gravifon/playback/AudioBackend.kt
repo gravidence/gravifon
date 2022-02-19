@@ -11,9 +11,9 @@ interface AudioBackend {
         endOfStreamCallback: () -> Unit
     )
 
-    fun play()
-    fun pause()
-    fun stop()
+    fun play(): PlaybackState
+    fun pause(): PlaybackState
+    fun stop(): PlaybackState
 
     /**
      * Returns stream length.
