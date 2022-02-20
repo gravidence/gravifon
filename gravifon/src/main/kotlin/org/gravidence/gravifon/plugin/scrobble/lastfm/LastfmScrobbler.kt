@@ -7,13 +7,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -30,9 +35,15 @@ import org.gravidence.gravifon.orchestration.marker.Configurable
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Stateful
 import org.gravidence.gravifon.orchestration.marker.Viewable
+import org.gravidence.gravifon.playlist.DynamicPlaylist
+import org.gravidence.gravifon.playlist.Playlist
+import org.gravidence.gravifon.playlist.item.PlaylistItem
+import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
+import org.gravidence.gravifon.ui.PlaylistComposable
 import org.gravidence.gravifon.ui.image.AppIcon
+import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.gravidence.gravifon.ui.tooltip
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.gravidence.lastfm4k.LastfmClient
@@ -75,12 +86,13 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
     private val scrobbleCache: MutableList<Scrobble> = mutableListOf()
     private var pendingScrobble: Scrobble? = null
 
+    private val playlist: Playlist = DynamicPlaylist(ownerName = "Last.fm Scrobbler", displayName = "Scrobble Cache")
+    private val playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(listOf())
+
     override fun consume(event: Event) {
-        handleLastfmException {
-            when (event) {
-                is PubTrackStartEvent -> handle(event)
-                is PubTrackFinishEvent -> handle(event)
-            }
+        when (event) {
+            is PubTrackStartEvent -> handle(event)
+            is PubTrackFinishEvent -> handle(event)
         }
     }
 
@@ -99,7 +111,17 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
         event.track.toLastfmTrack()?.let {
             pendingScrobble = Scrobble(track = event.track, startedAt = event.timestamp)
 
-            val response = lastfmClient.trackApi.updateNowPlaying(it)
+            if (componentConfiguration.autoScrobble && componentConfiguration.sendNowPlaying) {
+                sendNowPlaying(it)
+            } else {
+                logger.debug { "\"Now Playing\" notifications are disabled" }
+            }
+        }
+    }
+
+    private fun sendNowPlaying(track: Track) {
+        handleLastfmException {
+            val response = lastfmClient.trackApi.updateNowPlaying(track)
 
             if (response.result.scrobbleCorrectionSummary.status != IgnoreStatus.OK) {
                 logger.info { "Scrobble will be ignored by service: reason=${response.result.scrobbleCorrectionSummary.status}" }
@@ -119,18 +141,50 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
                 } else {
                     completePendingScrobble(pendingScrobbleFixed, event)
 
-                    val candidateScrobbles = scrobbleCache.take(50)
-
-                    val response = lastfmClient.trackApi.scrobble(candidateScrobbles.map { it.toLastfmScrobble() })
-
-                    if (response.responseHolder.summary.ignored > 0) {
-                        logger.info { "${response.responseHolder.summary.ignored} scrobbles were ignored by service" }
+                    if (componentConfiguration.autoScrobble) {
+                        scrobble()
+                    } else {
+                        logger.debug { "Auto scrobble is disabled. ${scrobbleCache.size} scrobbles in cache" }
                     }
-
-                    scrobbleCache.removeAll(candidateScrobbles)
                 }
             }
         }
+    }
+
+    private fun scrobble() {
+        handleLastfmException {
+            while (scrobbleCache.size > 0) {
+                val candidateScrobbles = scrobbleCache.take(50).also {
+                    logger.info { "Submitting ${it.size} out of ${scrobbleCache.size} scrobbles..." }
+                }
+
+                val response = lastfmClient.trackApi.scrobble(candidateScrobbles.map { it.toLastfmScrobble() })
+
+                if (response.responseHolder.summary.ignored > 0) {
+                    logger.info { "${response.responseHolder.summary.ignored} scrobbles were ignored by service" }
+                }
+
+                removeFromScrobbleCache(candidateScrobbles)
+            }
+        }
+    }
+
+    private fun appendToScrobbleCache(scrobble: Scrobble) {
+        scrobbleCache += scrobble
+
+        playlist.append(TrackPlaylistItem(scrobble.track))
+        playlistItems.value = playlist.items()
+    }
+
+    private fun appendToScrobbleCache(scrobbles: List<Scrobble>) {
+        scrobbles.forEach { appendToScrobbleCache(it) }
+    }
+
+    private fun removeFromScrobbleCache(scrobbles: List<Scrobble>) {
+        scrobbleCache.removeAll(scrobbles)
+
+        playlist.replace(scrobbleCache.map { TrackPlaylistItem(it.track) })
+        playlistItems.value = playlist.items()
     }
 
     /**
@@ -140,7 +194,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
         pendingScrobble.duration = trackFinishEvent.duration
         pendingScrobble.finishedAt = trackFinishEvent.timestamp
 
-        scrobbleCache += pendingScrobble
+        appendToScrobbleCache(pendingScrobble)
     }
 
     /**
@@ -204,10 +258,56 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
         )
     }
 
-    @OptIn(ExperimentalFoundationApi::class)
+    inner class LastfmScrobblerSettingsState(
+        val session: MutableState<Session?>,
+        val autoScrobble: MutableState<Boolean>,
+        val sendNowPlaying: MutableState<Boolean>,
+    ) {
+
+        fun updateSession(session: Session?) {
+            this.session.value = session
+
+            componentConfiguration.session = session
+            lastfmClient.session(session)
+        }
+
+        fun updateAutoScrobble(autoScrobble: Boolean) {
+            this.autoScrobble.value = autoScrobble
+
+            componentConfiguration.autoScrobble = autoScrobble
+        }
+
+        fun toggleAutoScrobble() {
+            updateAutoScrobble(!autoScrobble.value)
+        }
+
+        fun updateSendNowPlaying(sendNowPlaying: Boolean) {
+            this.sendNowPlaying.value = sendNowPlaying
+
+            componentConfiguration.sendNowPlaying = sendNowPlaying
+        }
+
+        fun toggleSendNowPlaying() {
+            updateSendNowPlaying(!sendNowPlaying.value)
+        }
+
+    }
+
+    @Composable
+    fun rememberLastfmScrobblerSettingsState(
+        session: MutableState<Session?>,
+        autoScrobble: MutableState<Boolean>,
+        sendNowPlaying: MutableState<Boolean>,
+    ) = remember(session, autoScrobble, sendNowPlaying) { LastfmScrobblerSettingsState(session, autoScrobble, sendNowPlaying) }
+
+    @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
     @Composable
     override fun composeSettings() {
-        var session: Session? by remember { mutableStateOf(componentConfiguration.session) }
+        val state: LastfmScrobblerSettingsState = rememberLastfmScrobblerSettingsState(
+            session = mutableStateOf(componentConfiguration.session),
+            autoScrobble = mutableStateOf(componentConfiguration.autoScrobble),
+            sendNowPlaying = mutableStateOf(componentConfiguration.sendNowPlaying),
+        )
         var authorization: Pair<Token, Uri>? by remember { mutableStateOf(null) }
         var error: String? by remember { mutableStateOf(null) }
 
@@ -229,7 +329,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
                         Text("Session Key:")
                     }
                     BasicTextField(
-                        value = session?.key ?: "",
+                        value = state.session.value?.key ?: "",
                         singleLine = true,
                         readOnly = true,
                         onValueChange = {},
@@ -244,7 +344,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
                     modifier = Modifier
                         .padding(horizontal = 30.dp, vertical = 5.dp)
                 )
-                if (session == null) {
+                if (state.session.value == null) {
                     Row(
                         horizontalArrangement = Arrangement.Center
                     ) {
@@ -313,7 +413,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
                         .fillMaxWidth()
                 ) {
                     Button(
-                        enabled = session == null && authorization == null,
+                        enabled = state.session.value == null && authorization == null,
                         onClick = {
                             error = handleLastfmException {
                                 authorization = lastfmClient.authorizeStep1()
@@ -322,14 +422,13 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
                     ) {
                         Text("Request Token")
                     }
-                    if (session == null) {
+                    if (state.session.value == null) {
                         Button(
                             enabled = authorization != null,
                             onClick = {
                                 authorization?.let {
                                     error = handleLastfmException {
-                                        componentConfiguration.session = lastfmClient.authorizeStep2(token = it.first)
-                                        session = componentConfiguration.session
+                                        state.updateSession(lastfmClient.authorizeStep2(token = it.first))
                                     }
                                 }
                             }
@@ -340,13 +439,50 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
                     } else {
                         Button(
                             onClick = {
-                                // TODO too many assignments wrt same thing...
-                                componentConfiguration.session = null
-                                lastfmClient.session(null)
-                                session = null
+                                state.updateSession(null)
                             }
                         ) {
                             Text("Clear Session")
+                        }
+                    }
+                }
+                Divider(
+                    thickness = 2.dp,
+                    modifier = Modifier
+                        .padding(horizontal = 30.dp, vertical = 5.dp)
+                )
+                Row {
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.onPointerEvent(
+                                eventType = PointerEventType.Release,
+                                onEvent = {
+                                    state.toggleAutoScrobble()
+                                }
+                            )
+                        ) {
+                            Checkbox(
+                                checked = state.autoScrobble.value,
+                                onCheckedChange = {  }
+                            )
+                            Text("Scrobble automatically")
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.onPointerEvent(
+                                eventType = PointerEventType.Release,
+                                onEvent = {
+                                    state.toggleSendNowPlaying()
+                                }
+                            )
+                        ) {
+                            Checkbox(
+                                enabled = state.autoScrobble.value,
+                                checked = state.sendNowPlaying.value,
+                                onCheckedChange = {  }
+                            )
+                            Text("Send \"Now Playing\" notifications")
                         }
                     }
                 }
@@ -369,6 +505,8 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
         } catch (e: LastfmException) {
             logger.error(e) { "Exception caught while handling Last.fm API request" }
             "Failed to call Last.fm service, please see logs for details"
+        } finally {
+            logger.debug { "${scrobbleCache.size} scrobbles in cache" }
         }
     }
 
@@ -376,14 +514,64 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
         return pluginDisplayName
     }
 
+    inner class LastfmScrobblerViewState(
+        val playlistItems: MutableState<List<PlaylistItem>>,
+        val playlist: Playlist
+    )
+
+    @Composable
+    fun rememberLastfmScrobblerViewState(
+        playlistItems: MutableState<List<PlaylistItem>>,
+        playlist: Playlist
+    ) = remember(playlistItems) { LastfmScrobblerViewState(playlistItems, playlist) }
+
     @Composable
     override fun composeView() {
-        Text("TBD")
+        val lastfmScrobblerViewState = rememberLastfmScrobblerViewState(
+            playlistItems = playlistItems,
+            playlist = playlist
+        )
+        val playlistState = rememberPlaylistState(
+            playlistItems = playlistItems,
+            playlist = playlist,
+        )
+
+        Box(
+            modifier = Modifier
+                .padding(5.dp)
+        ) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(5.dp)
+                ) {
+                    Text(
+                        text = "Scrobbles: ${playlistItems.value.size}",
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .weight(1f)
+                    )
+                    Button(
+                        enabled = playlistItems.value.isNotEmpty(),
+                        onClick = { scrobble() }
+                    ) {
+                        Text("Scrobble")
+                    }
+                }
+                Divider(color = Color.Transparent, thickness = 2.dp)
+                Row {
+                    PlaylistComposable(playlistState)
+                }
+            }
+        }
     }
 
     @Serializable
     data class LastfmScrobblerConfiguration(
-        var session: Session? = null
+        var session: Session? = null,
+        var autoScrobble: Boolean = true,
+        var sendNowPlaying: Boolean = true
     ) : ComponentConfiguration
 
     inner class LastfmScrobblerFileStorage : FileStorage(storageDir = pluginConfigHomeDir.resolve("lastfm-scrobbler")) {
@@ -395,7 +583,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
 
             try {
                 if (scrobbleCacheFile.exists()) {
-                    scrobbleCache.addAll(gravifonSerializer.decodeFromString(Files.readString(scrobbleCacheFile))).also {
+                    appendToScrobbleCache(gravifonSerializer.decodeFromString<List<Scrobble>>(Files.readString(scrobbleCacheFile))).also {
                         logger.trace { "Scrobble cache loaded: $it" }
                     }
                 }
