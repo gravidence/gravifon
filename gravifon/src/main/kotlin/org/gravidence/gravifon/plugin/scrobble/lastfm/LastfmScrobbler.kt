@@ -68,35 +68,27 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
     private val absoluteMinScrobbleDuration = 30.seconds
     private val absoluteEnoughScrobbleDuration = 4.minutes
 
+    override val componentConfiguration: LastfmScrobblerConfiguration = readComponentConfiguration { LastfmScrobblerConfiguration() }
+    override val fileStorage: FileStorage = LastfmScrobblerFileStorage()
+
     private val lastfmClient: LastfmClient
     private val scrobbleCache: MutableList<Scrobble> = mutableListOf()
     private var pendingScrobble: Scrobble? = null
 
-    override val componentConfiguration: LastfmScrobblerConfiguration
-    override val fileStorage: FileStorage = LastfmScrobblerFileStorage()
-
     override fun consume(event: Event) {
-        try {
+        handleLastfmException {
             when (event) {
                 is PubTrackStartEvent -> handle(event)
                 is PubTrackFinishEvent -> handle(event)
             }
-        } catch (exc: LastfmApiException) {
-            logger.info(exc) { "Error response received from Last.fm service" }
-        } catch (exc: LastfmException) {
-            logger.info(exc) { "Error calling Last.fm service" }
-        } catch (exc: Exception) {
-            logger.error(exc) { "Exception caught while handling scrobble event" }
         }
     }
 
     init {
-        componentConfiguration = readComponentConfiguration { LastfmScrobblerConfiguration() }
-
         fileStorage.read()
 
         lastfmClient = LastfmClient(
-//            apiRoot = "http://ws.audioscrobbler.invalid/2.0/",
+//            apiRoot = "http://ws.audioscrobbler.com/22.0/",
             apiKey = "3c3f2425f258b1bc2f7eddcd95194ef4",
             apiSecret = "a05c02f0b955060fc782f7a9270eeab6",
             session = componentConfiguration.session
@@ -366,11 +358,16 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager) :
         return try {
             block()
             null
-        } catch (exc: LastfmApiException) {
-            "Error received from Last.fm service: ${exc.message}"
-        } catch (exc: LastfmNetworkException) {
-            "Failed to call Last.fm service: HTTP ${exc.response.status.code}"
-        } catch (exc: LastfmException) {
+        } catch (e: LastfmApiException) {
+            "Error received from Last.fm service: ${e.message}".also {
+                logger.info(e) { it }
+            }
+        } catch (e: LastfmNetworkException) {
+            "Failed to call Last.fm service: HTTP ${e.response.status.code}".also {
+                logger.warn(e) { it }
+            }
+        } catch (e: LastfmException) {
+            logger.error(e) { "Exception caught while handling Last.fm API request" }
             "Failed to call Last.fm service, please see logs for details"
         }
     }

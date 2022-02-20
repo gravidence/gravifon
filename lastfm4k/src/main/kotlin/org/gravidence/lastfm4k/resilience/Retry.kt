@@ -13,6 +13,9 @@ import kotlin.time.Duration.Companion.minutes
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Retry implementation per Last.fm API [guideline](https://www.last.fm/api/scrobbling#error-handling-2).
+ */
 class Retry(
     val minWaitDuration: Duration = 1.minutes,
     val waitDurationMultiplier: Double = 2.toDouble(),
@@ -35,11 +38,12 @@ class Retry(
                     .also { success() }
             } catch (exc: LastfmApiException) {
                 when (exc.response.error) {
+                    // TODO LastfmApiError.INVALID_SESSION_KEY also should be part of retry, but the nuance that kind of error won't be fixed by itself
                     LastfmApiError.SERVICE_OFFLINE, LastfmApiError.TEMPORARY_UNAVAILABLE -> {
                         failure()
                     }
                     else -> {
-                        logger.warn(exc) { "Not entering retry flow, because it's likely a client side error" }
+                        logger.debug { "Not entering retry flow" }
                     }
                 }
                 throw exc
@@ -48,7 +52,7 @@ class Retry(
                 throw exc
             }
         } else {
-            throw LastfmException("Skip Last.fm service call, next retry after ${retryAfterFixed.toLocalDateTime()}")
+            throw LastfmException("Last.fm service call skipped, next retry after ${retryAfterFixed.toLocalDateTime()}")
         }
     }
 
@@ -68,7 +72,7 @@ class Retry(
         }
 
         retryAfter = Clock.System.now().plus(nextWaitDuration).also {
-            logger.info { "Failed to to call Last.fm service, next retry after ${it.toLocalDateTime()}" }
+            logger.info { "Last.fm service call failed, next retry after ${it.toLocalDateTime()}" }
         }
     }
 

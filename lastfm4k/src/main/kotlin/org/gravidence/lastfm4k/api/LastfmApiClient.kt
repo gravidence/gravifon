@@ -26,6 +26,8 @@ class LastfmApiClient(
 
     private val retry: Retry = Retry()
 
+    private val extraNetworkErrorCodes = listOf(404, 408, 429)
+
     @Throws(LastfmException::class)
     private fun call(request: Request): Response {
         return retry.wrap {
@@ -34,10 +36,12 @@ class LastfmApiClient(
             }
 
             if (!response.status.successful) {
-                if (response.body.length == null || response.body.length == 0L) {
+                if (response.header("content-type") == "application/json") {
+                    throw LastfmApiException(lastfmSerializer.decodeFromJsonElement(response.toJsonObject()))
+                } else if (response.status.serverError || response.status.code in extraNetworkErrorCodes) {
                     throw LastfmNetworkException(response)
                 } else {
-                    throw LastfmApiException(lastfmSerializer.decodeFromJsonElement(response.toJsonObject()))
+                    throw LastfmException("Unhandled")
                 }
             }
 
