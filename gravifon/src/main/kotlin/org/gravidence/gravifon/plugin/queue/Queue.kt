@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import kotlinx.serialization.Serializable
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.ConfigurationManager
-import org.gravidence.gravifon.orchestration.marker.Configurable
 import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
@@ -15,14 +14,16 @@ import java.util.*
 
 @Component
 class Queue(override val configurationManager: ConfigurationManager, private val playlistManager: PlaylistManager) :
-    Plugin(pluginDisplayName = "Queue", pluginDescription = "Queue v0.1"),
-    Viewable, Configurable {
+    Plugin, Viewable {
 
-    override val componentConfiguration: QueueConfiguration
+    override val pluginDisplayName: String = "Queue"
+    override val pluginDescription: String = "Queue v0.1"
+
+    override val componentConfiguration: QueueComponentConfiguration
 
     init {
         componentConfiguration = readComponentConfiguration {
-            QueueConfiguration(playlistId = UUID.randomUUID().toString())
+            QueueComponentConfiguration(playlistId = UUID.randomUUID().toString())
         }
 
         if (playlistManager.getPlaylist(componentConfiguration.playlistId) == null) {
@@ -52,7 +53,7 @@ class Queue(override val configurationManager: ConfigurationManager, private val
     }
 
     @Serializable
-    data class QueueConfiguration(
+    data class QueueComponentConfiguration(
         val playlistId: String
     ) : ComponentConfiguration
 

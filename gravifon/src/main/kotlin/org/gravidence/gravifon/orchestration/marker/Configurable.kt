@@ -1,5 +1,6 @@
 package org.gravidence.gravifon.orchestration.marker
 
+import androidx.compose.runtime.Composable
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 
@@ -34,5 +35,8 @@ interface Configurable : ConfigurationManagerAware {
             logger.debug { "Use component configuration: $it" }
         }
     }
+
+    @Composable
+    fun composeSettings()
 
 }

@@ -1,17 +1,10 @@
 package org.gravidence.gravifon.plugin
 
-import androidx.compose.runtime.Composable
-import org.gravidence.gravifon.configuration.ConfigUtil
-import java.nio.file.Path
+import org.gravidence.gravifon.orchestration.marker.Configurable
 
-abstract class Plugin(
-    val pluginDisplayName: String,
-    val pluginDescription: String,
-) {
+interface Plugin : Configurable {
 
-    val pluginConfigHomeDir: Path = ConfigUtil.configHomeDir.resolve("plugin")
-
-    @Composable
-    abstract fun composeSettings()
+    val pluginDisplayName: String
+    val pluginDescription: String
 
 }

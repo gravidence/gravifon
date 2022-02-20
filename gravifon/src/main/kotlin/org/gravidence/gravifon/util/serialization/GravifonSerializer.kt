@@ -13,9 +13,9 @@ import org.gravidence.gravifon.plugin.scrobble.lastfm.LastfmScrobbler
 val gravifonSerializersModule = SerializersModule {
     contextual(DurationAsStringSerializer)
     polymorphic(ComponentConfiguration::class) {
-        subclass(Library.LibraryConfiguration::class)
-        subclass(Queue.QueueConfiguration::class)
-        subclass(LastfmScrobbler.LastfmScrobblerConfiguration::class)
+        subclass(Library.LibraryComponentConfiguration::class)
+        subclass(Queue.QueueComponentConfiguration::class)
+        subclass(LastfmScrobbler.LastfmScrobblerComponentConfiguration::class)
     }
 }
 
