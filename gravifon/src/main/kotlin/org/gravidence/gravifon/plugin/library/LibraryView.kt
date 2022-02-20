@@ -15,17 +15,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.domain.track.virtualTrackComparator
+import org.gravidence.gravifon.orchestration.marker.Playable
 import org.gravidence.gravifon.orchestration.marker.Viewable
+import org.gravidence.gravifon.playlist.DynamicPlaylist
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
+import org.gravidence.gravifon.playlist.manage.PlaylistManager
 import org.gravidence.gravifon.query.TrackQueryParser
 import org.gravidence.gravifon.ui.PlaylistComposable
 import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.springframework.stereotype.Component
 
 @Component
-class LibraryView(val library: Library) : Viewable {
+class LibraryView(override val playlistManager: PlaylistManager, val library: Library) : Viewable, Playable {
+
+    override val playlist: Playlist
+
+    init {
+        playlist = playlistManager.getPlaylist(library.componentConfiguration.playlistId)
+            ?: DynamicPlaylist(
+                id = library.componentConfiguration.playlistId,
+                ownerName = library.pluginDisplayName,
+                displayName = library.componentConfiguration.playlistId
+            ).also { playlistManager.addPlaylist(it) }
+    }
 
     override fun viewDisplayName(): String {
         return library.pluginDisplayName
@@ -67,12 +81,12 @@ class LibraryView(val library: Library) : Viewable {
     override fun composeView() {
         val libraryViewState = rememberLibraryViewState(
             query = mutableStateOf(library.componentConfiguration.queryHistory.firstOrNull() ?: ""),
-            playlistItems = mutableStateOf(library.playlist.items()),
-            playlist = library.playlist
+            playlistItems = mutableStateOf(playlist.items()),
+            playlist = playlist
         )
         val playlistState = rememberPlaylistState(
             playlistItems = libraryViewState.playlistItems,
-            playlist = library.playlist
+            playlist = playlist
         )
 
         Box(
