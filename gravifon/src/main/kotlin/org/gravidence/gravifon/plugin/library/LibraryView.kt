@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.domain.track.virtualTrackComparator
+import org.gravidence.gravifon.event.Event
+import org.gravidence.gravifon.event.playlist.PlaylistUpdatedEvent
+import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Playable
 import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.playlist.DynamicPlaylist
@@ -28,9 +31,10 @@ import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.springframework.stereotype.Component
 
 @Component
-class LibraryView(override val playlistManager: PlaylistManager, val library: Library) : Viewable, Playable {
+class LibraryView(override val playlistManager: PlaylistManager, val library: Library) : Viewable, Playable, EventAware {
 
     override val playlist: Playlist
+    private val playlistItems: MutableState<List<PlaylistItem>>
 
     init {
         playlist = playlistManager.getPlaylist(library.componentConfiguration.playlistId)
@@ -39,6 +43,13 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
                 ownerName = library.pluginDisplayName,
                 displayName = library.componentConfiguration.playlistId
             ).also { playlistManager.addPlaylist(it) }
+        playlistItems = mutableStateOf(playlist.items())
+    }
+
+    override fun consume(event: Event) {
+        if (event is PlaylistUpdatedEvent) {
+            playlistItems.value = event.playlist.items()
+        }
     }
 
     override fun viewDisplayName(): String {
@@ -81,11 +92,11 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
     override fun composeView() {
         val libraryViewState = rememberLibraryViewState(
             query = mutableStateOf(library.componentConfiguration.queryHistory.firstOrNull() ?: ""),
-            playlistItems = mutableStateOf(playlist.items()),
+            playlistItems = playlistItems,
             playlist = playlist
         )
         val playlistState = rememberPlaylistState(
-            playlistItems = libraryViewState.playlistItems,
+            playlistItems = playlistItems,
             playlist = playlist
         )
 

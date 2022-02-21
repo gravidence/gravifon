@@ -45,6 +45,15 @@ class LastfmScrobblerStorage : Stateful {
         publishUpdate()
     }
 
+    /**
+     * Removes scrobbles by index from cache. Index is zero-based.
+     */
+    @Synchronized
+    fun removeFromScrobbleCache(scrobbleIndexes: Set<Int>) {
+        scrobbleIndexes.forEach { scrobbleCache.removeAt(it) }
+        publishUpdate()
+    }
+
     private fun publishUpdate() {
         EventBus.publish(LastfmScrobbleCacheUpdatedEvent(scrobbleCache))
     }

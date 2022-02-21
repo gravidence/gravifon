@@ -214,6 +214,11 @@ sealed class Playlist {
         items.remove(item)
     }
 
+    open fun remove(positionSet: Set<Int>) {
+        // remove playlist items one by one to keep correct current position
+        positionSet.forEach { remove(it..it) }
+    }
+
     open fun remove(positionRange: IntRange) {
         positionRange.reversed().forEach { items.removeAt(it - 1) }
         if (position in positionRange) {
@@ -232,7 +237,7 @@ sealed class Playlist {
         return position.coerceIn(1, max(1, items.size))
     }
 
-    open protected fun rebuildStructure() {
+    protected open fun rebuildStructure() {
         when (playlistStructure) {
             PlaylistStructure.ALBUM -> {
                 items.removeAll { it is AlbumPlaylistItem }

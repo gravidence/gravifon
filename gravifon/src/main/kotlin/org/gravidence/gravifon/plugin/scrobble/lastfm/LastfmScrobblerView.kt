@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.event.Event
+import org.gravidence.gravifon.event.playlist.RemovePlaylistItemsEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.playlist.DynamicPlaylist
@@ -40,10 +41,18 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
     private val playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(playlist.items())
 
     override fun consume(event: Event) {
-        if (event is LastfmScrobbleCacheUpdatedEvent) {
-            val scrobbleCachePlaylistItems = scrobbleCacheToPlaylistItems(event.scrobbleCache)
-            playlist.replace(scrobbleCachePlaylistItems)
-            playlistItems.value = scrobbleCachePlaylistItems
+        when (event) {
+            is LastfmScrobbleCacheUpdatedEvent -> {
+                updateViewState(event.scrobbleCache)
+            }
+            is RemovePlaylistItemsEvent -> {
+                if (event.playlist === playlist) {
+                    lastfmScrobbler.lastfmScrobblerStorage.apply {
+                        removeFromScrobbleCache(event.playlistItemIndexes)
+                        updateViewState(scrobbleCache())
+                    }
+                }
+            }
         }
     }
 
@@ -106,6 +115,13 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
 
     private fun scrobbleCacheToPlaylistItems(scrobbleCache: List<Scrobble>): MutableList<PlaylistItem> {
         return scrobbleCache.map { TrackPlaylistItem(it.track) }.toMutableList()
+    }
+
+    private fun updateViewState(scrobbleCache: List<Scrobble>) {
+        val scrobbleCachePlaylistItems = scrobbleCacheToPlaylistItems(scrobbleCache)
+        playlist.replace(scrobbleCachePlaylistItems)
+        playlistItems.value = scrobbleCachePlaylistItems
+
     }
 
 }

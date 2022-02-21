@@ -8,9 +8,7 @@ import org.gravidence.gravifon.configuration.ConfigUtil.configHomeDir
 import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.playback.SubPlaybackStartEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistPlayPrevEvent
+import org.gravidence.gravifon.event.playlist.*
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Stateful
 import org.gravidence.gravifon.playlist.Playlist
@@ -44,6 +42,13 @@ class PlaylistManager : EventAware, Stateful {
             is SubPlaylistPlayCurrentEvent -> playCurrent(event.playlist, event.playlistItem)
             is SubPlaylistPlayNextEvent -> playNext(event.playlist)
             is SubPlaylistPlayPrevEvent -> playPrev(event.playlist)
+            is RemovePlaylistItemsEvent -> event.apply {
+                // only handle users of PlaylistManager, other playlist holders are likely have own update logic
+                if (getPlaylist(playlist.id()) != null) {
+                    playlist.remove(playlistItemIndexes.map { it + 1 }.toSet())
+                    publish(PlaylistUpdatedEvent(playlist))
+                }
+            }
         }
     }
 
