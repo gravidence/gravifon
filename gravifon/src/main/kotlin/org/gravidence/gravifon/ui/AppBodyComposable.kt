@@ -2,7 +2,6 @@ package org.gravidence.gravifon.ui
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -12,6 +11,7 @@ import kotlinx.coroutines.delay
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
+import org.gravidence.gravifon.ui.theme.gShape
 import kotlin.concurrent.fixedRateTimer
 
 @Composable
@@ -61,7 +61,7 @@ fun AppBody() {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                                    .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
                                 PlaybackInformationComposable(playbackInformationState)
                             }
@@ -69,7 +69,7 @@ fun AppBody() {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                                    .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
                                 PlaybackControlComposable(playbackControlState)
                             }
@@ -78,7 +78,7 @@ fun AppBody() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .weight(1f)
-                                    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                                    .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
                                 val value = activeView.value
                                 if (value == null) {
@@ -92,7 +92,7 @@ fun AppBody() {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                                    .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
                                 ContextInformationComposable(contextInformationState)
                             }

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -32,6 +31,9 @@ import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
+import org.gravidence.gravifon.ui.theme.gListItemColor
+import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
+import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.util.DurationUtil
 import java.awt.event.MouseEvent
 
@@ -110,7 +112,7 @@ fun PlaylistComposable(playlistState: PlaylistState) {
             .focusable()
             .focusRequester(focusRequester)
             .fillMaxHeight()
-            .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+            .border(width = 1.dp, color = Color.Black, shape = gShape)
             .onPreviewKeyEvent {
                 playlistState.onKeyEvent(it)
             }
@@ -150,12 +152,14 @@ fun PlaylistComposable(playlistState: PlaylistState) {
 val normalPlaylistItemModifier = Modifier
     .fillMaxWidth()
     .padding(5.dp)
-    .background(color = Color.LightGray.copy(alpha = 0.3f), shape = RoundedCornerShape(5.dp))
+    .background(color = gListItemColor, shape = gShape)
+    .clickable {  }
 val selectedPlaylistItemModifier = Modifier
     .fillMaxWidth()
     .padding(5.dp)
-    .background(color = Color.LightGray.copy(alpha = 0.7f), shape = RoundedCornerShape(5.dp))
-    .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+    .background(color = gSelectedListItemColor, shape = gShape)
+    .border(width = 1.dp, color = Color.Black, shape = gShape)
+    .clickable {  }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable

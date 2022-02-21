@@ -3,7 +3,6 @@ package org.gravidence.gravifon.plugin.library
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
@@ -28,6 +27,7 @@ import org.gravidence.gravifon.playlist.manage.PlaylistManager
 import org.gravidence.gravifon.query.TrackQueryParser
 import org.gravidence.gravifon.ui.PlaylistComposable
 import org.gravidence.gravifon.ui.rememberPlaylistState
+import org.gravidence.gravifon.ui.theme.*
 import org.springframework.stereotype.Component
 
 @Component
@@ -121,16 +121,17 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
         Box(
             modifier = Modifier
                 .height(50.dp)
-                .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
-                .background(color = Color.LightGray, shape = RoundedCornerShape(5.dp))
+                .border(width = 1.dp, color = Color.Black, shape = gShape)
+                .background(color = gTextFieldColor, shape = gShape)
         ) {
             BasicTextField(
                 value = libraryViewState.query.value,
                 singleLine = true,
+                textStyle = gTextFieldStyle,
                 onValueChange = { libraryViewState.onQueryChange(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(5.dp)
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
                     .align(Alignment.CenterStart)
             )
         }

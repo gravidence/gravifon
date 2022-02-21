@@ -4,7 +4,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Button
 import androidx.compose.material.Checkbox
@@ -31,6 +30,7 @@ import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
 import org.gravidence.gravifon.ui.image.AppIcon
+import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.ui.tooltip
 import org.gravidence.lastfm4k.LastfmClient
 import org.gravidence.lastfm4k.api.auth.Session
@@ -321,7 +321,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                         onValueChange = {},
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                            .border(width = 1.dp, color = Color.Black, shape = gShape)
                             .padding(5.dp)
                     )
                 }
@@ -376,7 +376,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
-                                .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                                .border(width = 1.dp, color = Color.Black, shape = gShape)
                                 .padding(5.dp)
                         )
                         Button(

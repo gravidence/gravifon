@@ -2,7 +2,6 @@ package org.gravidence.gravifon.ui.dialog
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import androidx.compose.ui.window.rememberDialogState
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.GravifonStarter
 import org.gravidence.gravifon.plugin.Plugin
+import org.gravidence.gravifon.ui.theme.gShape
 import java.awt.event.MouseEvent
 
 
@@ -72,7 +72,7 @@ fun PluginSettingsDialog() {
                 Box(
                     modifier = Modifier
                         .weight(0.4f)
-                        .border(width = 1.dp, color = Color.Red, shape = RoundedCornerShape(5.dp))
+                        .border(width = 1.dp, color = Color.Red, shape = gShape)
                 ) {
                     Column(
                         modifier = Modifier
@@ -80,7 +80,7 @@ fun PluginSettingsDialog() {
                             .padding(10.dp)
 //                            .horizontalScroll(state = pluginListHScrollState)
                             .verticalScroll(state = pluginListVScrollState)
-                            .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                            .border(width = 1.dp, color = Color.Black, shape = gShape)
                     ) {
                         GravifonStarter.plugins.forEach {
                             pluginListItem(it, pluginSettingsState)
@@ -102,7 +102,7 @@ fun PluginSettingsDialog() {
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .border(width = 1.dp, color = Color.Magenta, shape = RoundedCornerShape(5.dp))
+                        .border(width = 1.dp, color = Color.Magenta, shape = gShape)
                 ) {
                     Column(
                         modifier = Modifier
@@ -110,7 +110,7 @@ fun PluginSettingsDialog() {
                             .padding(10.dp)
 //                            .horizontalScroll(state = pluginSettingsHScrollState)
                             .verticalScroll(state = pluginSettingsVScrollState)
-                            .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+                            .border(width = 1.dp, color = Color.Black, shape = gShape)
                     ) {
                         pluginContent(pluginSettingsState)
                     }
@@ -139,13 +139,13 @@ fun pluginListItem(plugin: Plugin, pluginSettingsState: PluginSettingsState) {
         .padding(5.dp)
     if (plugin == pluginSettingsState.selectedPlugin.value) {
         baseModifier = baseModifier
-            .background(color = Color.LightGray, shape = RoundedCornerShape(5.dp))
+            .background(color = Color.LightGray, shape = gShape)
     }
 
     Row(
         modifier = baseModifier
             .fillMaxWidth()
-            .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(5.dp))
+            .border(width = 1.dp, color = Color.Black, shape = gShape)
             .onPointerEvent(
                 eventType = PointerEventType.Release,
                 onEvent = {
