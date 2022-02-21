@@ -3,11 +3,11 @@ package org.gravidence.gravifon.ui
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
@@ -16,8 +16,6 @@ import kotlin.concurrent.fixedRateTimer
 
 @Composable
 fun AppBody() {
-    var text by remember { mutableStateOf("Gravifon") }
-
     val playbackInformationState = rememberPlaybackInformationState()
     val playbackControlState = rememberPlaybackControlState()
     val contextInformationState = rememberContextInformationState()
@@ -27,21 +25,14 @@ fun AppBody() {
         contextInformationState.refresh()
     }
 
-    LaunchedEffect(Unit) {
-        delay(2000)
-        text += " "
-        for (i in 1..10) {
-            delay(200)
-            text += ">"
-        }
-    }
-
     MaterialTheme {
         Column {
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text(text = text) },
+                        title = {
+                            Text(text = "Gravifon")
+                        },
                         actions = {
                             Button(onClick = {
                                 EventBus.publish(SubApplicationConfigurationPersistEvent())

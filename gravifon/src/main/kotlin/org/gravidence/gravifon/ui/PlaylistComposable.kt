@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+
 package org.gravidence.gravifon.ui
 
 import androidx.compose.foundation.*
@@ -59,7 +61,6 @@ class PlaylistState(
     /**
      * @return true when event is handled
      */
-    @OptIn(ExperimentalComposeUiApi::class)
     fun onKeyEvent(keyEvent: KeyEvent): Boolean {
         return if (keyEvent.type == KeyEventType.KeyUp) {
             when (keyEvent.key) {
@@ -99,9 +100,15 @@ fun rememberPlaylistState(
     playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(listOf()),
     selectedPlaylistItems: MutableState<Set<Int>> = mutableStateOf(setOf()),
     playlist: Playlist
-) = remember(activeVirtualTrack, playlistItems, selectedPlaylistItems) { PlaylistState(activeVirtualTrack, playlistItems, selectedPlaylistItems, playlist) }
+) = remember(activeVirtualTrack, playlistItems, selectedPlaylistItems) {
+    PlaylistState(
+        activeVirtualTrack,
+        playlistItems,
+        selectedPlaylistItems,
+        playlist
+    )
+}
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PlaylistComposable(playlistState: PlaylistState) {
     val scrollState = rememberLazyListState()
@@ -117,17 +124,15 @@ fun PlaylistComposable(playlistState: PlaylistState) {
                 playlistState.onKeyEvent(it)
             }
             .onPointerEvent(
-                eventType = PointerEventType.Press,
-                onEvent = {
-                    focusRequester.requestFocus()
-                }
-            )
+                eventType = PointerEventType.Press
+            ) {
+                focusRequester.requestFocus()
+            }
             .onPointerEvent(
-                eventType = PointerEventType.Scroll,
-                onEvent = {
-                    focusRequester.requestFocus()
-                }
-            )
+                eventType = PointerEventType.Scroll
+            ) {
+                focusRequester.requestFocus()
+            }
     ) {
         LazyColumn(
             state = scrollState,
@@ -153,15 +158,14 @@ val normalPlaylistItemModifier = Modifier
     .fillMaxWidth()
     .padding(5.dp)
     .background(color = gListItemColor, shape = gShape)
-    .clickable {  }
+    .clickable { }
 val selectedPlaylistItemModifier = Modifier
     .fillMaxWidth()
     .padding(5.dp)
     .background(color = gSelectedListItemColor, shape = gShape)
     .border(width = 1.dp, color = Color.Black, shape = gShape)
-    .clickable {  }
+    .clickable { }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PlaylistItemComposable(index: Int, playlistItem: PlaylistItem, playlistState: PlaylistState) {
     val fontWeight = if ((playlistItem as? TrackPlaylistItem)?.track == playlistState.activeVirtualTrack.value) {
@@ -179,11 +183,10 @@ fun PlaylistItemComposable(index: Int, playlistItem: PlaylistItem, playlistState
     Row(
         modifier = playlistItemModifier
             .onPointerEvent(
-                eventType = PointerEventType.Release,
-                onEvent = {
-                    playlistState.onPointerEvent(it, index, playlistItem)
-                }
-            )
+                eventType = PointerEventType.Release
+            ) {
+                playlistState.onPointerEvent(it, index, playlistItem)
+            }
     ) {
         playlistState.render(playlistItem).forEach {
             Text(
