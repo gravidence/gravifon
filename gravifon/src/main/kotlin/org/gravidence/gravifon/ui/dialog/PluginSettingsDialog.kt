@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package org.gravidence.gravifon.ui.dialog
 
 import androidx.compose.foundation.*
@@ -23,9 +25,10 @@ import androidx.compose.ui.window.rememberDialogState
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.GravifonStarter
 import org.gravidence.gravifon.plugin.Plugin
+import org.gravidence.gravifon.ui.theme.gListItemColor
+import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
 import java.awt.event.MouseEvent
-
 
 class PluginSettingsState(val selectedPlugin: MutableState<Plugin?>) {
 
@@ -132,20 +135,25 @@ fun PluginSettingsDialog() {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun pluginListItem(plugin: Plugin, pluginSettingsState: PluginSettingsState) {
-    var baseModifier = Modifier
+    val normalPluginListItemModifier = Modifier
+        .fillMaxWidth()
         .padding(5.dp)
-    if (plugin == pluginSettingsState.selectedPlugin.value) {
-        baseModifier = baseModifier
-            .background(color = Color.LightGray, shape = gShape)
+        .background(color = gListItemColor, shape = gShape)
+    val selectedPluginListItemModifier = Modifier
+        .fillMaxWidth()
+        .padding(5.dp)
+        .background(color = gSelectedListItemColor, shape = gShape)
+
+    val actualPluginListItemModifier = if (plugin == pluginSettingsState.selectedPlugin.value) {
+        selectedPluginListItemModifier
+    } else {
+        normalPluginListItemModifier
     }
 
     Row(
-        modifier = baseModifier
-            .fillMaxWidth()
-            .border(width = 1.dp, color = Color.Black, shape = gShape)
+        modifier = actualPluginListItemModifier
             .onPointerEvent(
                 eventType = PointerEventType.Release,
                 onEvent = {
