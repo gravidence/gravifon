@@ -29,10 +29,12 @@ import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.RemovePlaylistItemsEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
+import org.gravidence.gravifon.playback.PlaybackState
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
+import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.gListItemColor
 import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
@@ -188,13 +190,37 @@ fun PlaylistItemComposable(index: Int, playlistItem: PlaylistItem, playlistState
                 playlistState.onPointerEvent(it, index, playlistItem)
             }
     ) {
-        playlistState.render(playlistItem).forEach {
-            Text(
-                text = it,
-                fontWeight = fontWeight,
-                modifier = Modifier
-                    .padding(5.dp)
-            )
+        Column {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(20.dp)
+                        .padding(2.dp)
+                ) {
+                    if (playlistState.playlist.position() == index + 1) {
+                        AppIcon(
+                            path = when (GravifonContext.playbackState.value) {
+                                // TODO consider icons8-musical-notes-24.png
+                                PlaybackState.PLAYING -> "icons8-play-24.png"
+                                PlaybackState.PAUSED -> "icons8-pause-24.png"
+                                PlaybackState.STOPPED -> "icons8-stop-24.png"
+                            },
+                            modifier = Modifier
+                                .size(16.dp)
+                        )
+                    }
+                }
+                playlistState.render(playlistItem).forEach {
+                    Text(
+                        text = it,
+                        fontWeight = fontWeight,
+                        modifier = Modifier
+                            .padding(5.dp)
+                    )
+                }
+            }
         }
     }
 }
