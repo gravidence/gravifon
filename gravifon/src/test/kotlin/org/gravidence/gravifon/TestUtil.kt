@@ -4,13 +4,8 @@ import org.gravidence.gravifon.domain.album.AlbumScanner
 import org.gravidence.gravifon.domain.album.VirtualAlbum
 import org.gravidence.gravifon.domain.track.FileVirtualTrack
 import org.gravidence.gravifon.domain.track.VirtualTrack
-import java.net.URI
 
 object TestUtil {
-
-    fun resourceFromClasspath(path: String): URI {
-        return this::class.java.getResource(path)?.toURI()!!
-    }
 
     fun randomString(length: Int, charset: List<Char>): String {
         return List(length) { charset.random() }

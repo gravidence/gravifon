@@ -1,7 +1,7 @@
 package org.gravidence.gravifon.domain.track
 
-import org.gravidence.gravifon.TestUtil
 import org.junit.jupiter.api.Test
+import org.springframework.core.io.ClassPathResource
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
@@ -9,7 +9,7 @@ internal class PhysicalTrackTest {
 
     @Test
     fun tagsFromWav() {
-        val physicalTrack = PhysicalTrack(TestUtil.resourceFromClasspath("/silence.wav"))
+        val physicalTrack = PhysicalTrack(ClassPathResource("/silence.wav").uri)
         val virtualTrack = physicalTrack.toVirtualTrack()
 
         assertEquals(11, virtualTrack.fields.size)
@@ -30,7 +30,7 @@ internal class PhysicalTrackTest {
 
     @Test
     fun tagsFromFlac() {
-        val physicalTrack = PhysicalTrack(TestUtil.resourceFromClasspath("/silence.flac"))
+        val physicalTrack = PhysicalTrack(ClassPathResource("/silence.flac").uri)
         val virtualTrack = physicalTrack.toVirtualTrack()
 
         assertEquals(12, virtualTrack.fields.size)
@@ -51,7 +51,7 @@ internal class PhysicalTrackTest {
 
     @Test
     fun tagsFromOgg() {
-        val physicalTrack = PhysicalTrack(TestUtil.resourceFromClasspath("/silence.ogg"))
+        val physicalTrack = PhysicalTrack(ClassPathResource("/silence.ogg").uri)
         val virtualTrack = physicalTrack.toVirtualTrack()
 
         assertEquals(12, virtualTrack.fields.size)
@@ -72,7 +72,7 @@ internal class PhysicalTrackTest {
 
     @Test
     fun tagsFromMp3ID3v1() {
-        val physicalTrack = PhysicalTrack(TestUtil.resourceFromClasspath("/silence_id3v1.mp3"))
+        val physicalTrack = PhysicalTrack(ClassPathResource("/silence_id3v1.mp3").uri)
         val virtualTrack = physicalTrack.toVirtualTrack()
 
         assertEquals(7, virtualTrack.fields.size)
@@ -94,7 +94,7 @@ internal class PhysicalTrackTest {
 
     @Test
     fun tagsFromMp3ID3v2() {
-        val physicalTrack = PhysicalTrack(TestUtil.resourceFromClasspath("/silence_id3v2.mp3"))
+        val physicalTrack = PhysicalTrack(ClassPathResource("/silence_id3v2.mp3").uri)
         val virtualTrack = physicalTrack.toVirtualTrack()
 
         assertEquals(11, virtualTrack.fields.size)
