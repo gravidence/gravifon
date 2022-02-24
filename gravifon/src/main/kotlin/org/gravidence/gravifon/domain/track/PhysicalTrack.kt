@@ -19,7 +19,6 @@ class PhysicalTrack(val file: AudioFile) {
 
     // http://www.jthink.net/jaudiotagger/examples_read.jsp
 
-    constructor(filepath: String) : this(AudioFileIO.read(File(filepath)))
     constructor(uri: URI) : this(AudioFileIO.read(File(uri)))
 
     fun toVirtualTrack(): VirtualTrack {
@@ -68,7 +67,24 @@ class PhysicalTrack(val file: AudioFile) {
     private fun extractFieldValuesFromID3v2Tag(fieldKey: FieldKey, tag: AbstractID3v2Tag): FieldValues? {
         return tag.getAll(fieldKey)
             ?.ifEmpty { null }
-            ?.let { FieldValues(it.toMutableSet()) }
+            ?.let {
+                when (fieldKey) {
+                    FieldKey.ARTIST -> FieldValues(prepareMultiValueFieldFromID3v2Tag(it, '/'))
+                    // genre delimiter isn't part of the spec, but de facto standard
+                    FieldKey.GENRE -> FieldValues(prepareMultiValueFieldFromID3v2Tag(it, ';'))
+                    else -> FieldValues(it.toMutableSet())
+                }
+            }
+    }
+
+    /**
+     * Splits single string value per [ID3v2 spec](https://id3.org/id3v2.3.0).
+     */
+    private fun prepareMultiValueFieldFromID3v2Tag(multiValueField: List<String>, delimiter: Char): MutableSet<String> {
+        return multiValueField
+            .flatMap { it.split(delimiter) }
+            .map { it.trim() }
+            .toMutableSet()
     }
 
 }

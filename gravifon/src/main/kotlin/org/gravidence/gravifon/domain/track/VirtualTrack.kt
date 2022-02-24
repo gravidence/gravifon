@@ -127,6 +127,10 @@ sealed class VirtualTrack {
         setFieldValues(FieldKey.GENRE, value)
     }
 
+    fun getGenres(): Set<String>? {
+        return getFieldValues(FieldKey.GENRE)
+    }
+
     fun getComment(): String? {
         return getFieldValue(FieldKey.COMMENT)
     }
