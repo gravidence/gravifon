@@ -8,8 +8,16 @@ import org.jaudiotagger.audio.mp3.MP3File
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.KeyNotFoundException
 import org.jaudiotagger.tag.Tag
+import org.jaudiotagger.tag.flac.FlacTag
+import org.jaudiotagger.tag.id3.AbstractID3v1Tag
+import org.jaudiotagger.tag.id3.AbstractID3v2Frame
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag
 import org.jaudiotagger.tag.id3.Id3SupportingTag
+import org.jaudiotagger.tag.id3.framebody.FrameBodyTXXX
+import org.jaudiotagger.tag.vorbiscomment.VorbisCommentFieldKey
+import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
+import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTagField
+import org.jaudiotagger.tag.wav.WavTag
 import java.io.File
 import java.net.URI
 import kotlin.time.DurationUnit
@@ -33,7 +41,8 @@ class PhysicalTrack(val file: AudioFile) {
         return FileVirtualTrack(
             path = file.file.path,
             headers = Headers(length = file.audioHeader.preciseTrackLength.toDuration(DurationUnit.SECONDS)),
-            fields = fields
+            fields = fields,
+            customFields = extractCustomFieldValues()
         )
     }
 
@@ -85,6 +94,47 @@ class PhysicalTrack(val file: AudioFile) {
             .flatMap { it.split(delimiter) }
             .map { it.trim() }
             .toMutableSet()
+    }
+
+    private fun extractCustomFieldValues(): MutableMap<String, FieldValues>? {
+        val tag: Tag = when (val rawTag = file.tag) {
+            is WavTag -> rawTag.iD3Tag
+            is FlacTag -> rawTag.vorbisCommentTag
+            else -> rawTag
+        }
+
+        return when (tag) {
+            is AbstractID3v1Tag -> null
+            is AbstractID3v2Tag -> {
+                tag.fields
+                    .asSequence()
+                    .filterIsInstance<AbstractID3v2Frame>()
+                    .map { it.body }
+                    .filterIsInstance<FrameBodyTXXX>()
+                    .map { mapCustomFieldValue(it.description, it.textWithoutTrailingNulls) }
+                    // TODO optimize, as well as try to return NULL instead of empty map
+                    .toMap().toMutableMap()
+            }
+            is VorbisCommentTag -> {
+                tag.fields
+                    .asSequence()
+                    .filterIsInstance<VorbisCommentTagField>()
+                    .filter {
+                        VorbisCommentFieldKey.values().none { fieldKey ->
+                            fieldKey.name == it.id
+                        }
+                    }
+                    .map { mapCustomFieldValue(it.id, it.content) }
+                    // TODO optimize, as well as try to return NULL instead of empty map
+                    .toMap().toMutableMap()
+            }
+            else -> null
+        }
+    }
+
+    private fun mapCustomFieldValue(fieldKey: String, fieldValue: String): Pair<String, FieldValues> {
+        // TODO key uppercase may cause unexpected effects when persisted to file
+        return Pair(fieldKey.uppercase(), FieldValues(fieldValue))
     }
 
 }

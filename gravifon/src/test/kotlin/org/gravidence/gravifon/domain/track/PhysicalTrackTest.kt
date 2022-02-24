@@ -27,6 +27,8 @@ internal class PhysicalTrackTest {
         assertEquals("8", virtualTrack.getTrackTotal())
         assertEquals("1", virtualTrack.getDisc())
         assertEquals("2", virtualTrack.getDiscTotal())
+
+        assertEquals("Silence Tag", virtualTrack.getCustomFieldValue("MY_TAG"))
     }
 
     @Test
@@ -49,6 +51,8 @@ internal class PhysicalTrackTest {
         assertEquals("8", virtualTrack.getTrackTotal())
         assertEquals("1", virtualTrack.getDisc())
         assertEquals("2", virtualTrack.getDiscTotal())
+
+        assertEquals("Silence Tag", virtualTrack.getCustomFieldValue("MY_TAG"))
     }
 
     @Test
@@ -71,6 +75,8 @@ internal class PhysicalTrackTest {
         assertEquals("8", virtualTrack.getTrackTotal())
         assertEquals("1", virtualTrack.getDisc())
         assertEquals("2", virtualTrack.getDiscTotal())
+
+        assertEquals("Silence Tag", virtualTrack.getCustomFieldValue("MY_TAG"))
     }
 
     @Test
@@ -115,6 +121,8 @@ internal class PhysicalTrackTest {
         assertEquals("8", virtualTrack.getTrackTotal())
         assertEquals("1", virtualTrack.getDisc())
         assertEquals("2", virtualTrack.getDiscTotal())
+
+        assertEquals("Silence Tag", virtualTrack.getCustomFieldValue("MY_TAG"))
     }
 
 }

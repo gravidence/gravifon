@@ -26,6 +26,7 @@ sealed class VirtualTrack {
 
     abstract val headers: Headers
     abstract val fields: MutableMap<FieldKey, FieldValues>
+    abstract val customFields: MutableMap<String, FieldValues>?
 
     abstract fun uri(): URI
 
@@ -55,6 +56,30 @@ sealed class VirtualTrack {
 
     fun clearField(key: FieldKey) {
         fields.remove(key)
+    }
+
+    fun getCustomFieldValues(key: String): Set<String>? {
+        return customFields?.get(key)?.values
+    }
+
+    fun getCustomFieldValue(key: String): String? {
+        return getCustomFieldValues(key)?.firstOrNull()
+    }
+
+    fun setCustomFieldValues(key: String, values: FieldValues) {
+        customFields?.set(key, values)
+    }
+
+    fun setCustomFieldValues(key: String, value: String?) {
+        if (value == null) {
+            clearCustomField(key)
+        } else {
+            setCustomFieldValues(key, FieldValues(value))
+        }
+    }
+
+    fun clearCustomField(key: String) {
+        customFields?.remove(key)
     }
 
     fun getLength(): Duration? {
