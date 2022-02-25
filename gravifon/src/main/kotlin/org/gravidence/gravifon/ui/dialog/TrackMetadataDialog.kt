@@ -4,9 +4,12 @@ package org.gravidence.gravifon.ui.dialog
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
+import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -21,17 +24,26 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import org.gravidence.gravifon.GravifonContext
+import org.gravidence.gravifon.domain.tag.FieldValue
 import org.gravidence.gravifon.domain.track.VirtualTrack
-import org.gravidence.gravifon.ui.component.Table
-import org.gravidence.gravifon.ui.component.TableColumn
-import org.gravidence.gravifon.ui.component.TableGrid
-import org.gravidence.gravifon.ui.component.TableLayout
+import org.gravidence.gravifon.ui.component.*
 import org.gravidence.gravifon.ui.theme.gListItemColor
 import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
+import org.jaudiotagger.tag.FieldKey
 import java.awt.event.MouseEvent
 
-class TrackMetadataState(val tracks: MutableState<List<VirtualTrack>>, val selectedTracks: MutableState<List<VirtualTrack>>) {
+class TrackMetadataState(
+    val tracks: MutableState<List<VirtualTrack>>,
+    val selectedTracks: MutableState<List<VirtualTrack>>,
+    val changed: MutableState<Boolean> = mutableStateOf(false)
+) {
+
+    fun clear() {
+        tracks.value = mutableListOf()
+        selectedTracks.value = mutableListOf()
+        changed.value = false
+    }
 
     fun onPointerEvent(pointerEvent: PointerEvent, track: VirtualTrack) {
         (pointerEvent.nativeEvent as? MouseEvent)?.apply {
@@ -51,16 +63,14 @@ fun TrackMetadataDialog() {
             visible = GravifonContext.trackMetadataDialogVisible.value,
             state = rememberDialogState(
                 position = WindowPosition(Alignment.Center),
-                size = DpSize(600.dp, 400.dp)
+                size = DpSize(800.dp, 600.dp)
             ),
             onCloseRequest = {
-                // TODO cleanup possible state
+                GravifonContext.trackMetadataDialogState.clear()
                 GravifonContext.trackMetadataDialogVisible.value = false
             }
         ) {
-            val pluginListHScrollState = rememberScrollState()
             val pluginListVScrollState = rememberScrollState()
-            val pluginSettingsHScrollState = rememberScrollState()
             val pluginSettingsVScrollState = rememberScrollState()
 
             Box(
@@ -68,65 +78,84 @@ fun TrackMetadataDialog() {
                     .fillMaxSize()
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    modifier = Modifier
+                        .padding(5.dp)
                 ) {
-                    Box(
+                    Column(
                         modifier = Modifier
                             .weight(0.4f)
-                            .border(width = 1.dp, color = Color.Red, shape = gShape)
+                            .border(width = 1.dp, color = Color.Black, shape = gShape)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .padding(10.dp)
-//                            .horizontalScroll(state = pluginListHScrollState)
-                                .verticalScroll(state = pluginListVScrollState)
-                                .border(width = 1.dp, color = Color.Black, shape = gShape)
-                        ) {
-                            GravifonContext.trackMetadataDialogState.tracks.value.forEach {
-                                trackListItem(it, GravifonContext.trackMetadataDialogState)
+                        Box {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .padding(10.dp)
+                                    .verticalScroll(state = pluginListVScrollState)
+                            ) {
+                                GravifonContext.trackMetadataDialogState.tracks.value.forEach {
+                                    trackListItem(it, GravifonContext.trackMetadataDialogState)
+                                }
                             }
+                            VerticalScrollbar(
+                                adapter = rememberScrollbarAdapter(pluginListVScrollState),
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(top = 5.dp, bottom = 5.dp, end = 2.dp)
+                            )
                         }
-//                    HorizontalScrollbar(
-//                        adapter = rememberScrollbarAdapter(pluginListHScrollState),
-//                        modifier = Modifier
-//                            .align(Alignment.BottomCenter)
-//                            .padding(start = 5.dp, end = 5.dp, bottom = 2.dp)
-//                    )
-                        VerticalScrollbar(
-                            adapter = rememberScrollbarAdapter(pluginListVScrollState),
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(top = 5.dp, bottom = 5.dp, end = 2.dp)
-                        )
                     }
-                    Box(
+                    Column(
                         modifier = Modifier
                             .weight(1f)
-                            .border(width = 1.dp, color = Color.Magenta, shape = gShape)
+                            .border(width = 1.dp, color = Color.Black, shape = gShape)
                     ) {
-                        Column(
+                        Box(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(10.dp)
-//                                .horizontalScroll(state = pluginSettingsHScrollState)
-                                .verticalScroll(state = pluginSettingsVScrollState)
-                                .border(width = 1.dp, color = Color.Black, shape = gShape)
+                                .weight(1f)
                         ) {
-                            trackContent(GravifonContext.trackMetadataDialogState)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(10.dp)
+                                    .verticalScroll(state = pluginSettingsVScrollState)
+                            ) {
+                                trackContent(GravifonContext.trackMetadataDialogState)
+                            }
+                            VerticalScrollbar(
+                                adapter = rememberScrollbarAdapter(pluginSettingsVScrollState),
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(top = 5.dp, bottom = 5.dp, end = 2.dp)
+                            )
                         }
-//                        HorizontalScrollbar(
-//                            adapter = rememberScrollbarAdapter(pluginSettingsHScrollState),
-//                            modifier = Modifier
-//                                .align(Alignment.BottomCenter)
-//                                .padding(start = 5.dp, end = 5.dp, bottom = 2.dp)
-//                        )
-                        VerticalScrollbar(
-                            adapter = rememberScrollbarAdapter(pluginSettingsVScrollState),
+                        Divider(
+                            thickness = 2.dp,
                             modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(top = 5.dp, bottom = 5.dp, end = 2.dp)
+                                .padding(horizontal = 10.dp)
                         )
+                        Box {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(space = 10.dp, alignment = Alignment.End),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 15.dp, vertical = 10.dp)
+                            ) {
+                                Button(
+                                    enabled = GravifonContext.trackMetadataDialogState.changed.value,
+                                    onClick = {}
+                                ) {
+                                    Text("Apply")
+                                }
+                                Button(
+                                    enabled = GravifonContext.trackMetadataDialogState.changed.value,
+                                    onClick = {}
+                                ) {
+                                    Text("Revert")
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -172,21 +201,7 @@ fun trackListItem(track: VirtualTrack, trackMetadataState: TrackMetadataState) {
 
 @Composable
 fun trackContent(trackMetadataState: TrackMetadataState) {
-    val grid: TableGrid = trackMetadataState.selectedTracks.value
-        .flatMap { track ->
-            val fields = track.fields.flatMap { tag ->
-                tag.value.values.map { tagValue ->
-                    mutableListOf(tag.key.name, tagValue)
-                }
-            }
-            val customFields = track.customFields?.flatMap { tag ->
-                tag.value.values.map { tagValue ->
-                    mutableListOf(tag.key, tagValue)
-                }
-            } ?: mutableListOf()
-            fields + customFields
-        }
-        .toMutableList()
+    val grid = buildTableGrid(trackMetadataState.selectedTracks.value)
 
     Table(
         layout = TableLayout(
@@ -196,7 +211,36 @@ fun trackContent(trackMetadataState: TrackMetadataState) {
                 TableColumn(header = "Value", fraction = 1f)
             )
         ),
-//        readOnly = false,
-        grid = grid
+        readOnly = false,
+        grid = grid,
+        onCellChange = { rowIndex, columnIndex, newValue ->
+            grid?.let {
+                it[rowIndex][columnIndex].value = newValue
+                trackMetadataState.changed.value = true
+            }
+        }
     )
+}
+
+private fun buildTableGrid(tracks: List<VirtualTrack>): TableGrid? {
+    return when (tracks.size) {
+        0 -> null
+        1 -> buildTableGridForSingleTrack(tracks.first())
+        else -> null
+    }
+}
+
+private fun buildTableGridForSingleTrack(track: VirtualTrack): TableGrid {
+    val fields = track.fields.flatMap { (fieldKey, fieldValues) ->
+        fieldValues.values.map { fieldValue ->
+            mutableListOf(mutableStateOf(fieldKey.name), mutableStateOf(fieldValue))
+        }
+    }
+    val customFields = track.customFields?.flatMap { (fieldKey, fieldValues) ->
+        fieldValues.values.map { fieldValue ->
+            mutableListOf(mutableStateOf(fieldKey), mutableStateOf(fieldValue))
+        }
+    } ?: listOf()
+
+    return (fields + customFields).toMutableList()
 }
