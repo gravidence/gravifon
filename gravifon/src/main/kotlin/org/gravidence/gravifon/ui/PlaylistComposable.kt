@@ -39,12 +39,15 @@ import org.gravidence.gravifon.ui.theme.gListItemColor
 import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.util.DurationUtil
+import org.gravidence.gravifon.util.firstNotEmptyOrNull
+import org.gravidence.gravifon.util.nullableListOf
 import java.awt.event.MouseEvent
 
 class PlaylistState(
     val activeVirtualTrack: MutableState<VirtualTrack?>,
     val playlistItems: MutableState<List<PlaylistItem>>,
-    val selectedPlaylistItems: MutableState<Set<Int>>,
+    val selectedPlaylistItems: MutableState<Map<Int, PlaylistItem>>,
+    val preselectedPlaylistItem: MutableState<PlaylistItem?>,
     val playlist: Playlist
 ) {
 
@@ -67,8 +70,8 @@ class PlaylistState(
         return if (keyEvent.type == KeyEventType.KeyUp) {
             when (keyEvent.key) {
                 Key.Delete -> {
-                    EventBus.publish(RemovePlaylistItemsEvent(playlist, selectedPlaylistItems.value))
-                    selectedPlaylistItems.value = setOf()
+                    EventBus.publish(RemovePlaylistItemsEvent(playlist, selectedPlaylistItems.value.keys))
+                    selectedPlaylistItems.value = mapOf()
                     true
                 }
                 else -> false
@@ -83,12 +86,12 @@ class PlaylistState(
             if (it.button == 1 && it.clickCount == 2) {
                 EventBus.publish(SubPlaylistPlayCurrentEvent(playlist, playlistItem))
             } else if (it.button == 1 && it.clickCount == 1 && !it.isControlDown) {
-                selectedPlaylistItems.value = setOf(index)
+                selectedPlaylistItems.value = mapOf(Pair(index, playlistItem))
             } else if (it.button == 1 && it.clickCount == 1 && it.isControlDown) {
                 if (selectedPlaylistItems.value.contains(index)) {
                     selectedPlaylistItems.value -= index
                 } else {
-                    selectedPlaylistItems.value += index
+                    selectedPlaylistItems.value += Pair(index, playlistItem)
                 }
             }
         }
@@ -100,15 +103,38 @@ class PlaylistState(
 fun rememberPlaylistState(
     activeVirtualTrack: MutableState<VirtualTrack?> = GravifonContext.activeVirtualTrack,
     playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(listOf()),
-    selectedPlaylistItems: MutableState<Set<Int>> = mutableStateOf(setOf()),
+    selectedPlaylistItems: MutableState<Map<Int, PlaylistItem>> = mutableStateOf(mapOf()),
+    preselectedPlaylistItem: MutableState<PlaylistItem?> = mutableStateOf(null),
     playlist: Playlist
-) = remember(activeVirtualTrack, playlistItems, selectedPlaylistItems) {
+) = remember(activeVirtualTrack, playlistItems, selectedPlaylistItems, preselectedPlaylistItem) {
     PlaylistState(
         activeVirtualTrack,
         playlistItems,
         selectedPlaylistItems,
+        preselectedPlaylistItem,
         playlist
     )
+}
+
+fun buildContextMenu(playlistState: PlaylistState): List<ContextMenuItem> {
+    val contextMenuItems: MutableList<ContextMenuItem> = mutableListOf()
+
+    val candidateItems: Collection<PlaylistItem>? = firstNotEmptyOrNull(
+        nullableListOf(playlistState.preselectedPlaylistItem.value),
+        playlistState.selectedPlaylistItems.value.values,
+        playlistState.playlistItems.value
+    )
+    if (candidateItems != null) {
+        contextMenuItems += ContextMenuItem("Edit metadata") {
+            GravifonContext.trackMetadataDialogState.tracks.value = candidateItems
+                .filterIsInstance<TrackPlaylistItem>()
+                .map { it.track }
+            GravifonContext.trackMetadataDialogState.selectedTracks.value = listOf()
+            GravifonContext.trackMetadataDialogVisible.value = true
+        }
+    }
+
+    return contextMenuItems
 }
 
 @Composable
@@ -136,23 +162,27 @@ fun PlaylistComposable(playlistState: PlaylistState) {
                 focusRequester.requestFocus()
             }
     ) {
-        LazyColumn(
-            state = scrollState,
-            modifier = Modifier
-                .focusable()
-                .fillMaxWidth()
-                .padding(10.dp)
+        ContextMenuArea(
+            items = { buildContextMenu(playlistState) }
         ) {
-            itemsIndexed(items = playlistState.playlistItems.value) { index, playlistItem ->
-                PlaylistItemComposable(index, playlistItem, playlistState)
+            LazyColumn(
+                state = scrollState,
+                modifier = Modifier
+                    .focusable()
+                    .fillMaxWidth()
+                    .padding(10.dp)
+            ) {
+                itemsIndexed(items = playlistState.playlistItems.value) { index, playlistItem ->
+                    PlaylistItemComposable(index, playlistItem, playlistState)
+                }
             }
+            VerticalScrollbar(
+                adapter = rememberScrollbarAdapter(scrollState),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(top = 5.dp, bottom = 5.dp, end = 2.dp)
+            )
         }
-        VerticalScrollbar(
-            adapter = rememberScrollbarAdapter(scrollState),
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(top = 5.dp, bottom = 5.dp, end = 2.dp)
-        )
     }
 }
 

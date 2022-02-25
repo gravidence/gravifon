@@ -12,6 +12,7 @@ import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
 import org.gravidence.gravifon.event.playback.SubPlaybackRelativePositionEvent
 import org.gravidence.gravifon.ui.AppBody
 import org.gravidence.gravifon.ui.dialog.PluginSettingsDialog
+import org.gravidence.gravifon.ui.dialog.TrackMetadataDialog
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -84,5 +85,6 @@ fun main() = application {
         AppBody()
 
         PluginSettingsDialog()
+        TrackMetadataDialog()
     }
 }
