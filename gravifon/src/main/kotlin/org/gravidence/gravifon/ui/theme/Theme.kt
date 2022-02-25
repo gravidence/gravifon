@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.sp
 
 val gListItemColor: Color = Color.LightGray.copy(alpha = 0.3f)
 val gSelectedListItemColor: Color = Color.LightGray.copy(alpha = 0.7f)
+val gListHeaderColor: Color = Color.LightGray
 
 val gShape: Shape = RoundedCornerShape(5.dp)
 
