@@ -2,9 +2,11 @@ package org.gravidence.gravifon.domain.tag
 
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class FieldValues(val values: MutableSet<String>) {
+typealias FieldValue = String
 
-    constructor(value: String) : this(mutableSetOf(value))
+@Serializable
+data class FieldValues(val values: MutableSet<FieldValue>) {
+
+    constructor(value: FieldValue) : this(mutableSetOf(value))
 
 }

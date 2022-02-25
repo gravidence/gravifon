@@ -2,6 +2,7 @@ package org.gravidence.gravifon.domain.track
 
 import kotlinx.serialization.Serializable
 import org.gravidence.gravifon.domain.header.Headers
+import org.gravidence.gravifon.domain.tag.FieldValue
 import org.gravidence.gravifon.domain.tag.FieldValues
 import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
 import org.jaudiotagger.tag.FieldKey
@@ -34,11 +35,11 @@ sealed class VirtualTrack {
         return uri().toString()
     }
 
-    fun getFieldValues(key: FieldKey): Set<String>? {
+    fun getFieldValues(key: FieldKey): Set<FieldValue>? {
         return fields[key]?.values
     }
 
-    fun getFieldValue(key: FieldKey): String? {
+    fun getFieldValue(key: FieldKey): FieldValue? {
         return getFieldValues(key)?.firstOrNull()
     }
 
@@ -46,7 +47,7 @@ sealed class VirtualTrack {
         fields[key] = values
     }
 
-    fun setFieldValues(key: FieldKey, value: String?) {
+    fun setFieldValues(key: FieldKey, value: FieldValue?) {
         if (value == null) {
             clearField(key)
         } else {
@@ -58,11 +59,11 @@ sealed class VirtualTrack {
         fields.remove(key)
     }
 
-    fun getCustomFieldValues(key: String): Set<String>? {
+    fun getCustomFieldValues(key: String): Set<FieldValue>? {
         return customFields?.get(key)?.values
     }
 
-    fun getCustomFieldValue(key: String): String? {
+    fun getCustomFieldValue(key: String): FieldValue? {
         return getCustomFieldValues(key)?.firstOrNull()
     }
 
@@ -70,7 +71,7 @@ sealed class VirtualTrack {
         customFields?.set(key, values)
     }
 
-    fun setCustomFieldValues(key: String, value: String?) {
+    fun setCustomFieldValues(key: String, value: FieldValue?) {
         if (value == null) {
             clearCustomField(key)
         } else {
