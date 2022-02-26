@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package org.gravidence.gravifon.ui.dialog
 
 import androidx.compose.foundation.*
@@ -11,13 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEvent
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -27,11 +21,8 @@ import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.tag.FieldValue
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.ui.component.*
-import org.gravidence.gravifon.ui.theme.gListItemColor
-import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
 import org.jaudiotagger.tag.FieldKey
-import java.awt.event.MouseEvent
 
 class TrackMetadataState(
     val tracks: MutableState<List<VirtualTrack>>,
@@ -45,12 +36,74 @@ class TrackMetadataState(
         changed.value = false
     }
 
-    fun onPointerEvent(pointerEvent: PointerEvent, track: VirtualTrack) {
-        (pointerEvent.nativeEvent as? MouseEvent)?.apply {
-            if (button == 1) {
-                selectedTracks.value = listOf(track)
-            }
+}
+
+class TrackMetadataListState(
+    private val trackMetadataState: TrackMetadataState,
+) : TableState(
+    layout = layout(),
+    readOnly = mutableStateOf(true),
+    grid = grid(trackMetadataState)
+) {
+
+    override fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
+        super.onRowClick(rowIndex, pointerEvent)
+        trackMetadataState.selectedTracks.value = selectedRows.value.map { trackMetadataState.tracks.value[it] }
+    }
+
+    companion object {
+
+        fun layout(): MutableState<TableLayout> {
+            return mutableStateOf(
+                TableLayout(
+                    displayHeaders = true,
+                    columns = listOf(
+                        TableColumn(header = "Track", fraction = 1f)
+                    )
+                )
+            )
         }
+
+        fun grid(trackMetadataState: TrackMetadataState): MutableState<TableGrid?> {
+            return mutableStateOf(singleColumnTableGrid(trackMetadataState.tracks.value.map { it.uri().toString() }))
+        }
+
+    }
+
+}
+
+class TrackMetadataTableState(
+    private val trackMetadataState: TrackMetadataState,
+) : TableState(
+    layout = layout(),
+    enabled = mutableStateOf(true),
+    readOnly = mutableStateOf(false),
+    grid = grid(trackMetadataState)
+) {
+
+    override fun onCellChange(rowIndex: Int, columnIndex: Int, newValue: String) {
+        super.onCellChange(rowIndex, columnIndex, newValue)
+        trackMetadataState.changed.value = true
+    }
+
+    companion object {
+
+        fun layout(): MutableState<TableLayout> {
+            return mutableStateOf(
+                TableLayout(
+                    displayHeaders = true,
+                    columns = listOf(
+                        TableColumn(header = "Tag", fraction = 0.25f),
+                        TableColumn(header = "Value", fraction = 1f)
+                    )
+                )
+            )
+        }
+
+        fun grid(trackMetadataState: TrackMetadataState): MutableState<TableGrid?> {
+            return mutableStateOf(buildTableGrid(trackMetadataState.selectedTracks.value))
+        }
+
     }
 
 }
@@ -94,9 +147,7 @@ fun TrackMetadataDialog() {
                                     .padding(10.dp)
                                     .verticalScroll(state = pluginListVScrollState)
                             ) {
-                                GravifonContext.trackMetadataDialogState.tracks.value.forEach {
-                                    trackListItem(it, GravifonContext.trackMetadataDialogState)
-                                }
+                                trackListContent(GravifonContext.trackMetadataDialogState)
                             }
                             VerticalScrollbar(
                                 adapter = rememberScrollbarAdapter(pluginListVScrollState),
@@ -164,83 +215,62 @@ fun TrackMetadataDialog() {
 }
 
 @Composable
-fun trackListItem(track: VirtualTrack, trackMetadataState: TrackMetadataState) {
-    val normalTrackListItemModifier = Modifier
-        .fillMaxWidth()
-        .padding(5.dp)
-        .background(color = gListItemColor, shape = gShape)
-    val selectedTrackListItemModifier = Modifier
-        .fillMaxWidth()
-        .padding(5.dp)
-        .background(color = gSelectedListItemColor, shape = gShape)
-
-    val trackListItemModifier = if (track in trackMetadataState.selectedTracks.value) {
-        selectedTrackListItemModifier
-    } else {
-        normalTrackListItemModifier
-    }
-
-    Row(
-        modifier = trackListItemModifier
-            .onPointerEvent(
-                eventType = PointerEventType.Release,
-                onEvent = {
-                    trackMetadataState.onPointerEvent(it, track)
-                }
-            )
-    ) {
-        Text(
-            text = track.uri().toString(),
-            maxLines = 1,
-            overflow = TextOverflow.Clip,
-            modifier = Modifier
-                .padding(5.dp)
-        )
-    }
+fun trackListContent(trackMetadataState: TrackMetadataState) {
+    Table(TrackMetadataListState(trackMetadataState))
 }
 
 @Composable
 fun trackContent(trackMetadataState: TrackMetadataState) {
-    val grid = buildTableGrid(trackMetadataState.selectedTracks.value)
-
-    Table(
-        layout = TableLayout(
-            displayHeaders = true,
-            columns = listOf(
-                TableColumn(header = "Tag", fraction = 0.25f),
-                TableColumn(header = "Value", fraction = 1f)
-            )
-        ),
-        readOnly = false,
-        grid = grid,
-        onCellChange = { rowIndex, columnIndex, newValue ->
-            grid?.let {
-                it[rowIndex][columnIndex].value = newValue
-                trackMetadataState.changed.value = true
-            }
-        }
-    )
+    Table(TrackMetadataTableState(trackMetadataState))
 }
 
 private fun buildTableGrid(tracks: List<VirtualTrack>): TableGrid? {
     return when (tracks.size) {
         0 -> null
         1 -> buildTableGridForSingleTrack(tracks.first())
-        else -> null
+        else -> buildTableGridForManyTracks(tracks)
     }
 }
 
 private fun buildTableGridForSingleTrack(track: VirtualTrack): TableGrid {
-    val fields = track.fields.flatMap { (fieldKey, fieldValues) ->
+    val fieldRows = track.fields.flatMap { (fieldKey, fieldValues) ->
         fieldValues.values.map { fieldValue ->
-            mutableListOf(mutableStateOf(fieldKey.name), mutableStateOf(fieldValue))
+            TableRow(cells = mutableListOf(mutableStateOf(fieldKey.name), mutableStateOf(fieldValue)))
         }
     }
-    val customFields = track.customFields?.flatMap { (fieldKey, fieldValues) ->
+    val customFieldRows = track.customFields?.flatMap { (fieldKey, fieldValues) ->
         fieldValues.values.map { fieldValue ->
-            mutableListOf(mutableStateOf(fieldKey), mutableStateOf(fieldValue))
+            TableRow(cells = mutableListOf(mutableStateOf(fieldKey), mutableStateOf(fieldValue)))
         }
     } ?: listOf()
 
-    return (fields + customFields).toMutableList()
+    return TableGrid(
+        rows = mutableStateOf((fieldRows + customFieldRows).toMutableList())
+    )
+}
+
+private fun buildTableGridForManyTracks(tracks: List<VirtualTrack>): TableGrid {
+    val map = mutableMapOf<FieldKey, FieldValue?>()
+    tracks.forEach { track ->
+        track.fields.forEach { (fieldKey, fieldValues) ->
+            fieldValues.values.forEach { fieldValue ->
+                if (map.containsKey(fieldKey)) {
+                    val prevFieldValue = map[fieldKey]
+                    if (prevFieldValue != null && prevFieldValue != fieldValue) {
+                        map[fieldKey] = null
+                    }
+                } else {
+                    map[fieldKey] = fieldValue
+                }
+            }
+        }
+    }
+
+    return TableGrid(
+        rows = mutableStateOf(
+            map.map {
+                TableRow(cells = mutableListOf(mutableStateOf(it.key.name), mutableStateOf(it.value)))
+            }.toMutableList()
+        )
+    )
 }
