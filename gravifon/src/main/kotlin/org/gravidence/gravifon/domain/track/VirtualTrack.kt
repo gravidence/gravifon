@@ -1,10 +1,13 @@
 package org.gravidence.gravifon.domain.track
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import org.gravidence.gravifon.domain.header.Headers
 import org.gravidence.gravifon.domain.tag.FieldValue
 import org.gravidence.gravifon.domain.tag.FieldValues
 import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
+import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.jaudiotagger.tag.FieldKey
 import java.net.URI
 import kotlin.time.Duration
@@ -27,9 +30,14 @@ sealed class VirtualTrack {
 
     abstract val headers: Headers
     abstract val fields: MutableMap<FieldKey, FieldValues>
-    abstract val customFields: MutableMap<String, FieldValues>?
+    abstract val customFields: MutableMap<String, FieldValues>
 
     abstract fun uri(): URI
+
+    // TODO assess if needed really
+    fun clone(): VirtualTrack {
+        return gravifonSerializer.decodeFromString(gravifonSerializer.encodeToString(this))
+    }
 
     override fun toString(): String {
         return uri().toString()
@@ -60,7 +68,7 @@ sealed class VirtualTrack {
     }
 
     fun getCustomFieldValues(key: String): Set<FieldValue>? {
-        return customFields?.get(key)?.values
+        return customFields.get(key)?.values
     }
 
     fun getCustomFieldValue(key: String): FieldValue? {
@@ -68,7 +76,7 @@ sealed class VirtualTrack {
     }
 
     fun setCustomFieldValues(key: String, values: FieldValues) {
-        customFields?.set(key, values)
+        customFields.set(key, values)
     }
 
     fun setCustomFieldValues(key: String, value: FieldValue?) {
@@ -80,7 +88,31 @@ sealed class VirtualTrack {
     }
 
     fun clearCustomField(key: String) {
-        customFields?.remove(key)
+        customFields.remove(key)
+    }
+
+    fun setFieldValues(key: String, values: FieldValues) {
+        try {
+            setFieldValues(FieldKey.valueOf(key), values)
+        } catch (e: IllegalArgumentException) {
+            setCustomFieldValues(key, values)
+        }
+    }
+
+    fun setFieldValues(key: String, value: FieldValue?) {
+        if (value == null) {
+            clearField(key)
+        } else {
+            setFieldValues(key, FieldValues(value))
+        }
+    }
+
+    fun clearField(key: String) {
+        try {
+            clearField(FieldKey.valueOf(key))
+        } catch (e: IllegalArgumentException) {
+            clearCustomField(key)
+        }
     }
 
     fun getLength(): Duration? {

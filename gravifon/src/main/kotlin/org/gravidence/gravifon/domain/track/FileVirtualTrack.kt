@@ -14,7 +14,7 @@ data class FileVirtualTrack(
     val path: String,
     override val headers: Headers = Headers(),
     override val fields: MutableMap<FieldKey, FieldValues> = mutableMapOf(),
-    override val customFields: MutableMap<String, FieldValues>? = null
+    override val customFields: MutableMap<String, FieldValues> = mutableMapOf()
 ) : VirtualTrack() {
 
     override fun uri(): URI {

@@ -96,7 +96,7 @@ class PhysicalTrack(val file: AudioFile) {
             .toMutableSet()
     }
 
-    private fun extractCustomFieldValues(): MutableMap<String, FieldValues>? {
+    private fun extractCustomFieldValues(): MutableMap<String, FieldValues> {
         val tag: Tag = when (val rawTag = file.tag) {
             is WavTag -> rawTag.iD3Tag
             is FlacTag -> rawTag.vorbisCommentTag
@@ -104,7 +104,7 @@ class PhysicalTrack(val file: AudioFile) {
         }
 
         return when (tag) {
-            is AbstractID3v1Tag -> null
+            is AbstractID3v1Tag -> mutableMapOf()
             is AbstractID3v2Tag -> {
                 tag.fields
                     .asSequence()
@@ -128,7 +128,7 @@ class PhysicalTrack(val file: AudioFile) {
                     // TODO optimize, as well as try to return NULL instead of empty map
                     .toMap().toMutableMap()
             }
-            else -> null
+            else -> mutableMapOf()
         }
     }
 
