@@ -86,7 +86,6 @@ class TrackMetadataListState(
     private val trackMetadataState: TrackMetadataState
 ) : TableState<VirtualTrack>(
     layout = layout(),
-    readOnly = mutableStateOf(true),
     grid = grid(trackMetadataState)
 ) {
 
@@ -125,7 +124,6 @@ class TrackMetadataTableState(
 ) : TableState<List<VirtualTrack>>(
     layout = layout(),
     enabled = mutableStateOf(true),
-    readOnly = mutableStateOf(false),
     grid = grid(trackMetadataState)
 ) {
 

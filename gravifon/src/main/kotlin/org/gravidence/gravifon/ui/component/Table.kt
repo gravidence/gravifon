@@ -27,20 +27,27 @@ import java.awt.event.MouseEvent
 open class TableState<T>(
     val layout: MutableState<TableLayout> = mutableStateOf(TableLayout()),
     val enabled: MutableState<Boolean> = mutableStateOf(false),
-    val readOnly: MutableState<Boolean> = mutableStateOf(true),
+    val readOnly: MutableState<Boolean> = mutableStateOf(false),
+    val multiSelection: MutableState<Boolean> = mutableStateOf(true),
     val grid: MutableState<TableGrid<T>?> = mutableStateOf(null),
     val selectedRows: MutableState<Set<Int>> = mutableStateOf(setOf())
 ) {
 
     open fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
         (pointerEvent.nativeEvent as? MouseEvent)?.let {
-            if (it.button == 1 && it.clickCount == 1 && !it.isControlDown) {
-                selectedRows.value = setOf(rowIndex)
-            } else if (it.button == 1 && it.clickCount == 1 && it.isControlDown) {
-                if (selectedRows.value.contains(rowIndex)) {
-                    selectedRows.value -= rowIndex
-                } else {
-                    selectedRows.value += rowIndex
+            if (multiSelection.value) {
+                if (it.button == 1 && it.clickCount == 1 && !it.isControlDown) {
+                    selectedRows.value = setOf(rowIndex)
+                } else if (it.button == 1 && it.clickCount == 1 && it.isControlDown) {
+                    if (selectedRows.value.contains(rowIndex)) {
+                        selectedRows.value -= rowIndex
+                    } else {
+                        selectedRows.value += rowIndex
+                    }
+                }
+            } else {
+                if (it.button == 1 && it.clickCount == 1) {
+                    selectedRows.value = setOf(rowIndex)
                 }
             }
         }
@@ -105,17 +112,28 @@ fun <T> Table(tableState: TableState<T>) {
                                 )
                         ) {
                             val cell = row.cells[columnIndex].value
-                            BasicTextField(
-                                value = cell.content ?: "<varies>",
-                                singleLine = true,
-                                enabled = tableState.enabled.value,
-                                readOnly = tableState.readOnly.value,
-                                modifier = Modifier
-                                    .background(color = gListItemColor, shape = gShape)
-                                    .padding(5.dp)
-                                    .fillMaxWidth(),
-                                onValueChange = { tableState.onCellChange(cell, rowIndex, columnIndex, it) }
-                            )
+                            if (tableState.enabled.value) {
+                                BasicTextField(
+                                    value = cell.content ?: "<varies>",
+                                    singleLine = true,
+                                    readOnly = tableState.readOnly.value,
+                                    modifier = Modifier
+                                        .background(color = gListItemColor, shape = gShape)
+                                        .padding(5.dp)
+                                        .fillMaxWidth(),
+                                    onValueChange = { tableState.onCellChange(cell, rowIndex, columnIndex, it) }
+                                )
+                            } else {
+                                Text(
+                                    text = cell.content ?: "<varies>",
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                        .background(color = gListItemColor, shape = gShape)
+                                        .padding(5.dp)
+                                        .fillMaxWidth(),
+                                )
+                            }
                         }
                     }
                 }
