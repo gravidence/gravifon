@@ -15,8 +15,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEvent
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -25,27 +23,67 @@ import androidx.compose.ui.window.rememberDialogState
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.GravifonStarter
 import org.gravidence.gravifon.plugin.Plugin
-import org.gravidence.gravifon.ui.theme.gListItemColor
-import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
+import org.gravidence.gravifon.ui.component.*
 import org.gravidence.gravifon.ui.theme.gShape
-import java.awt.event.MouseEvent
 
-class PluginSettingsState(val selectedPlugin: MutableState<Plugin?>) {
+class PluginListState(
+    private val pluginSettingsState: PluginSettingsState,
+) : TableState<Plugin>(
+    layout = layout(),
+    multiSelection = mutableStateOf(false),
+    grid = grid(pluginSettingsState),
+    selectedRows = selectedPlugin(pluginSettingsState)
+) {
 
-    fun onPointerEvent(pointerEvent: PointerEvent, plugin: Plugin) {
-        (pointerEvent.nativeEvent as? MouseEvent)?.apply {
-            if (button == 1) {
-                selectedPlugin.value = plugin
+    override fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
+        super.onRowClick(rowIndex, pointerEvent)
+        pluginSettingsState.selectedPlugin.value = selectedRows.value.firstOrNull()?.let { pluginSettingsState.plugins[it] }
+    }
+
+    companion object {
+
+        fun layout(): MutableState<TableLayout> {
+            return mutableStateOf(
+                TableLayout(
+                    displayHeaders = false,
+                    columns = listOf(
+                        TableColumn(header = "Plugin", fraction = 1f)
+                    )
+                )
+            )
+        }
+
+        fun grid(pluginSettingsState: PluginSettingsState): MutableState<TableGrid<Plugin>?> {
+            return mutableStateOf(singleColumnTableGrid(
+                pluginSettingsState.plugins.map {
+                    TableCell(content = it.pluginDisplayName)
+                }
+            ))
+        }
+
+        fun selectedPlugin(pluginSettingsState: PluginSettingsState): MutableState<Set<Int>> {
+            val plugin = pluginSettingsState.selectedPlugin.value
+            return if (plugin != null) {
+                mutableStateOf(setOf(pluginSettingsState.plugins.indexOf(plugin)))
+            } else {
+                mutableStateOf(setOf())
             }
         }
+
     }
 
 }
 
+class PluginSettingsState(
+    val plugins: List<Plugin>,
+    val selectedPlugin: MutableState<Plugin?>
+)
+
 @Composable
 fun rememberPluginSettingsState(
+    plugins: List<Plugin> = GravifonStarter.plugins.toList(),
     selectedPlugin: MutableState<Plugin?> = mutableStateOf(GravifonStarter.plugins.firstOrNull()),
-) = remember(selectedPlugin) { PluginSettingsState(selectedPlugin) }
+) = remember(selectedPlugin) { PluginSettingsState(plugins, selectedPlugin) }
 
 @Composable
 fun PluginSettingsDialog() {
@@ -85,9 +123,7 @@ fun PluginSettingsDialog() {
                             .verticalScroll(state = pluginListVScrollState)
                             .border(width = 1.dp, color = Color.Black, shape = gShape)
                     ) {
-                        GravifonStarter.plugins.forEach {
-                            pluginListItem(it, pluginSettingsState)
-                        }
+                        pluginListItem(pluginSettingsState)
                     }
 //                    HorizontalScrollbar(
 //                        adapter = rememberScrollbarAdapter(pluginListHScrollState),
@@ -136,37 +172,8 @@ fun PluginSettingsDialog() {
 }
 
 @Composable
-fun pluginListItem(plugin: Plugin, pluginSettingsState: PluginSettingsState) {
-    val normalPluginListItemModifier = Modifier
-        .fillMaxWidth()
-        .padding(5.dp)
-        .background(color = gListItemColor, shape = gShape)
-    val selectedPluginListItemModifier = Modifier
-        .fillMaxWidth()
-        .padding(5.dp)
-        .background(color = gSelectedListItemColor, shape = gShape)
-
-    val actualPluginListItemModifier = if (plugin == pluginSettingsState.selectedPlugin.value) {
-        selectedPluginListItemModifier
-    } else {
-        normalPluginListItemModifier
-    }
-
-    Row(
-        modifier = actualPluginListItemModifier
-            .onPointerEvent(
-                eventType = PointerEventType.Release,
-                onEvent = {
-                    pluginSettingsState.onPointerEvent(it, plugin)
-                }
-            )
-    ) {
-        Text(
-            text = plugin.pluginDisplayName,
-            modifier = Modifier
-                .padding(5.dp)
-        )
-    }
+fun pluginListItem(pluginSettingsState: PluginSettingsState) {
+    Table(PluginListState(pluginSettingsState))
 }
 
 @Composable
