@@ -14,7 +14,7 @@ class DynamicPlaylist(
     override val ownerName: String = "Owner Name",
     override var displayName: String = "Display Name",
     override val items: MutableList<PlaylistItem> = ArrayList(),
-    override var position: Int = 0,
+    override var position: Int = DEFAULT_POSITION,
     override var playbackOrder: PlaybackOrder = PlaybackOrder.SEQUENTIAL,
     override var playlistStructure: PlaylistStructure = PlaylistStructure.TRACK
 ) : Playlist()

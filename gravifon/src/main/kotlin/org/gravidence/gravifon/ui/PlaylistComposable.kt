@@ -202,7 +202,9 @@ val selectedPlaylistItemModifier = Modifier
 
 @Composable
 fun PlaylistItemComposable(index: Int, playlistItem: PlaylistItem, playlistState: PlaylistState) {
-    val fontWeight = if ((playlistItem as? TrackPlaylistItem)?.track == playlistState.activeVirtualTrack.value) {
+    val thisPlaylist = playlistState.playlist === GravifonContext.activePlaylist
+    val thisTrack = (playlistItem as? TrackPlaylistItem)?.track === playlistState.activeVirtualTrack.value
+    val fontWeight = if (thisPlaylist && thisTrack) {
         FontWeight.Bold
     } else {
         FontWeight.Normal

@@ -13,6 +13,12 @@ import kotlin.math.max
 @Serializable
 sealed class Playlist {
 
+    companion object {
+
+        const val DEFAULT_POSITION = 0
+
+    }
+
     protected abstract val id: String
     abstract val ownerName: String
     abstract var displayName: String
@@ -183,7 +189,7 @@ sealed class Playlist {
         items.clear()
         // TODO send event PlaylistUpdated
 
-        position = 1
+        position = DEFAULT_POSITION
     }
 
     open fun append(item: PlaylistItem) {
