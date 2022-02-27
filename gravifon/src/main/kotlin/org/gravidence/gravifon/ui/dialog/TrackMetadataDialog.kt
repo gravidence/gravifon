@@ -19,28 +19,50 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.tag.FieldValue
+import org.gravidence.gravifon.domain.tag.FieldValues
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.ui.component.*
 import org.gravidence.gravifon.ui.theme.gShape
-import org.jaudiotagger.tag.FieldKey
 
 class TrackMetadataState(
     val tracks: MutableState<List<VirtualTrack>>,
-    val selectedTracks: MutableState<List<VirtualTrack>>,
+    val tracksSnapshot: MutableState<List<VirtualTrack>> = mutableStateOf(snapshot(tracks.value)),
+    val selectedTracks: MutableState<Set<Int>>, // refers to tracks from snapshot, aka selected for edit, but results could be reverted
     val changed: MutableState<Boolean> = mutableStateOf(false)
 ) {
 
+    fun prepare(tracks: List<VirtualTrack>) {
+        this.tracks.value = tracks
+        this.tracksSnapshot.value = snapshot(tracks)
+        this.selectedTracks.value = mutableSetOf()
+        this.changed.value = false
+    }
+
+    fun revert() {
+        tracksSnapshot.value = snapshot(tracks.value)
+        changed.value = false
+    }
+
     fun clear() {
         tracks.value = mutableListOf()
-        selectedTracks.value = mutableListOf()
+        tracksSnapshot.value = mutableListOf()
+        selectedTracks.value = mutableSetOf()
         changed.value = false
+    }
+
+    companion object {
+
+        fun snapshot(tracks: List<VirtualTrack>): List<VirtualTrack> {
+            return tracks.map { it.clone() }
+        }
+
     }
 
 }
 
 class TrackMetadataListState(
-    private val trackMetadataState: TrackMetadataState,
-) : TableState(
+    private val trackMetadataState: TrackMetadataState
+) : TableState<VirtualTrack>(
     layout = layout(),
     readOnly = mutableStateOf(true),
     grid = grid(trackMetadataState)
@@ -48,7 +70,7 @@ class TrackMetadataListState(
 
     override fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
         super.onRowClick(rowIndex, pointerEvent)
-        trackMetadataState.selectedTracks.value = selectedRows.value.map { trackMetadataState.tracks.value[it] }
+        trackMetadataState.selectedTracks.value = selectedRows.value
     }
 
     companion object {
@@ -64,8 +86,12 @@ class TrackMetadataListState(
             )
         }
 
-        fun grid(trackMetadataState: TrackMetadataState): MutableState<TableGrid?> {
-            return mutableStateOf(singleColumnTableGrid(trackMetadataState.tracks.value.map { it.uri().toString() }))
+        fun grid(trackMetadataState: TrackMetadataState): MutableState<TableGrid<VirtualTrack>?> {
+            return mutableStateOf(singleColumnTableGrid(
+                trackMetadataState.tracks.value.map {
+                    TableCell(content = it.uri().toString())
+                }
+            ))
         }
 
     }
@@ -73,16 +99,27 @@ class TrackMetadataListState(
 }
 
 class TrackMetadataTableState(
-    private val trackMetadataState: TrackMetadataState,
-) : TableState(
+    private val trackMetadataState: TrackMetadataState
+) : TableState<List<VirtualTrack>>(
     layout = layout(),
     enabled = mutableStateOf(true),
     readOnly = mutableStateOf(false),
     grid = grid(trackMetadataState)
 ) {
 
-    override fun onCellChange(rowIndex: Int, columnIndex: Int, newValue: String) {
-        super.onCellChange(rowIndex, columnIndex, newValue)
+    override fun onCellChange(cell: TableCell<List<VirtualTrack>>, rowIndex: Int, columnIndex: Int, newValue: String) {
+        super.onCellChange(cell, rowIndex, columnIndex, newValue)
+        grid.value?.let { table ->
+            val tagMap = table.toTagMap()
+            cell.source?.forEach { track ->
+                track.fields.clear()
+                track.customFields.clear()
+                tagMap.entries.forEach {
+                    track.setFieldValues(it.key, it.value)
+                }
+            }
+        }
+        trackMetadataState.tracksSnapshot.value = trackMetadataState.tracksSnapshot.value.toList()
         trackMetadataState.changed.value = true
     }
 
@@ -100,8 +137,10 @@ class TrackMetadataTableState(
             )
         }
 
-        fun grid(trackMetadataState: TrackMetadataState): MutableState<TableGrid?> {
-            return mutableStateOf(buildTableGrid(trackMetadataState.selectedTracks.value))
+        fun grid(trackMetadataState: TrackMetadataState): MutableState<TableGrid<List<VirtualTrack>>?> {
+            return mutableStateOf(buildTableGrid(
+                trackMetadataState.selectedTracks.value.map { trackMetadataState.tracksSnapshot.value[it] }
+            ))
         }
 
     }
@@ -201,7 +240,7 @@ fun TrackMetadataDialog() {
                                 }
                                 Button(
                                     enabled = GravifonContext.trackMetadataDialogState.changed.value,
-                                    onClick = {}
+                                    onClick = { GravifonContext.trackMetadataDialogState.revert() }
                                 ) {
                                     Text("Revert")
                                 }
@@ -224,53 +263,93 @@ fun trackContent(trackMetadataState: TrackMetadataState) {
     Table(TrackMetadataTableState(trackMetadataState))
 }
 
-private fun buildTableGrid(tracks: List<VirtualTrack>): TableGrid? {
+private fun buildTableGrid(tracks: List<VirtualTrack>): TableGrid<List<VirtualTrack>>? {
     return when (tracks.size) {
         0 -> null
-        1 -> buildTableGridForSingleTrack(tracks.first())
-        else -> buildTableGridForManyTracks(tracks)
+        1 -> tracks.first().buildTableGridForSingleTrack()
+        else -> tracks.buildTableGridForManyTracks()
     }
 }
 
-private fun buildTableGridForSingleTrack(track: VirtualTrack): TableGrid {
-    val fieldRows = track.fields.flatMap { (fieldKey, fieldValues) ->
+private fun VirtualTrack.buildTableGridForSingleTrack(): TableGrid<List<VirtualTrack>> {
+    val fieldRows = fields.flatMap { (fieldKey, fieldValues) ->
         fieldValues.values.map { fieldValue ->
-            TableRow(cells = mutableListOf(mutableStateOf(fieldKey.name), mutableStateOf(fieldValue)))
+            TableRow(
+                cells = mutableListOf(
+                    mutableStateOf(TableCell(content = fieldKey.name, source = listOf(this))),
+                    mutableStateOf(TableCell(content = fieldValue, source = listOf(this)))
+                )
+            )
         }
     }
-    val customFieldRows = track.customFields?.flatMap { (fieldKey, fieldValues) ->
+    val customFieldRows = customFields.flatMap { (fieldKey, fieldValues) ->
         fieldValues.values.map { fieldValue ->
-            TableRow(cells = mutableListOf(mutableStateOf(fieldKey), mutableStateOf(fieldValue)))
+            TableRow(
+                cells = mutableListOf(
+                    mutableStateOf(TableCell(content = fieldKey, source = listOf(this))),
+                    mutableStateOf(TableCell(content = fieldValue, source = listOf(this)))
+                )
+            )
         }
-    } ?: listOf()
+    }
 
     return TableGrid(
         rows = mutableStateOf((fieldRows + customFieldRows).toMutableList())
     )
 }
 
-private fun buildTableGridForManyTracks(tracks: List<VirtualTrack>): TableGrid {
-    val map = mutableMapOf<FieldKey, FieldValue?>()
-    tracks.forEach { track ->
+private fun List<VirtualTrack>.buildTableGridForManyTracks(): TableGrid<List<VirtualTrack>> {
+    return TableGrid(
+        rows = mutableStateOf(
+            toTagMap().map {
+                TableRow(
+                    cells = mutableListOf(
+                        mutableStateOf(TableCell(content = it.key, source = this)),
+                        mutableStateOf(TableCell(content = it.value, source = this))
+                    )
+                )
+            }.toMutableList()
+        )
+    )
+}
+
+private fun List<VirtualTrack>.toTagMap(): Map<String, FieldValue?> {
+    val tagMap = mutableMapOf<String, FieldValue?>()
+
+    this.forEach { track ->
         track.fields.forEach { (fieldKey, fieldValues) ->
+            val key = fieldKey.name
             fieldValues.values.forEach { fieldValue ->
-                if (map.containsKey(fieldKey)) {
-                    val prevFieldValue = map[fieldKey]
+                if (tagMap.containsKey(key)) {
+                    val prevFieldValue = tagMap[key]
                     if (prevFieldValue != null && prevFieldValue != fieldValue) {
-                        map[fieldKey] = null
+                        tagMap[key] = null
                     }
                 } else {
-                    map[fieldKey] = fieldValue
+                    tagMap[key] = fieldValue
                 }
             }
         }
     }
 
-    return TableGrid(
-        rows = mutableStateOf(
-            map.map {
-                TableRow(cells = mutableListOf(mutableStateOf(it.key.name), mutableStateOf(it.value)))
-            }.toMutableList()
-        )
-    )
+    return tagMap
+}
+
+private fun TableGrid<List<VirtualTrack>>.toTagMap(): Map<String, FieldValues> {
+    val tagMap = mutableMapOf<String, FieldValues>()
+
+    rows.value.forEach { row ->
+        row.cells[0].value.content?.let { key ->
+            row.cells[1].value.content?.let { value ->
+                var x = tagMap[key]
+                if (x == null) {
+                    x = FieldValues(mutableSetOf())
+                    tagMap[key] = x
+                }
+                x.values += value
+            }
+        }
+    }
+
+    return tagMap
 }

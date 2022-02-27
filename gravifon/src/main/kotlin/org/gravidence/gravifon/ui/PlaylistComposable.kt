@@ -126,10 +126,11 @@ fun buildContextMenu(playlistState: PlaylistState): List<ContextMenuItem> {
     )
     if (candidateItems != null) {
         contextMenuItems += ContextMenuItem("Edit metadata") {
-            GravifonContext.trackMetadataDialogState.tracks.value = candidateItems
-                .filterIsInstance<TrackPlaylistItem>()
-                .map { it.track }
-            GravifonContext.trackMetadataDialogState.selectedTracks.value = listOf()
+            GravifonContext.trackMetadataDialogState.prepare(
+                candidateItems
+                    .filterIsInstance<TrackPlaylistItem>()
+                    .map { it.track }
+            )
             GravifonContext.trackMetadataDialogVisible.value = true
         }
     }

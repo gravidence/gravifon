@@ -24,20 +24,18 @@ import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
 import java.awt.event.MouseEvent
 
-typealias TableCell = String
-
-open class TableState(
+open class TableState<T>(
     val layout: MutableState<TableLayout> = mutableStateOf(TableLayout()),
     val enabled: MutableState<Boolean> = mutableStateOf(false),
     val readOnly: MutableState<Boolean> = mutableStateOf(true),
-    val grid: MutableState<TableGrid?> = mutableStateOf(null),
-    val selectedRows: MutableState<List<Int>> = mutableStateOf(listOf())
+    val grid: MutableState<TableGrid<T>?> = mutableStateOf(null),
+    val selectedRows: MutableState<Set<Int>> = mutableStateOf(setOf())
 ) {
 
     open fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
         (pointerEvent.nativeEvent as? MouseEvent)?.let {
             if (it.button == 1 && it.clickCount == 1 && !it.isControlDown) {
-                selectedRows.value = listOf(rowIndex)
+                selectedRows.value = setOf(rowIndex)
             } else if (it.button == 1 && it.clickCount == 1 && it.isControlDown) {
                 if (selectedRows.value.contains(rowIndex)) {
                     selectedRows.value -= rowIndex
@@ -48,16 +46,16 @@ open class TableState(
         }
     }
 
-    open fun onCellChange(rowIndex: Int, columnIndex: Int, newValue: String) {
+    open fun onCellChange(cell: TableCell<T>, rowIndex: Int, columnIndex: Int, newValue: String) {
         grid.value?.let {
-            it.rows.value[rowIndex].cells[columnIndex].value = newValue
+            it.rows.value[rowIndex].cells[columnIndex].value = cell.copy(content = newValue)
         }
     }
 
 }
 
 @Composable
-fun Table(tableState: TableState) {
+fun <T> Table(tableState: TableState<T>) {
     Box(
         modifier = Modifier
             .padding(10.dp)
@@ -106,8 +104,9 @@ fun Table(tableState: TableState) {
                                     onEvent = { tableState.onRowClick(rowIndex, it) }
                                 )
                         ) {
+                            val cell = row.cells[columnIndex].value
                             BasicTextField(
-                                value = row.cells[columnIndex].value ?: "<varies>",
+                                value = cell.content ?: "<varies>",
                                 singleLine = true,
                                 enabled = tableState.enabled.value,
                                 readOnly = tableState.readOnly.value,
@@ -115,7 +114,7 @@ fun Table(tableState: TableState) {
                                     .background(color = gListItemColor, shape = gShape)
                                     .padding(5.dp)
                                     .fillMaxWidth(),
-                                onValueChange = { tableState.onCellChange(rowIndex, columnIndex, it) }
+                                onValueChange = { tableState.onCellChange(cell, rowIndex, columnIndex, it) }
                             )
                         }
                     }
@@ -136,15 +135,20 @@ data class TableColumn(
     val fraction: Float? = null
 )
 
-data class TableRow(
-    val cells: MutableList<MutableState<TableCell?>>
+data class TableCell<T>(
+    var content: String?,
+    val source: T? = null
 )
 
-data class TableGrid(
-    val rows: MutableState<MutableList<TableRow>>
+data class TableRow<T>(
+    val cells: MutableList<MutableState<TableCell<T>>>
 )
 
-fun singleColumnTableGrid(rows: List<TableCell>): TableGrid {
+data class TableGrid<T>(
+    val rows: MutableState<MutableList<TableRow<T>>>
+)
+
+fun <T> singleColumnTableGrid(rows: List<TableCell<T>>): TableGrid<T> {
     return TableGrid(
         rows = mutableStateOf(
             rows.map {

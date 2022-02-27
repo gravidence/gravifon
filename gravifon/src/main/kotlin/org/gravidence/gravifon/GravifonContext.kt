@@ -25,7 +25,7 @@ object GravifonContext {
     val trackMetadataDialogVisible: MutableState<Boolean> = mutableStateOf(false)
     val trackMetadataDialogState: TrackMetadataState = TrackMetadataState(
         tracks = mutableStateOf(listOf()),
-        selectedTracks = mutableStateOf(listOf())
+        selectedTracks = mutableStateOf(setOf())
     )
 
     val playbackState: MutableState<PlaybackState> = mutableStateOf(PlaybackState.STOPPED)
