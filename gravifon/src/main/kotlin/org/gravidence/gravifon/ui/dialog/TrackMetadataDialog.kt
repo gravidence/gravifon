@@ -20,21 +20,44 @@ import androidx.compose.ui.window.rememberDialogState
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.tag.FieldValue
 import org.gravidence.gravifon.domain.track.VirtualTrack
+import org.gravidence.gravifon.event.EventBus
+import org.gravidence.gravifon.event.playlist.PlaylistUpdatedEvent
+import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.ui.component.*
 import org.gravidence.gravifon.ui.theme.gShape
 
 class TrackMetadataState(
+    private var playlist: Playlist? = null,
     val tracks: MutableState<List<VirtualTrack>>,
     val tracksSnapshot: MutableState<List<VirtualTrack>> = mutableStateOf(snapshot(tracks.value)),
     val selectedTracks: MutableState<Set<Int>>, // refers to tracks from snapshot, aka selected for edit, but results could be reverted
     val changed: MutableState<Boolean> = mutableStateOf(false)
 ) {
 
-    fun prepare(tracks: List<VirtualTrack>) {
+    fun prepare(playlist: Playlist, tracks: List<VirtualTrack>) {
+        this.playlist = playlist
         this.tracks.value = tracks
         this.tracksSnapshot.value = snapshot(tracks)
         this.selectedTracks.value = mutableSetOf()
         this.changed.value = false
+    }
+
+    fun apply() {
+        tracksSnapshot.value.forEach { snapshotTrack ->
+            tracks.value.find { originalTrack -> originalTrack.uri() == snapshotTrack.uri() }?.apply {
+                fields.apply {
+                    clear()
+                    putAll(snapshotTrack.fields)
+                }
+                customFields.apply {
+                    clear()
+                    putAll(snapshotTrack.customFields)
+                }
+            }
+        }
+        changed.value = false
+
+        playlist?.let { EventBus.publish(PlaylistUpdatedEvent(it)) }
     }
 
     fun revert() {
@@ -113,7 +136,7 @@ class TrackMetadataTableState(
                 track.setFieldValues(table.rows.value[rowIndex].cells[0].value.content!!, newValue)
             }
         }
-        trackMetadataState.tracksSnapshot.value = trackMetadataState.tracksSnapshot.value.toList()
+        trackMetadataState.tracksSnapshot.value = trackMetadataState.tracksSnapshot.value.toList() // propagate changes to upper level
         trackMetadataState.changed.value = true
     }
 
@@ -228,7 +251,7 @@ fun TrackMetadataDialog() {
                             ) {
                                 Button(
                                     enabled = GravifonContext.trackMetadataDialogState.changed.value,
-                                    onClick = {}
+                                    onClick = { GravifonContext.trackMetadataDialogState.apply() }
                                 ) {
                                     Text("Apply")
                                 }

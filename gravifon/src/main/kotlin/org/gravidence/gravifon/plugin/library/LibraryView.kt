@@ -27,7 +27,9 @@ import org.gravidence.gravifon.playlist.manage.PlaylistManager
 import org.gravidence.gravifon.query.TrackQueryParser
 import org.gravidence.gravifon.ui.PlaylistComposable
 import org.gravidence.gravifon.ui.rememberPlaylistState
-import org.gravidence.gravifon.ui.theme.*
+import org.gravidence.gravifon.ui.theme.gShape
+import org.gravidence.gravifon.ui.theme.gTextFieldColor
+import org.gravidence.gravifon.ui.theme.gTextFieldStyle
 import org.springframework.stereotype.Component
 
 @Component
@@ -47,8 +49,12 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
     }
 
     override fun consume(event: Event) {
-        if (event is PlaylistUpdatedEvent) {
-            playlistItems.value = event.playlist.items()
+        when (event) {
+            is PlaylistUpdatedEvent -> {
+                if (event.playlist === playlist) {
+                    playlistItems.value = event.playlist.items()
+                }
+            }
         }
     }
 

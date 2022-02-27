@@ -10,13 +10,13 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.event.Event
+import org.gravidence.gravifon.event.playlist.PlaylistUpdatedEvent
 import org.gravidence.gravifon.event.playlist.RemovePlaylistItemsEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Viewable
@@ -53,6 +53,12 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
                     }
                 }
             }
+            is PlaylistUpdatedEvent -> {
+                if (event.playlist === playlist) {
+                    // TODO fix view update (nothing happens for now...)
+                    updateViewState(lastfmScrobbler.lastfmScrobblerStorage.scrobbleCache())
+                }
+            }
         }
     }
 
@@ -60,23 +66,8 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
         return lastfmScrobbler.pluginDisplayName
     }
 
-    inner class LastfmScrobblerViewState(
-        val playlistItems: MutableState<List<PlaylistItem>>,
-        val playlist: Playlist
-    )
-
-    @Composable
-    fun rememberLastfmScrobblerViewState(
-        playlistItems: MutableState<List<PlaylistItem>>,
-        playlist: Playlist
-    ) = remember(playlistItems) { LastfmScrobblerViewState(playlistItems, playlist) }
-
     @Composable
     override fun composeView() {
-        val lastfmScrobblerViewState = rememberLastfmScrobblerViewState(
-            playlistItems = playlistItems,
-            playlist = playlist
-        )
         val playlistState = rememberPlaylistState(
             playlistItems = playlistItems,
             playlist = playlist,
@@ -121,7 +112,6 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
         val scrobbleCachePlaylistItems = scrobbleCacheToPlaylistItems(scrobbleCache)
         playlist.replace(scrobbleCachePlaylistItems)
         playlistItems.value = scrobbleCachePlaylistItems
-
     }
 
 }
