@@ -19,7 +19,6 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.tag.FieldValue
-import org.gravidence.gravifon.domain.tag.FieldValues
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.ui.component.*
 import org.gravidence.gravifon.ui.theme.gShape
@@ -110,13 +109,8 @@ class TrackMetadataTableState(
     override fun onCellChange(cell: TableCell<List<VirtualTrack>>, rowIndex: Int, columnIndex: Int, newValue: String) {
         super.onCellChange(cell, rowIndex, columnIndex, newValue)
         grid.value?.let { table ->
-            val tagMap = table.toTagMap()
             cell.source?.forEach { track ->
-                track.fields.clear()
-                track.customFields.clear()
-                tagMap.entries.forEach {
-                    track.setFieldValues(it.key, it.value)
-                }
+                track.setFieldValues(table.rows.value[rowIndex].cells[0].value.content!!, newValue)
             }
         }
         trackMetadataState.tracksSnapshot.value = trackMetadataState.tracksSnapshot.value.toList()
@@ -317,36 +311,16 @@ private fun List<VirtualTrack>.toTagMap(): Map<String, FieldValue?> {
     val tagMap = mutableMapOf<String, FieldValue?>()
 
     this.forEach { track ->
-        track.fields.forEach { (fieldKey, fieldValues) ->
-            val key = fieldKey.name
+        track.getAllFields().forEach { fieldKey, fieldValues ->
             fieldValues.values.forEach { fieldValue ->
-                if (tagMap.containsKey(key)) {
-                    val prevFieldValue = tagMap[key]
+                if (tagMap.containsKey(fieldKey)) {
+                    val prevFieldValue = tagMap[fieldKey]
                     if (prevFieldValue != null && prevFieldValue != fieldValue) {
-                        tagMap[key] = null
+                        tagMap[fieldKey] = null
                     }
                 } else {
-                    tagMap[key] = fieldValue
+                    tagMap[fieldKey] = fieldValue
                 }
-            }
-        }
-    }
-
-    return tagMap
-}
-
-private fun TableGrid<List<VirtualTrack>>.toTagMap(): Map<String, FieldValues> {
-    val tagMap = mutableMapOf<String, FieldValues>()
-
-    rows.value.forEach { row ->
-        row.cells[0].value.content?.let { key ->
-            row.cells[1].value.content?.let { value ->
-                var x = tagMap[key]
-                if (x == null) {
-                    x = FieldValues(mutableSetOf())
-                    tagMap[key] = x
-                }
-                x.values += value
             }
         }
     }

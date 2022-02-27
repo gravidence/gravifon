@@ -115,6 +115,15 @@ sealed class VirtualTrack {
         }
     }
 
+    fun getAllFields(): Map<String, FieldValues> {
+        val map = mutableMapOf<String, FieldValues>()
+
+        fields.forEach { map[it.key.name] = it.value }
+        customFields.forEach { map[it.key] = it.value }
+
+        return map
+    }
+
     fun getLength(): Duration? {
         return headers.length
     }
