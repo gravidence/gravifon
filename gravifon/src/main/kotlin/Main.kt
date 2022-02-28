@@ -1,10 +1,10 @@
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.GravifonStarter
 import org.gravidence.gravifon.event.EventBus
@@ -17,7 +17,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() = application {
-    GravifonContext.scopeDefault.launch {
+    remember {
         GravifonStarter.orchestrator.startup()
     }
 
