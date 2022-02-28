@@ -150,11 +150,11 @@ fun BandcampItem.toVirtualTracks(): List<VirtualTrack> {
             url = bandcampTrack.file.mp3128,
             headers = Headers(length = bandcampTrack.duration.seconds)
         ).apply {
-            setArtist(bandcampTrack.artist ?: resolveAlbumArtist())
+            setArtist(bandcampTrack.artist ?: albumArtist)
             setTitle(bandcampTrack.title)
             setAlbum(resolveAlbum())
-            setDate(resolveAlbumReleaseDate().toLocalDateTime().date.toString())
-            setAlbumArtist(resolveAlbumArtist())
+            setDate(albumReleaseDate.toLocalDateTime().date.toString())
+            setAlbumArtist(albumArtist)
             setTrack(bandcampTrack.tracknum.toString())
         }
     }

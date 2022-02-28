@@ -37,14 +37,6 @@ data class BandcampItem(
         }
     }
 
-    fun resolveAlbumArtist(): String {
-        return albumArtist
-    }
-
-    fun resolveAlbumReleaseDate(): Instant {
-        return albumReleaseDate
-    }
-
 }
 
 @Serializable(with = BandcampItemType.AsStringSerializer::class)
