@@ -1336,7 +1336,7 @@ internal class StaticPlaylistTest {
 
         playlist.clear()
 
-        assertEquals(1, playlist.position())
+        assertEquals(0, playlist.position())
         assertTrue(playlist.view().isEmpty())
     }
 
