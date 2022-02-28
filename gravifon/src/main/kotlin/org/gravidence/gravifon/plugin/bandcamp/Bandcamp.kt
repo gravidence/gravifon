@@ -29,8 +29,10 @@ import org.gravidence.gravifon.plugin.bandcamp.model.bandcampSerializer
 import org.gravidence.gravifon.plugin.bandcamp.model.enhanced
 import org.gravidence.lastfm4k.misc.toLocalDateTime
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.springframework.stereotype.Component
 import java.util.*
+import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger {}
@@ -43,13 +45,26 @@ class Bandcamp(
     override val pluginDisplayName: String = "Bandcamp"
     override val pluginDescription: String = "Bandcamp v0.1"
 
+    private fun fetchPage(url: String): Document {
+        val document: Document
+        measureTimeMillis {
+            document = Jsoup.connect(url).get()
+        }.also {
+            logger.debug { "Fetched in ${it}ms" }
+        }
+        return document
+    }
+
+    private fun selectBandcampItem(document: Document): String? {
+        return document.select("script[data-band-follow-info]").firstOrNull()?.attr("data-tralbum")
+    }
+
     fun parsePage(url: String): List<VirtualTrack> {
-        logger.debug { "Process Bandcamp page: $url" }
+        logger.info { "Process Bandcamp page: $url" }
         return try {
-            val document = Jsoup.connect(url).get()
-            val node = document.select("script[data-band-follow-info]").firstOrNull()?.attr("data-tralbum")
-            if (node != null) {
-                bandcampSerializer.decodeFromString<BandcampItem>(node).also {
+            val bandcampItem = selectBandcampItem(fetchPage(url))
+            if (bandcampItem != null) {
+                bandcampSerializer.decodeFromString<BandcampItem>(bandcampItem).also {
                     logger.debug { "Bandcamp item parsed: $it" }
                 }.let {
                     if (componentConfiguration.useEnhancer) {

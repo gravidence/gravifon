@@ -4,8 +4,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.playlist.PlaylistUpdatedEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
@@ -25,6 +27,7 @@ import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
 import org.gravidence.gravifon.ui.PlaylistComposable
+import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.ui.theme.gTextFieldStyle
@@ -62,14 +65,21 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
 
     inner class BandcampViewState(
         val url: MutableState<String>,
+        val isProcessing: MutableState<Boolean>,
         val playlistItems: MutableState<List<PlaylistItem>>,
         val playlist: Playlist
     ) {
 
         fun addPage() {
-            val tracks = bandcamp.parsePage(url.value)
-            playlist.append(tracks.map { TrackPlaylistItem(it) })
-            playlistItems.value = playlist.items()
+            GravifonContext.scopeDefault.launch {
+                isProcessing.value = true
+
+                val tracks = bandcamp.parsePage(url.value)
+                playlist.append(tracks.map { TrackPlaylistItem(it) })
+                playlistItems.value = playlist.items()
+
+                isProcessing.value = false
+            }
         }
 
     }
@@ -77,9 +87,10 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
     @Composable
     fun rememberBandcampViewState(
         url: MutableState<String> = mutableStateOf(""),
+        isProcessing: MutableState<Boolean> = mutableStateOf(false),
         playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(listOf()),
         playlist: Playlist
-    ) = remember(url, playlistItems) { BandcampViewState(url, playlistItems, playlist) }
+    ) = remember(url, isProcessing, playlistItems) { BandcampViewState(url, isProcessing, playlistItems, playlist) }
 
     @Composable
     override fun composeView() {
@@ -125,10 +136,15 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
                 .padding(5.dp)
         )
         Button(
-            enabled = bandcampViewState.url.value.isNotEmpty(),
+            enabled = !bandcampViewState.isProcessing.value && bandcampViewState.url.value.isNotEmpty(),
+            contentPadding = PaddingValues(0.dp),
             onClick = { bandcampViewState.addPage() }
         ) {
-            Text("Add Album")
+            if (bandcampViewState.isProcessing.value) {
+                CircularProgressIndicator(strokeWidth = 3.dp, modifier = Modifier.size(24.dp))
+            } else {
+                AppIcon("icons8-plus-+-24.png")
+            }
         }
     }
 
