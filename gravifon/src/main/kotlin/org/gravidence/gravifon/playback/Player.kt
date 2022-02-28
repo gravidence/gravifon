@@ -5,6 +5,7 @@ import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.playback.*
+import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.event.track.PubTrackFinishEvent
 import org.gravidence.gravifon.event.track.PubTrackStartEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
@@ -67,6 +68,21 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
             },
             endOfStreamCallback = {
                 publish(SubPlaybackStopEvent())
+            },
+            playbackFailureCallback = { duration ->
+                stop()
+
+                GravifonContext.activeVirtualTrack.value?.let {
+                    logger.error { "Track playback failure: $it" }
+
+                    if (duration > Duration.ZERO) {
+                        publish(PubTrackFinishEvent(it, duration))
+                    }
+                }
+
+                GravifonContext.activePlaylist.value?.let {
+                    publish(SubPlaylistPlayNextEvent(it))
+                }
             }
         )
     }
