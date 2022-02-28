@@ -99,3 +99,42 @@ data class BandcampTrackFileInfo(
     @SerialName("mp3-128")
     val mp3128: String,
 )
+
+fun BandcampItem.enhanced(): BandcampItem {
+    return when (type) {
+        BandcampItemType.ALBUM -> {
+            val enhancedAlbumArtist = details.artist ?: albumArtist
+
+            copy(
+                details = details.copy(
+                    artist = enhancedAlbumArtist,
+                    title = enhanceTitle(details.title!!, enhancedAlbumArtist),
+                    date = details.date ?: albumReleaseDate
+                ),
+                tracks = tracks.map {
+                    val enhancedArtist = it.artist ?: enhancedAlbumArtist
+                    val enhancedTitle = enhanceTitle(it.title, enhancedArtist)
+
+                    it.copy(artist = enhancedArtist, title = enhancedTitle)
+                }
+            )
+        }
+        BandcampItemType.TRACK -> {
+            copy(
+                details = details.copy(
+                    date = details.date ?: albumReleaseDate
+                ),
+                tracks = tracks.map {
+                    val enhancedArtist = details.artist ?: it.artist
+                    val enhancedTitle = details.title ?: it.title
+
+                    it.copy(artist = enhancedArtist, title = enhancedTitle)
+                }
+            )
+        }
+    }
+}
+
+private fun enhanceTitle(title: String, artist: String): String {
+    return title.removePrefix("$artist - ")
+}

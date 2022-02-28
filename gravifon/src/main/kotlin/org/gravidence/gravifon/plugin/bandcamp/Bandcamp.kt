@@ -1,7 +1,20 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package org.gravidence.gravifon.plugin.bandcamp
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Checkbox
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import mu.KotlinLogging
@@ -12,8 +25,8 @@ import org.gravidence.gravifon.domain.track.StreamVirtualTrack
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.bandcamp.model.BandcampItem
-import org.gravidence.gravifon.plugin.bandcamp.model.BandcampItemType
 import org.gravidence.gravifon.plugin.bandcamp.model.bandcampSerializer
+import org.gravidence.gravifon.plugin.bandcamp.model.enhanced
 import org.gravidence.lastfm4k.misc.toLocalDateTime
 import org.jsoup.Jsoup
 import org.springframework.stereotype.Component
@@ -38,9 +51,14 @@ class Bandcamp(
             if (node != null) {
                 bandcampSerializer.decodeFromString<BandcampItem>(node).also {
                     logger.debug { "Bandcamp item parsed: $it" }
-                }
-                .enhanced().also {
-                    logger.debug { "Bandcamp item enhanced: $it" }
+                }.let {
+                    if (componentConfiguration.useEnhancer) {
+                        it.enhanced().also {
+                            logger.debug { "Bandcamp item enhanced: $it" }
+                        }
+                    } else {
+                        it
+                    }
                 }
                 .toVirtualTracks()
             } else {
@@ -56,28 +74,74 @@ class Bandcamp(
     @Serializable
     data class BandcampComponentConfiguration(
         val playlistId: String,
+        var useEnhancer: Boolean,
     ) : ComponentConfiguration
 
     override val componentConfiguration: BandcampComponentConfiguration = readComponentConfiguration {
-        BandcampComponentConfiguration(playlistId = UUID.randomUUID().toString())
+        BandcampComponentConfiguration(
+            playlistId = UUID.randomUUID().toString(),
+            useEnhancer = false,
+        )
+    }
+
+    inner class BandcampSettingsState(
+        val useEnhancer: MutableState<Boolean>,
+    ) {
+
+        fun updateUseEnhancer(useEnhancer: Boolean) {
+            this.useEnhancer.value = useEnhancer
+
+            componentConfiguration.useEnhancer = useEnhancer
+        }
+
+        fun toggleUseEnhancer() {
+            updateUseEnhancer(!useEnhancer.value)
+        }
+
     }
 
     @Composable
+    fun rememberBandcampSettingsState(
+        useEnhancer: MutableState<Boolean>,
+    ) = remember(useEnhancer) { BandcampSettingsState(useEnhancer) }
+
+    @Composable
     override fun composeSettings() {
-        Text("TBD")
+        val state = rememberBandcampSettingsState(
+            useEnhancer = mutableStateOf(componentConfiguration.useEnhancer),
+        )
+
+        Box(
+            modifier = Modifier
+                .widthIn(min = 400.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Row {
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .onPointerEvent(
+                                    eventType = PointerEventType.Release,
+                                    onEvent = {
+                                        state.toggleUseEnhancer()
+                                    }
+                                )
+                        ) {
+                            Checkbox(
+                                checked = state.useEnhancer.value,
+                                onCheckedChange = {  }
+                            )
+                            Text("Use metadata enhancer")
+                        }
+                    }
+                }
+            }
+        }
     }
 
-}
-
-fun BandcampItem.enhanced(): BandcampItem {
-    return when (type) {
-        BandcampItemType.ALBUM -> {
-            this
-        }
-        BandcampItemType.TRACK -> {
-            this
-        }
-    }
 }
 
 fun BandcampItem.toVirtualTracks(): List<VirtualTrack> {

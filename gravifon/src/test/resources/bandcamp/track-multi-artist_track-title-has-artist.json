@@ -1,0 +1,24 @@
+{
+  "url": "https://gravifon.org/track/aaa",
+  "item_type": "track",
+  "artist": "QWE",
+  "album_release_date": "20 Jan 2020 00:00:00 GMT",
+  "album_url": "/album/0101",
+  "current": {
+    "release_date": null,
+    "artist": "ASD",
+    "track_number": 1,
+    "title": "AAA"
+  },
+  "trackinfo": [
+    {
+      "artist": "ASD",
+      "file": {
+        "mp3-128": "https://gravifon.org/stream/aaa"
+      },
+      "track_num": 1,
+      "title": "ASD - AAA",
+      "duration": 100.1
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "url": "https://gravifon.org/album/qwe",
+  "item_type": "album",
+  "artist": "QWE",
+  "album_release_date": "20 Feb 2020 00:00:00 GMT",
+  "current": {
+    "release_date": "20 Feb 2020 00:00:00 GMT",
+    "artist": "QWE",
+    "title": "0101"
+  },
+  "trackinfo": [
+    {
+      "artist": null,
+      "file": {
+        "mp3-128": "https://gravifon.org/stream/aaa"
+      },
+      "track_num": 1,
+      "title": "AAA",
+      "duration": 100.1
+    },
+    {
+      "artist": null,
+      "file": {
+        "mp3-128": "https://gravifon.org/stream/bbb"
+      },
+      "track_num": 2,
+      "title": "BBB",
+      "duration": 200.2
+    }
+  ]
+}
