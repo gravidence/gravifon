@@ -238,7 +238,6 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
     }
 
     val lastfmClient: LastfmClient = LastfmClient(
-        apiRoot = "http://ws.audioscrobbler.com/22.0/",
         apiKey = "3c3f2425f258b1bc2f7eddcd95194ef4",
         apiSecret = "a05c02f0b955060fc782f7a9270eeab6",
         session = componentConfiguration.session
