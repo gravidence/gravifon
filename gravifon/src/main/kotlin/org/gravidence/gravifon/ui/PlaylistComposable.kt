@@ -76,6 +76,16 @@ class PlaylistState(
                     selectedPlaylistItems.value = mapOf()
                     true
                 }
+                Key.A -> {
+                    if (keyEvent.isCtrlPressed) {
+                        selectedPlaylistItems.value = playlistItems.value
+                            .mapIndexed { index, playlistItem -> Pair(index, playlistItem) }
+                            .toMap()
+                        true
+                    } else {
+                        false
+                    }
+                }
                 else -> false
             }
         } else {
