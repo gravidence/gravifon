@@ -6,7 +6,7 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
+import org.gravidence.gravifon.event.application.PersistConfigurationEvent
 import org.gravidence.gravifon.orchestration.marker.Configurable
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.ShutdownAware
@@ -30,7 +30,7 @@ class ConfigurationManager(@Lazy private val configurables: List<Configurable>, 
 
     override fun consume(event: Event) {
         when (event) {
-            is SubApplicationConfigurationPersistEvent -> persistEverything()
+            is PersistConfigurationEvent -> persistEverything()
         }
     }
 

@@ -9,8 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
-import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.application.SubApplicationConfigurationPersistEvent
 import org.gravidence.gravifon.ui.theme.gShape
 import kotlin.concurrent.fixedRateTimer
 
@@ -33,13 +31,7 @@ fun AppBody() {
                         title = {
                             Text(text = "Gravifon")
                         },
-                        actions = {
-                            Button(onClick = {
-                                EventBus.publish(SubApplicationConfigurationPersistEvent())
-                            }) {
-                                Text("Save")
-                            }
-                        }
+                        actions = { }
                     )
                 },
                 content = {

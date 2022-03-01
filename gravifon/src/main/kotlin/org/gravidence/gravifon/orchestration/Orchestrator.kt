@@ -3,6 +3,7 @@ package org.gravidence.gravifon.orchestration
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.event.EventBus
+import org.gravidence.gravifon.event.application.ApplicationStartedEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Playable
 import org.gravidence.gravifon.orchestration.marker.ShutdownAware
@@ -40,6 +41,8 @@ class Orchestrator(
         val activePlaylistId = configurationManager.applicationConfig().activePlaylistId
         val activePlaylist = playables.find { it.playlist.id() == activePlaylistId } ?: defaultPlaylist(activeView)
         activePlaylist?.activatePlaylist()
+
+        EventBus.publish(ApplicationStartedEvent())
     }
 
     fun shutdown() {
