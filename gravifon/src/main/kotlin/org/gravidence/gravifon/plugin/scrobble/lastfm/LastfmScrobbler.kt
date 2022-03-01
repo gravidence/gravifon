@@ -32,6 +32,7 @@ import org.gravidence.gravifon.plugin.scrobble.Scrobble
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.ui.tooltip
+import org.gravidence.gravifon.util.DesktopUtil
 import org.gravidence.lastfm4k.LastfmClient
 import org.gravidence.lastfm4k.api.auth.Session
 import org.gravidence.lastfm4k.api.auth.Token
@@ -42,8 +43,6 @@ import org.gravidence.lastfm4k.exception.LastfmException
 import org.gravidence.lastfm4k.exception.LastfmNetworkException
 import org.http4k.core.Uri
 import org.springframework.stereotype.Component
-import java.awt.Desktop
-import java.net.URI
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -382,7 +381,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                             enabled = authorization != null,
                             contentPadding = PaddingValues(0.dp),
                             onClick = {
-                                Desktop.getDesktop().browse(URI(authorization?.second.toString()))
+                                DesktopUtil.openInBrowser(authorization?.second.toString())
                             },
                             modifier = Modifier
                                 .size(30.dp)

@@ -162,7 +162,8 @@ class Bandcamp(
 fun BandcampItem.toVirtualTracks(): List<VirtualTrack> {
     return tracks.map { bandcampTrack ->
         StreamVirtualTrack(
-            url = bandcampTrack.file.mp3128,
+            sourceUrl = this.url,
+            streamUrl = bandcampTrack.file.mp3128,
             headers = Headers(length = bandcampTrack.duration.seconds)
         ).apply {
             setArtist(bandcampTrack.artist ?: albumArtist)

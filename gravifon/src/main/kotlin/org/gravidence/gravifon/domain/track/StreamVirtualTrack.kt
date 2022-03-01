@@ -10,14 +10,15 @@ import java.net.URI
 @Serializable
 @SerialName("stream")
 data class StreamVirtualTrack(
-    val url: String,
+    val sourceUrl: String,
+    val streamUrl: String,
     override val headers: Headers = Headers(),
     override val fields: MutableMap<FieldKey, FieldValues> = mutableMapOf(),
     override val customFields: MutableMap<String, FieldValues> = mutableMapOf()
 ) : VirtualTrack() {
 
     override fun uri(): URI {
-        return URI(url)
+        return URI(streamUrl)
     }
 
 }

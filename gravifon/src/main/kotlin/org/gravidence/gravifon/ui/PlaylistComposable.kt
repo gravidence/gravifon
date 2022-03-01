@@ -25,6 +25,7 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
+import org.gravidence.gravifon.domain.track.StreamVirtualTrack
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.RemovePlaylistItemsEvent
@@ -38,6 +39,7 @@ import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.gListItemColor
 import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
+import org.gravidence.gravifon.util.DesktopUtil
 import org.gravidence.gravifon.util.DurationUtil
 import org.gravidence.gravifon.util.firstNotEmptyOrNull
 import org.gravidence.gravifon.util.nullableListOf
@@ -119,10 +121,31 @@ fun rememberPlaylistState(
 fun buildContextMenu(playlistState: PlaylistState): List<ContextMenuItem> {
     val contextMenuItems: MutableList<ContextMenuItem> = mutableListOf()
 
+    val preselectedItem = playlistState.preselectedPlaylistItem.value
+    val selectedItems = playlistState.selectedPlaylistItems.value
+    val allItems = playlistState.playlistItems.value
+
+    val candidateSelectedItems: Collection<PlaylistItem>? = firstNotEmptyOrNull(
+        nullableListOf(preselectedItem),
+        selectedItems.values
+    )
+    if (candidateSelectedItems != null) {
+        val streamTracks = candidateSelectedItems
+            .filterIsInstance<TrackPlaylistItem>()
+            .map { it.track }
+            .filterIsInstance<StreamVirtualTrack>()
+        if (streamTracks.isNotEmpty()) {
+            contextMenuItems += ContextMenuItem("Open stream source page") {
+                streamTracks.forEach {
+                    DesktopUtil.openInBrowser(it.sourceUrl)
+                }
+            }
+        }
+    }
+
     val candidateItems: Collection<PlaylistItem>? = firstNotEmptyOrNull(
-        nullableListOf(playlistState.preselectedPlaylistItem.value),
-        playlistState.selectedPlaylistItems.value.values,
-        playlistState.playlistItems.value
+        candidateSelectedItems,
+        allItems
     )
     if (candidateItems != null) {
         contextMenuItems += ContextMenuItem("Edit metadata") {
