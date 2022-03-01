@@ -222,7 +222,7 @@ sealed class Playlist {
 
     open fun remove(positionSet: Set<Int>) {
         // remove playlist items one by one to keep correct current position
-        positionSet.forEach { remove(it..it) }
+        positionSet.sortedDescending().forEach { remove(it..it) }
     }
 
     open fun remove(positionRange: IntRange) {
