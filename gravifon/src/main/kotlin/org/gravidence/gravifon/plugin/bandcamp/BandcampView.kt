@@ -3,9 +3,9 @@ package org.gravidence.gravifon.plugin.bandcamp
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
+import androidx.compose.material.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -135,9 +135,8 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
                 .border(width = 1.dp, color = Color.Black, shape = gShape)
                 .padding(5.dp)
         )
-        Button(
+        IconButton(
             enabled = !bandcampViewState.isProcessing.value && bandcampViewState.url.value.isNotEmpty(),
-            contentPadding = PaddingValues(0.dp),
             onClick = { bandcampViewState.addPage() }
         ) {
             if (bandcampViewState.isProcessing.value) {

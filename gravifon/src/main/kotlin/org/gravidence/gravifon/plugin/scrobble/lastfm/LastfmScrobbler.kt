@@ -5,10 +5,7 @@ import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.Button
-import androidx.compose.material.Checkbox
-import androidx.compose.material.Divider
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -383,9 +380,8 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                                 .border(width = 1.dp, color = Color.Black, shape = gShape)
                                 .padding(5.dp)
                         )
-                        Button(
+                        IconButton(
                             enabled = authorization != null,
-                            contentPadding = PaddingValues(0.dp),
                             onClick = {
                                 DesktopUtil.openInBrowser(authorization?.second.toString())
                             },
