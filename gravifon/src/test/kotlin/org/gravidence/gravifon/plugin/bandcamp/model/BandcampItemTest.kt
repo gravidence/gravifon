@@ -17,7 +17,7 @@ internal class BandcampItemTest {
         strings = [
             "/bandcamp/album-single-artist.json",
             "/bandcamp/album-single-artist_album-title-has-artist.json",
-            "/bandcamp/album-single-artist_track-title-has-no-artist.json",
+            "/bandcamp/album-single-artist_track-has-no-artist.json",
         ]
     )
     fun enhanceAlbumSingleArtist(path: String) {
@@ -74,6 +74,7 @@ internal class BandcampItemTest {
         strings = [
             "/bandcamp/album-multi-artist.json",
             "/bandcamp/album-multi-artist_track-title-has-artist.json",
+            "/bandcamp/album-multi-artist_track-title-has-different-artists.json",
         ]
     )
     fun enhanceAlbumMultiArtist(path: String) {

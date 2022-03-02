@@ -92,10 +92,14 @@ data class BandcampTrackFileInfo(
     val mp3128: String,
 )
 
+private const val BC_SEPARATOR = " - "
+
 fun BandcampItem.enhanced(): BandcampItem {
     return when (type) {
         BandcampItemType.ALBUM -> {
             val enhancedAlbumArtist = details.artist ?: albumArtist
+
+            val isMultiArtist = tracks.all { it.artist == null && it.title.contains(BC_SEPARATOR) }
 
             copy(
                 details = details.copy(
@@ -104,7 +108,7 @@ fun BandcampItem.enhanced(): BandcampItem {
                     date = details.date ?: albumReleaseDate
                 ),
                 tracks = tracks.map {
-                    val enhancedArtist = it.artist ?: enhancedAlbumArtist
+                    val enhancedArtist = it.artist ?: enhanceTrackArtist(it.title, isMultiArtist) ?: enhancedAlbumArtist
                     val enhancedTitle = enhanceTitle(it.title, enhancedArtist)
 
                     it.copy(artist = enhancedArtist, title = enhancedTitle)
@@ -127,6 +131,13 @@ fun BandcampItem.enhanced(): BandcampItem {
     }
 }
 
+private fun enhanceTrackArtist(title: String, isMultiArtist: Boolean): String? {
+    return if (isMultiArtist) {
+        title.substringBefore(BC_SEPARATOR)
+    } else {
+        null
+    }
+}
 private fun enhanceTitle(title: String, artist: String): String {
-    return title.removePrefix("$artist - ")
+    return title.removePrefix(artist + BC_SEPARATOR)
 }
