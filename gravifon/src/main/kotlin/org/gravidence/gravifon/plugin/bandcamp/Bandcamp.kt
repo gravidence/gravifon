@@ -162,6 +162,7 @@ fun BandcampItem.toVirtualTracks(): List<VirtualTrack> {
             setDate(albumReleaseDate.toLocalDateTime().date.toString())
             setAlbumArtist(albumArtist)
             setTrack(bandcampTrack.tracknum.toString())
+            setTrackTotal(tracks.size.toString())
         }
     }
 }
