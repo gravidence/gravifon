@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "org.gravidence"
-version = "0.1"
+version = "1.0.0"
 java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
@@ -59,9 +59,10 @@ compose.desktop {
     application {
         mainClass = "MainKt"
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "gravifon"
-            packageVersion = "1.0.0"
+            packageVersion = project.version.toString()
+
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
         }
     }
 }
