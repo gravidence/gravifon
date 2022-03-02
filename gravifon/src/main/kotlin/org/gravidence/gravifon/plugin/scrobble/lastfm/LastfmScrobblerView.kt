@@ -69,7 +69,7 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
     @Composable
     override fun composeView() {
         val playlistState = rememberPlaylistState(
-            playlistItems = playlistItems,
+            playlistItems = playlistItems.value,
             playlist = playlist,
         )
 

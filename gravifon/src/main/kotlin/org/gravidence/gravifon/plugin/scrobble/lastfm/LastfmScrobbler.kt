@@ -74,7 +74,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
         event.track.toLastfmTrack()?.let {
             pendingScrobble = Scrobble(track = event.track, startedAt = event.timestamp)
 
-            if (componentConfiguration.autoScrobble && componentConfiguration.sendNowPlaying) {
+            if (componentConfiguration.value.autoScrobble && componentConfiguration.value.sendNowPlaying) {
                 sendNowPlaying(it)
             } else {
                 logger.debug { "\"Now Playing\" notifications are disabled" }
@@ -106,7 +106,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                 } else {
                     completePendingScrobble(pendingScrobbleFixed, event)
 
-                    if (componentConfiguration.autoScrobble) {
+                    if (componentConfiguration.value.autoScrobble) {
                         scrobble()
                     } else {
                         logger.debug { "Auto scrobble is disabled. ${lastfmScrobblerStorage.scrobbleCache().size} scrobbles in cache" }
@@ -235,66 +235,45 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
         var sendNowPlaying: Boolean = true
     ) : ComponentConfiguration
 
-    override val componentConfiguration: LastfmScrobblerComponentConfiguration = readComponentConfiguration {
-        LastfmScrobblerComponentConfiguration()
-    }
+    override val componentConfiguration = mutableStateOf(
+        readComponentConfiguration {
+            LastfmScrobblerComponentConfiguration()
+        }
+    )
 
     val lastfmClient: LastfmClient = LastfmClient(
         apiKey = "3c3f2425f258b1bc2f7eddcd95194ef4",
         apiSecret = "a05c02f0b955060fc782f7a9270eeab6",
-        session = componentConfiguration.session
+        session = componentConfiguration.value.session
     )
 
-    inner class LastfmScrobblerSettingsState(
-        val session: MutableState<Session?>,
-        val autoScrobble: MutableState<Boolean>,
-        val sendNowPlaying: MutableState<Boolean>,
-    ) {
+    inner class LastfmScrobblerSettingsState {
 
         fun updateSession(session: Session?) {
-            this.session.value = session
-
-            componentConfiguration.session = session
+            componentConfiguration.value = componentConfiguration.value.copy(session = session)
             lastfmClient.session(session)
         }
 
-        fun updateAutoScrobble(autoScrobble: Boolean) {
-            this.autoScrobble.value = autoScrobble
-
-            componentConfiguration.autoScrobble = autoScrobble
-        }
-
         fun toggleAutoScrobble() {
-            updateAutoScrobble(!autoScrobble.value)
-        }
-
-        fun updateSendNowPlaying(sendNowPlaying: Boolean) {
-            this.sendNowPlaying.value = sendNowPlaying
-
-            componentConfiguration.sendNowPlaying = sendNowPlaying
+            componentConfiguration.value = componentConfiguration.value.copy(autoScrobble = componentConfiguration.value.autoScrobble.not())
         }
 
         fun toggleSendNowPlaying() {
-            updateSendNowPlaying(!sendNowPlaying.value)
+            componentConfiguration.value = componentConfiguration.value.copy(sendNowPlaying = componentConfiguration.value.sendNowPlaying.not())
         }
 
     }
 
     @Composable
     fun rememberLastfmScrobblerSettingsState(
-        session: MutableState<Session?>,
-        autoScrobble: MutableState<Boolean>,
-        sendNowPlaying: MutableState<Boolean>,
-    ) = remember(session, autoScrobble, sendNowPlaying) { LastfmScrobblerSettingsState(session, autoScrobble, sendNowPlaying) }
+    ) = remember {
+        LastfmScrobblerSettingsState()
+    }
 
     @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
     @Composable
     override fun composeSettings() {
-        val state: LastfmScrobblerSettingsState = rememberLastfmScrobblerSettingsState(
-            session = mutableStateOf(componentConfiguration.session),
-            autoScrobble = mutableStateOf(componentConfiguration.autoScrobble),
-            sendNowPlaying = mutableStateOf(componentConfiguration.sendNowPlaying),
-        )
+        val state = rememberLastfmScrobblerSettingsState()
         var authorization: Pair<Token, Uri>? by remember { mutableStateOf(null) }
         var error: String? by remember { mutableStateOf(null) }
 
@@ -316,7 +295,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                         Text("Session Key:")
                     }
                     BasicTextField(
-                        value = state.session.value?.key ?: "",
+                        value = componentConfiguration.value.session?.key ?: "",
                         singleLine = true,
                         readOnly = true,
                         onValueChange = {},
@@ -331,7 +310,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                     modifier = Modifier
                         .padding(horizontal = 30.dp, vertical = 5.dp)
                 )
-                if (state.session.value == null) {
+                if (componentConfiguration.value.session == null) {
                     Row(
                         horizontalArrangement = Arrangement.Center
                     ) {
@@ -399,7 +378,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                         .fillMaxWidth()
                 ) {
                     Button(
-                        enabled = state.session.value == null && authorization == null,
+                        enabled = componentConfiguration.value.session == null && authorization == null,
                         onClick = {
                             error = handleLastfmException {
                                 authorization = lastfmClient.authorizeStep1()
@@ -408,7 +387,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                     ) {
                         Text("Request Token")
                     }
-                    if (state.session.value == null) {
+                    if (componentConfiguration.value.session == null) {
                         Button(
                             enabled = authorization != null,
                             onClick = {
@@ -450,7 +429,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                                 )
                         ) {
                             Checkbox(
-                                checked = state.autoScrobble.value,
+                                checked = componentConfiguration.value.autoScrobble,
                                 onCheckedChange = {  }
                             )
                             Text("Scrobble automatically")
@@ -461,15 +440,15 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                                 .onPointerEvent(
                                     eventType = PointerEventType.Release,
                                     onEvent = {
-                                        if (state.autoScrobble.value) {
+                                        if (componentConfiguration.value.autoScrobble) {
                                             state.toggleSendNowPlaying()
                                         }
                                     }
                                 )
                         ) {
                             Checkbox(
-                                enabled = state.autoScrobble.value,
-                                checked = state.sendNowPlaying.value,
+                                enabled = componentConfiguration.value.autoScrobble,
+                                checked = componentConfiguration.value.sendNowPlaying,
                                 onCheckedChange = {  }
                             )
                             Text("Send \"Now Playing\" notifications")

@@ -113,18 +113,18 @@ class PlaylistState(
 
 @Composable
 fun rememberPlaylistState(
-    activeVirtualTrack: MutableState<VirtualTrack?> = GravifonContext.activeVirtualTrack,
-    playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(listOf()),
-    selectedPlaylistItems: MutableState<Map<Int, PlaylistItem>> = mutableStateOf(mapOf()),
-    preselectedPlaylistItem: MutableState<PlaylistItem?> = mutableStateOf(null),
+    activeVirtualTrack: VirtualTrack? = GravifonContext.activeVirtualTrack.value,
+    playlistItems: List<PlaylistItem> = listOf(),
+    selectedPlaylistItems: Map<Int, PlaylistItem> = mapOf(),
+    preselectedPlaylistItem: PlaylistItem? = null,
     playlist: Playlist
 ) = remember(activeVirtualTrack, playlistItems, selectedPlaylistItems, preselectedPlaylistItem) {
     PlaylistState(
-        activeVirtualTrack,
-        playlistItems,
-        selectedPlaylistItems,
-        preselectedPlaylistItem,
-        playlist
+        activeVirtualTrack = mutableStateOf(activeVirtualTrack),
+        playlistItems = mutableStateOf(playlistItems),
+        selectedPlaylistItems = mutableStateOf(selectedPlaylistItems),
+        preselectedPlaylistItem = mutableStateOf(preselectedPlaylistItem),
+        playlist = playlist
     )
 }
 

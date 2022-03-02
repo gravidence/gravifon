@@ -5,6 +5,7 @@ import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.GravifonStarter
 import org.gravidence.gravifon.event.EventBus
@@ -18,7 +19,11 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() = application {
     remember {
-        GravifonStarter.orchestrator.startup()
+        GravifonContext.scopeDefault.launch {
+            // launch startup in default coroutine scope
+            // to have component configuration mutable states available there for further operation
+            GravifonStarter.orchestrator.startup()
+        }
     }
 
     Window(

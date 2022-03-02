@@ -40,11 +40,13 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
     private val playlistItems: MutableState<List<PlaylistItem>>
 
     init {
-        playlist = playlistManager.getPlaylist(bandcamp.componentConfiguration.playlistId)
+        val cc = bandcamp.componentConfiguration.value
+
+        playlist = playlistManager.getPlaylist(cc.playlistId)
             ?: DynamicPlaylist(
-                id = bandcamp.componentConfiguration.playlistId,
+                id = cc.playlistId,
                 ownerName = bandcamp.pluginDisplayName,
-                displayName = bandcamp.componentConfiguration.playlistId
+                displayName = cc.playlistId
             ).also { playlistManager.addPlaylist(it) }
         playlistItems = mutableStateOf(playlist.items())
     }
@@ -53,6 +55,7 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
         when (event) {
             is PlaylistUpdatedEvent -> {
                 if (event.playlist === playlist) {
+                    // TODO useless, subject of removal
                     playlistItems.value = event.playlist.items()
                 }
             }
@@ -66,8 +69,6 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
     inner class BandcampViewState(
         val url: MutableState<String>,
         val isProcessing: MutableState<Boolean>,
-        val playlistItems: MutableState<List<PlaylistItem>>,
-        val playlist: Playlist
     ) {
 
         fun addPage() {
@@ -86,20 +87,20 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
 
     @Composable
     fun rememberBandcampViewState(
-        url: MutableState<String> = mutableStateOf(""),
-        isProcessing: MutableState<Boolean> = mutableStateOf(false),
-        playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(listOf()),
-        playlist: Playlist
-    ) = remember(url, isProcessing, playlistItems) { BandcampViewState(url, isProcessing, playlistItems, playlist) }
+        url: String = "",
+        isProcessing: Boolean = false,
+    ) = remember(url, isProcessing) {
+        BandcampViewState(
+            url = mutableStateOf(url),
+            isProcessing = mutableStateOf(isProcessing),
+        )
+    }
 
     @Composable
     override fun composeView() {
-        val bandcampViewState = rememberBandcampViewState(
-            playlistItems = playlistItems,
-            playlist = playlist
-        )
+        val bandcampViewState = rememberBandcampViewState()
         val playlistState = rememberPlaylistState(
-            playlistItems = playlistItems,
+            playlistItems = playlistItems.value,
             playlist = playlist
         )
 

@@ -39,11 +39,13 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
     private val playlistItems: MutableState<List<PlaylistItem>>
 
     init {
-        playlist = playlistManager.getPlaylist(library.componentConfiguration.playlistId)
+        val cc = library.componentConfiguration.value
+
+        playlist = playlistManager.getPlaylist(cc.playlistId)
             ?: DynamicPlaylist(
-                id = library.componentConfiguration.playlistId,
+                id = cc.playlistId,
                 ownerName = library.pluginDisplayName,
-                displayName = library.componentConfiguration.playlistId
+                displayName = cc.playlistId
             ).also { playlistManager.addPlaylist(it) }
         playlistItems = mutableStateOf(playlist.items())
     }
@@ -52,6 +54,7 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
         when (event) {
             is PlaylistUpdatedEvent -> {
                 if (event.playlist === playlist) {
+                    // TODO useless, subject of removal
                     playlistItems.value = event.playlist.items()
                 }
             }
@@ -64,24 +67,24 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
 
     inner class LibraryViewState(
         val query: MutableState<String>,
-        val playlistItems: MutableState<List<PlaylistItem>>,
-        val playlist: Playlist
     ) {
 
         fun onQueryChange(changed: String) {
             query.value = changed
             if (TrackQueryParser.validate(changed)) {
+                val cc = library.componentConfiguration.value
+
                 val selection = TrackQueryParser.execute(changed, library.libraryStorage.allTracks())
                     // TODO sortOrder should be part of view state
-                    .sortedWith(virtualTrackComparator(library.componentConfiguration.sortOrder))
+                    .sortedWith(virtualTrackComparator(cc.sortOrder))
                     .map { TrackPlaylistItem(it) }
                 playlist.replace(selection)
                 playlistItems.value = playlist.items()
 
-                if (library.componentConfiguration.queryHistory.size >= library.componentConfiguration.queryHistorySizeLimit) {
-                    library.componentConfiguration.queryHistory.removeLast()
+                if (cc.queryHistory.size >= cc.queryHistorySizeLimit) {
+                    cc.queryHistory.removeLast()
                 }
-                library.componentConfiguration.queryHistory.add(0, changed)
+                cc.queryHistory.add(0, changed)
             }
         }
 
@@ -89,20 +92,20 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
 
     @Composable
     fun rememberLibraryViewState(
-        query: MutableState<String> = mutableStateOf(""),
-        playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(listOf()),
-        playlist: Playlist
-    ) = remember(query, playlistItems) { LibraryViewState(query, playlistItems, playlist) }
+        query: String = "",
+    ) = remember(query) {
+        LibraryViewState(
+            query = mutableStateOf(query)
+        )
+    }
 
     @Composable
     override fun composeView() {
         val libraryViewState = rememberLibraryViewState(
-            query = mutableStateOf(library.componentConfiguration.queryHistory.firstOrNull() ?: ""),
-            playlistItems = playlistItems,
-            playlist = playlist
+            query = library.componentConfiguration.value.queryHistory.firstOrNull() ?: "",
         )
         val playlistState = rememberPlaylistState(
-            playlistItems = playlistItems,
+            playlistItems = playlistItems.value,
             playlist = playlist
         )
 

@@ -42,12 +42,14 @@ class AutosaveUs(
 
     @Synchronized
     private fun setupIntervalSecondsHandler() {
-        if (componentConfiguration.intervalSeconds > 0 ) {
-            logger.info { "Register handler: save every ${componentConfiguration.intervalSeconds} seconds" }
+        val cc = componentConfiguration.value
+
+        if (cc.intervalSeconds > 0 ) {
+            logger.info { "Register handler: save every ${cc.intervalSeconds} seconds" }
             fixedRateTimer(
                 name = "Autosave-Us",
-                initialDelay = componentConfiguration.intervalSeconds * 1000,
-                period = componentConfiguration.intervalSeconds * 1000
+                initialDelay = cc.intervalSeconds * 1000,
+                period = cc.intervalSeconds * 1000
             ) {
                 logger.debug { "Autosave us..." }
                 publish(PersistConfigurationEvent())
@@ -62,11 +64,13 @@ class AutosaveUs(
         var intervalSeconds: Long,
     ) : ComponentConfiguration
 
-    override val componentConfiguration: AutosaveUsComponentConfiguration = readComponentConfiguration {
-        AutosaveUsComponentConfiguration(
-            intervalSeconds = 600,
-        )
-    }
+    override val componentConfiguration = mutableStateOf(
+        readComponentConfiguration {
+            AutosaveUsComponentConfiguration(
+                intervalSeconds = 600,
+            )
+        }
+    )
 
     inner class AutosaveUsSettingsState(
         val intervalSeconds: MutableState<Long>,
@@ -79,27 +83,26 @@ class AutosaveUs(
         }
 
         fun commitIntervalSeconds() {
-            // TODO next two lines should really be a single operation
-            componentState = componentConfiguration.copy(intervalSeconds = intervalSeconds.value)
-            componentConfiguration.intervalSeconds = intervalSeconds.value
+            componentConfiguration.value = componentConfiguration.value.copy(intervalSeconds = intervalSeconds.value)
             setupIntervalSecondsHandler()
         }
 
     }
 
-    var componentState by mutableStateOf(componentConfiguration)
-
     @Composable
     fun rememberAutosaveUsSettingsState(
         intervalSeconds: Long,
-    ) = remember(intervalSeconds) { AutosaveUsSettingsState(mutableStateOf(intervalSeconds)) }
+    ) = remember(intervalSeconds) {
+        AutosaveUsSettingsState(
+            intervalSeconds = mutableStateOf(intervalSeconds)
+        )
+    }
 
     @Composable
     override fun composeSettings() {
         val dialogState = rememberAutosaveUsSettingsState(
-            intervalSeconds = componentState.intervalSeconds,
+            intervalSeconds = componentConfiguration.value.intervalSeconds,
         )
-        println("render settings - $dialogState - ${dialogState.intervalSeconds.value} - $componentState")
 
         Box(
             modifier = Modifier
@@ -120,7 +123,7 @@ class AutosaveUs(
                         },
                         onValueChange = { dialogState.updateIntervalSeconds(it) }
                     )
-                    if (dialogState.intervalSeconds.value != componentState.intervalSeconds) {
+                    if (dialogState.intervalSeconds.value != componentConfiguration.value.intervalSeconds) {
                         IconButton(
                             onClick = { dialogState.commitIntervalSeconds() }
                         ) {

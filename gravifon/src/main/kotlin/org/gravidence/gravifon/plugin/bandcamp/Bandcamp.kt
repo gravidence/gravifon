@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -67,7 +66,7 @@ class Bandcamp(
                 bandcampSerializer.decodeFromString<BandcampItem>(bandcampItem).also {
                     logger.debug { "Bandcamp item parsed: $it" }
                 }.let {
-                    if (componentConfiguration.useEnhancer) {
+                    if (componentConfiguration.value.useEnhancer) {
                         it.enhanced().also {
                             logger.debug { "Bandcamp item enhanced: $it" }
                         }
@@ -92,39 +91,32 @@ class Bandcamp(
         var useEnhancer: Boolean,
     ) : ComponentConfiguration
 
-    override val componentConfiguration: BandcampComponentConfiguration = readComponentConfiguration {
-        BandcampComponentConfiguration(
-            playlistId = UUID.randomUUID().toString(),
-            useEnhancer = false,
-        )
-    }
-
-    inner class BandcampSettingsState(
-        val useEnhancer: MutableState<Boolean>,
-    ) {
-
-        fun updateUseEnhancer(useEnhancer: Boolean) {
-            this.useEnhancer.value = useEnhancer
-
-            componentConfiguration.useEnhancer = useEnhancer
+    override val componentConfiguration = mutableStateOf(
+        readComponentConfiguration {
+            BandcampComponentConfiguration(
+                playlistId = UUID.randomUUID().toString(),
+                useEnhancer = false,
+            )
         }
+    )
+
+    inner class BandcampSettingsState {
 
         fun toggleUseEnhancer() {
-            updateUseEnhancer(!useEnhancer.value)
+            componentConfiguration.value = componentConfiguration.value.copy(useEnhancer = componentConfiguration.value.useEnhancer.not())
         }
 
     }
 
     @Composable
     fun rememberBandcampSettingsState(
-        useEnhancer: MutableState<Boolean>,
-    ) = remember(useEnhancer) { BandcampSettingsState(useEnhancer) }
+    ) = remember {
+        BandcampSettingsState()
+    }
 
     @Composable
     override fun composeSettings() {
-        val state = rememberBandcampSettingsState(
-            useEnhancer = mutableStateOf(componentConfiguration.useEnhancer),
-        )
+        val state = rememberBandcampSettingsState()
 
         Box(
             modifier = Modifier
@@ -140,13 +132,11 @@ class Bandcamp(
                             modifier = Modifier
                                 .onPointerEvent(
                                     eventType = PointerEventType.Release,
-                                    onEvent = {
-                                        state.toggleUseEnhancer()
-                                    }
+                                    onEvent = { state.toggleUseEnhancer() }
                                 )
                         ) {
                             Checkbox(
-                                checked = state.useEnhancer.value,
+                                checked = componentConfiguration.value.useEnhancer,
                                 onCheckedChange = {  }
                             )
                             Text("Use metadata enhancer")

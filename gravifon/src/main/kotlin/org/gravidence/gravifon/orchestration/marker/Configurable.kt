@@ -1,6 +1,7 @@
 package org.gravidence.gravifon.orchestration.marker
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 
@@ -12,19 +13,15 @@ private val logger = KotlinLogging.logger {}
  */
 interface Configurable : ConfigurationManagerAware {
 
-    /**
-     * Interface implementations must be registered in Gravifon serializers module.
-     * See [documentation](https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/polymorphism.md#serializing-interfaces).
-     */
-    val componentConfiguration: ComponentConfiguration
+    val componentConfiguration: MutableState<out ComponentConfiguration>
 
     /**
      * Writes component configuration (a bean) to application settings.
      */
     fun writeComponentConfiguration() {
-        logger.debug { "Store component configuration: $componentConfiguration" }
+        logger.debug { "Store component configuration: ${componentConfiguration.value}" }
 
-        configurationManager.componentConfig(this.javaClass.name, componentConfiguration)
+        configurationManager.componentConfig(this.javaClass.name, componentConfiguration.value)
     }
 
     /**

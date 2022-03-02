@@ -2,6 +2,7 @@ package org.gravidence.gravifon.plugin.library
 
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.serialization.Serializable
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.ConfigurationManager
@@ -19,9 +20,11 @@ class Library(
     override val pluginDisplayName: String = "Library"
     override val pluginDescription: String = "Library v0.1"
 
-    override val componentConfiguration: LibraryComponentConfiguration = readComponentConfiguration {
-        LibraryComponentConfiguration(playlistId = UUID.randomUUID().toString())
-    }
+    override val componentConfiguration = mutableStateOf(
+        readComponentConfiguration {
+            LibraryComponentConfiguration(playlistId = UUID.randomUUID().toString())
+        }
+    )
 
     @Serializable
     data class LibraryComponentConfiguration(

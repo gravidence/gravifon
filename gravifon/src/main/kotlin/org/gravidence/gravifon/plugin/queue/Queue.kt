@@ -2,6 +2,7 @@ package org.gravidence.gravifon.plugin.queue
 
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.serialization.Serializable
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.ConfigurationManager
@@ -19,20 +20,22 @@ class Queue(override val configurationManager: ConfigurationManager, private val
     override val pluginDisplayName: String = "Queue"
     override val pluginDescription: String = "Queue v0.1"
 
-    override val componentConfiguration: QueueComponentConfiguration
-
-    init {
-        componentConfiguration = readComponentConfiguration {
+    override val componentConfiguration = mutableStateOf(
+        readComponentConfiguration {
             QueueComponentConfiguration(playlistId = UUID.randomUUID().toString())
         }
+    )
 
-        if (playlistManager.getPlaylist(componentConfiguration.playlistId) == null) {
+    init {
+        val cc = componentConfiguration.value
+
+        if (playlistManager.getPlaylist(cc.playlistId) == null) {
             // by below call, Queue playlist is also activated automatically by PlaylistManager
             playlistManager.addPlaylist(
                 Queue(
-                    id = componentConfiguration.playlistId,
+                    id = cc.playlistId,
                     ownerName = pluginDisplayName,
-                    displayName = componentConfiguration.playlistId
+                    displayName = cc.playlistId
                 )
             )
         }
