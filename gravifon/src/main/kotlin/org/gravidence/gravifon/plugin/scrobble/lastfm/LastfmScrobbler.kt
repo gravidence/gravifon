@@ -18,8 +18,10 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.domain.track.VirtualTrack
@@ -84,11 +86,13 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
     }
 
     private fun sendNowPlaying(track: Track) {
-        handleLastfmException {
-            val response = lastfmClient.trackApi.updateNowPlaying(track)
+        GravifonContext.scopeDefault.launch {
+            handleLastfmException {
+                val response = lastfmClient.trackApi.updateNowPlaying(track)
 
-            if (response.result.scrobbleCorrectionSummary.status != IgnoreStatus.OK) {
-                logger.info { "Scrobble will be ignored by service: reason=${response.result.scrobbleCorrectionSummary.status}" }
+                if (response.result.scrobbleCorrectionSummary.status != IgnoreStatus.OK) {
+                    logger.info { "Scrobble will be ignored by service: reason=${response.result.scrobbleCorrectionSummary.status}" }
+                }
             }
         }
     }
@@ -116,20 +120,22 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
     }
 
     fun scrobble() {
-        handleLastfmException {
-            while (lastfmScrobblerStorage.scrobbleCache().isNotEmpty()) {
-                val scrobbleCache = lastfmScrobblerStorage.scrobbleCache()
-                val candidateScrobbles = scrobbleCache.take(50).also {
-                    logger.info { "Submitting ${it.size} out of ${scrobbleCache.size} scrobbles..." }
+        GravifonContext.scopeDefault.launch {
+            handleLastfmException {
+                while (lastfmScrobblerStorage.scrobbleCache().isNotEmpty()) {
+                    val scrobbleCache = lastfmScrobblerStorage.scrobbleCache()
+                    val candidateScrobbles = scrobbleCache.take(50).also {
+                        logger.info { "Submitting ${it.size} out of ${scrobbleCache.size} scrobbles..." }
+                    }
+
+                    val response = lastfmClient.trackApi.scrobble(candidateScrobbles.map { it.toLastfmScrobble() })
+
+                    if (response.responseHolder.summary.ignored > 0) {
+                        logger.info { "${response.responseHolder.summary.ignored} scrobbles were ignored by service" }
+                    }
+
+                    lastfmScrobblerStorage.removeFromScrobbleCache(candidateScrobbles)
                 }
-
-                val response = lastfmClient.trackApi.scrobble(candidateScrobbles.map { it.toLastfmScrobble() })
-
-                if (response.responseHolder.summary.ignored > 0) {
-                    logger.info { "${response.responseHolder.summary.ignored} scrobbles were ignored by service" }
-                }
-
-                lastfmScrobblerStorage.removeFromScrobbleCache(candidateScrobbles)
             }
         }
     }
