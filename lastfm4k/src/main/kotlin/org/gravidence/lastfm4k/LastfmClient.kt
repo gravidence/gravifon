@@ -47,6 +47,11 @@ class LastfmClient(
      * Make all APIs use new [session].
      */
     fun session(session: Session?) {
+        if (session != null) {
+            logger.info { "Use new session: $session" }
+        } else {
+            logger.info { "Session cleared" }
+        }
         context.session = session
     }
 
