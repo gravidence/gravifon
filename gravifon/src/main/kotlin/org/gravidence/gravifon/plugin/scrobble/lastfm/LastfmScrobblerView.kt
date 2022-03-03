@@ -1,20 +1,21 @@
 package org.gravidence.gravifon.plugin.scrobble.lastfm
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.playlist.PlaylistUpdatedEvent
 import org.gravidence.gravifon.event.playlist.RemovePlaylistItemsEvent
@@ -66,12 +67,40 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
         return lastfmScrobbler.pluginDisplayName
     }
 
+    inner class LastfmScrobblerViewState(
+        val isProcessing: MutableState<Boolean>,
+    ) {
+
+        fun submitScrobbles() {
+            GravifonContext.scopeDefault.launch {
+                isProcessing.value = true
+
+                lastfmScrobbler.scrobble()
+
+                isProcessing.value = false
+            }
+        }
+
+    }
+
+    @Composable
+    fun rememberLastfmScrobblerViewState(
+        isProcessing: Boolean = false,
+    ) = remember {
+        LastfmScrobblerViewState(
+            isProcessing = mutableStateOf(isProcessing),
+        )
+    }
+
     @Composable
     override fun composeView() {
+        val lastfmScrobblerViewState = rememberLastfmScrobblerViewState()
         val playlistState = rememberPlaylistState(
             playlistItems = playlistItems.value,
             playlist = playlist,
         )
+
+        val pendingScrobbleCount = playlistItems.value.items.size
 
         Box(
             modifier = Modifier
@@ -84,16 +113,20 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
                         .padding(5.dp)
                 ) {
                     Text(
-                        text = "Scrobbles: ${playlistItems.value.items.size}",
+                        text = "Scrobbles: $pendingScrobbleCount",
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .weight(1f)
                     )
                     Button(
-                        enabled = playlistItems.value.items.isNotEmpty(),
-                        onClick = { lastfmScrobbler.scrobble() }
+                        enabled = pendingScrobbleCount > 0 && !lastfmScrobblerViewState.isProcessing.value,
+                        onClick = { lastfmScrobblerViewState.submitScrobbles() }
                     ) {
-                        Text("Scrobble")
+                        if (lastfmScrobblerViewState.isProcessing.value) {
+                            CircularProgressIndicator(strokeWidth = 3.dp, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text("Scrobble")
+                        }
                     }
                 }
                 Divider(color = Color.Transparent, thickness = 2.dp)
