@@ -41,6 +41,9 @@ class Bandcamp(
     override val configurationManager: ConfigurationManager,
 ) : Plugin {
 
+    override var pluginEnabled: Boolean
+        get() = componentConfiguration.value.enabled
+        set(value) { componentConfiguration.value = componentConfiguration.value.copy(enabled = value)}
     override val pluginDisplayName: String = "Bandcamp"
     override val pluginDescription: String = "Bandcamp v0.1"
 
@@ -87,6 +90,7 @@ class Bandcamp(
 
     @Serializable
     data class BandcampComponentConfiguration(
+        val enabled: Boolean = true,
         val playlistId: String,
         var useEnhancer: Boolean,
     ) : ComponentConfiguration

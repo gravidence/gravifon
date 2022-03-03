@@ -9,6 +9,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEvent
@@ -77,8 +78,62 @@ fun <T> Table(tableState: TableState<T>) {
         modifier = Modifier
             .padding(10.dp)
     ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            TableHeader(tableState.layout.value)
+            TableContent(tableState)
+        }
+    }
+}
+
+@Composable
+fun TableHeader(layout: TableLayout) {
+    if (layout.displayHeaders) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            layout.columns.forEach {
+                val columnModifier = if (it.fraction != null) {
+                    Modifier.fillMaxWidth(it.fraction)
+                } else if (it.width != null) {
+                    Modifier.width(it.width)
+                } else {
+                    Modifier
+                }
+
+                Text(
+                    text = it.header ?: "",
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip,
+                    fontWeight = FontWeight.Bold,
+                    modifier = columnModifier
+                        .background(color = gListHeaderColor, shape = gShape)
+                        .padding(5.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun <T> TableContent(tableState: TableState<T>) {
+    tableState.grid.value?.rows?.value?.forEachIndexed { rowIndex, row ->
+        val rowModifier = if (rowIndex in tableState.selectedRows.value) {
+            Modifier.background(color = gSelectedListItemColor, shape = gShape)
+        } else {
+            Modifier
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = rowModifier
+                .onPointerEvent(
+                    eventType = PointerEventType.Release,
+                    onEvent = { tableState.onRowClick(rowIndex, it) }
+                )
         ) {
             tableState.layout.value.columns.forEachIndexed { columnIndex, column ->
                 val columnModifier = if (column.fraction != null) {
@@ -93,37 +148,7 @@ fun <T> Table(tableState: TableState<T>) {
                     verticalArrangement = Arrangement.spacedBy(5.dp),
                     modifier = columnModifier
                 ) {
-                    if (tableState.layout.value.displayHeaders) {
-                        Row {
-                            Text(
-                                text = column.header ?: "",
-                                maxLines = 1,
-                                overflow = TextOverflow.Clip,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .background(color = gListHeaderColor, shape = gShape)
-                                    .padding(5.dp)
-                                    .fillMaxWidth()
-                            )
-                        }
-                    }
-                    tableState.grid.value?.rows?.value?.forEachIndexed { rowIndex, row ->
-                        val rowModifier = if (rowIndex in tableState.selectedRows.value) {
-                            Modifier.background(color = gSelectedListItemColor, shape = gShape)
-                        } else {
-                            Modifier
-                        }
-
-                        Row(
-                            modifier = rowModifier
-                                .onPointerEvent(
-                                    eventType = PointerEventType.Release,
-                                    onEvent = { tableState.onRowClick(rowIndex, it) }
-                                )
-                        ) {
-                            row.cells[columnIndex].value.content(rowIndex, columnIndex, tableState)
-                        }
-                    }
+                    row.cells[columnIndex].value.content(rowIndex, columnIndex, tableState)
                 }
             }
         }

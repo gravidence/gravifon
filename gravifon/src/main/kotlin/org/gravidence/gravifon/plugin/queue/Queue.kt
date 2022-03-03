@@ -17,12 +17,17 @@ import java.util.*
 class Queue(override val configurationManager: ConfigurationManager, private val playlistManager: PlaylistManager) :
     Plugin, Viewable {
 
+    override var pluginEnabled: Boolean
+        get() = componentConfiguration.value.enabled
+        set(value) { componentConfiguration.value = componentConfiguration.value.copy(enabled = value)}
     override val pluginDisplayName: String = "Queue"
     override val pluginDescription: String = "Queue v0.1"
 
     override val componentConfiguration = mutableStateOf(
         readComponentConfiguration {
-            QueueComponentConfiguration(playlistId = UUID.randomUUID().toString())
+            QueueComponentConfiguration(
+                playlistId = UUID.randomUUID().toString(),
+            )
         }
     )
 
@@ -57,6 +62,7 @@ class Queue(override val configurationManager: ConfigurationManager, private val
 
     @Serializable
     data class QueueComponentConfiguration(
+        val enabled: Boolean = false,
         val playlistId: String
     ) : ComponentConfiguration
 

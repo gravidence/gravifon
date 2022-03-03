@@ -4,6 +4,8 @@ import org.gravidence.gravifon.orchestration.marker.Configurable
 
 interface Plugin : Configurable {
 
+    var pluginEnabled: Boolean
+
     val pluginDisplayName: String
     val pluginDescription: String
 

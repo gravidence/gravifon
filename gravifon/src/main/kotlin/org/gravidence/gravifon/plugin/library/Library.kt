@@ -17,17 +17,23 @@ class Library(
     val libraryStorage: LibraryStorage
 ) : Plugin {
 
+    override var pluginEnabled: Boolean
+        get() = componentConfiguration.value.enabled
+        set(value) { componentConfiguration.value = componentConfiguration.value.copy(enabled = value)}
     override val pluginDisplayName: String = "Library"
     override val pluginDescription: String = "Library v0.1"
 
     override val componentConfiguration = mutableStateOf(
         readComponentConfiguration {
-            LibraryComponentConfiguration(playlistId = UUID.randomUUID().toString())
+            LibraryComponentConfiguration(
+                playlistId = UUID.randomUUID().toString(),
+            )
         }
     )
 
     @Serializable
     data class LibraryComponentConfiguration(
+        val enabled: Boolean = true,
         val playlistId: String,
         val queryHistory: MutableList<String> = mutableListOf(),
         val queryHistorySizeLimit: Int = 10,

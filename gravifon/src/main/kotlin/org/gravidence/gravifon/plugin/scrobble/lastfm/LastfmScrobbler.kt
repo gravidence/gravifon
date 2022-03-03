@@ -53,6 +53,9 @@ private val logger = KotlinLogging.logger {}
 class LastfmScrobbler(override val configurationManager: ConfigurationManager, val lastfmScrobblerStorage: LastfmScrobblerStorage) :
     Plugin, EventAware {
 
+    override var pluginEnabled: Boolean
+        get() = componentConfiguration.value.enabled
+        set(value) { componentConfiguration.value = componentConfiguration.value.copy(enabled = value)}
     override val pluginDisplayName: String = "Last.fm Scrobbler"
     override val pluginDescription: String = "Last.fm Scrobbler v0.1"
 
@@ -62,9 +65,11 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
     private var pendingScrobble: Scrobble? = null
 
     override fun consume(event: Event) {
-        when (event) {
-            is PubTrackStartEvent -> handle(event)
-            is PubTrackFinishEvent -> handle(event)
+        if (pluginEnabled) {
+            when (event) {
+                is PubTrackStartEvent -> handle(event)
+                is PubTrackFinishEvent -> handle(event)
+            }
         }
     }
 
@@ -224,6 +229,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
 
     @Serializable
     data class LastfmScrobblerComponentConfiguration(
+        var enabled: Boolean = false,
         var session: Session? = null,
         var autoScrobble: Boolean = true,
         var sendNowPlaying: Boolean = true

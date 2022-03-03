@@ -2,6 +2,7 @@ package org.gravidence.gravifon.ui.dialog
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Checkbox
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +45,7 @@ class PluginListState(
                 TableLayout(
                     displayHeaders = false,
                     columns = listOf(
+                        TableColumn(header = "Enabled"),
                         TableColumn(header = "Plugin", fraction = 1f)
                     )
                 )
@@ -51,11 +53,34 @@ class PluginListState(
         }
 
         fun grid(pluginSettingsState: PluginSettingsState): MutableState<TableGrid<Plugin>?> {
-            return mutableStateOf(singleColumnTableGrid(
-                pluginSettingsState.plugins.map {
-                    TableCell(value = it.pluginDisplayName)
-                }
-            ))
+            return mutableStateOf(
+                TableGrid(
+                    rows = mutableStateOf(
+                        pluginSettingsState.plugins.map { plugin ->
+                            TableRow<Plugin>(
+                                cells = mutableListOf(
+                                    mutableStateOf(
+                                        TableCell(
+                                            value = plugin.pluginEnabled.toString(),
+                                            content = { _, _, _ ->
+                                                Checkbox(
+                                                    checked = plugin.pluginEnabled,
+                                                    onCheckedChange = { plugin.pluginEnabled = it }
+                                                )
+                                            },
+                                        )
+                                    ),
+                                    mutableStateOf(
+                                        TableCell(
+                                            value = plugin.pluginDisplayName,
+                                        )
+                                    )
+                                )
+                            )
+                        }.toMutableList()
+                    )
+                )
+            )
         }
 
         fun selectedPlugin(pluginSettingsState: PluginSettingsState): MutableState<Set<Int>> {
@@ -91,7 +116,7 @@ fun PluginSettingsDialog() {
         visible = GravifonContext.pluginSettingsDialogVisible.value, // wrap dialog with if-clause to dispose it after closure
         state = rememberDialogState(
             position = WindowPosition(Alignment.Center),
-            size = DpSize(600.dp, 400.dp)
+            size = DpSize(800.dp, 500.dp)
         ),
         onCloseRequest = { GravifonContext.pluginSettingsDialogVisible.value = false }
     ) {

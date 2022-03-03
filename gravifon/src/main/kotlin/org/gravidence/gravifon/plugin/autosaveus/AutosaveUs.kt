@@ -29,6 +29,12 @@ class AutosaveUs(
     override val configurationManager: ConfigurationManager,
 ) : Plugin, EventAware {
 
+    override var pluginEnabled: Boolean
+        get() = componentConfiguration.value.enabled
+        set(value) {
+            componentConfiguration.value = componentConfiguration.value.copy(enabled = value)
+            setupIntervalSecondsHandler()
+        }
     override val pluginDisplayName: String = "Autosave Us"
     override val pluginDescription: String = "Autosave Us v0.1"
 
@@ -44,7 +50,7 @@ class AutosaveUs(
     private fun setupIntervalSecondsHandler() {
         val cc = componentConfiguration.value
 
-        if (cc.intervalSeconds > 0 ) {
+        if (pluginEnabled && cc.intervalSeconds > 0 ) {
             logger.info { "Register handler: save every ${cc.intervalSeconds} seconds" }
             fixedRateTimer(
                 name = "Autosave-Us",
@@ -61,14 +67,13 @@ class AutosaveUs(
 
     @Serializable
     data class AutosaveUsComponentConfiguration(
-        var intervalSeconds: Long,
+        var enabled: Boolean = true,
+        var intervalSeconds: Long = 600,
     ) : ComponentConfiguration
 
     override val componentConfiguration = mutableStateOf(
         readComponentConfiguration {
-            AutosaveUsComponentConfiguration(
-                intervalSeconds = 600,
-            )
+            AutosaveUsComponentConfiguration()
         }
     )
 
