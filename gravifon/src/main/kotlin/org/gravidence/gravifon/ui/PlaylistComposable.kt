@@ -39,21 +39,13 @@ import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.gListItemColor
 import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
-import org.gravidence.gravifon.util.DesktopUtil
-import org.gravidence.gravifon.util.DurationUtil
-import org.gravidence.gravifon.util.firstNotEmptyOrNull
-import org.gravidence.gravifon.util.nullableListOf
+import org.gravidence.gravifon.ui.util.ListHolder
+import org.gravidence.gravifon.util.*
 import java.awt.event.MouseEvent
-
-/**
- * Simple playlist items holder to control recomposition.
- * That allows VirtualTrack objects to be shared between all components.
- */
-class PlaylistItemsHolder(val items: List<PlaylistItem>)
 
 class PlaylistState(
     val activeVirtualTrack: MutableState<VirtualTrack?>,
-    val playlistItems: MutableState<PlaylistItemsHolder>,
+    val playlistItems: MutableState<ListHolder<PlaylistItem>>,
     val selectedPlaylistItems: MutableState<Map<Int, PlaylistItem>>,
     val preselectedPlaylistItem: MutableState<PlaylistItem?>,
     val playlist: Playlist
@@ -84,7 +76,7 @@ class PlaylistState(
                 }
                 Key.A -> {
                     if (keyEvent.isCtrlPressed) {
-                        selectedPlaylistItems.value = playlistItems.value.items
+                        selectedPlaylistItems.value = playlistItems.value.list
                             .mapIndexed { index, playlistItem -> Pair(index, playlistItem) }
                             .toMap()
                         true
@@ -120,7 +112,7 @@ class PlaylistState(
 @Composable
 fun rememberPlaylistState(
     activeVirtualTrack: VirtualTrack? = GravifonContext.activeVirtualTrack.value,
-    playlistItems: PlaylistItemsHolder = PlaylistItemsHolder(listOf()),
+    playlistItems: ListHolder<PlaylistItem> = ListHolder(listOf()),
     selectedPlaylistItems: Map<Int, PlaylistItem> = mapOf(),
     preselectedPlaylistItem: PlaylistItem? = null,
     playlist: Playlist
@@ -139,7 +131,7 @@ fun buildContextMenu(playlistState: PlaylistState): List<ContextMenuItem> {
 
     val preselectedItem = playlistState.preselectedPlaylistItem.value
     val selectedItems = playlistState.selectedPlaylistItems.value
-    val allItems = playlistState.playlistItems.value.items
+    val allItems = playlistState.playlistItems.value.list
 
     val candidateSelectedItems: Collection<PlaylistItem>? = firstNotEmptyOrNull(
         nullableListOf(preselectedItem),
@@ -213,7 +205,7 @@ fun PlaylistComposable(playlistState: PlaylistState) {
                     .fillMaxWidth()
                     .padding(10.dp)
             ) {
-                itemsIndexed(items = playlistState.playlistItems.value.items) { index, playlistItem ->
+                itemsIndexed(items = playlistState.playlistItems.value.list) { index, playlistItem ->
                     PlaylistItemComposable(index, playlistItem, playlistState)
                 }
             }

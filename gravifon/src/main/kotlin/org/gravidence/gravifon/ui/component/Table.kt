@@ -54,9 +54,19 @@ open class TableState<T>(
     }
 
     open fun onCellChange(cell: TableCell<T>, rowIndex: Int, columnIndex: Int, newValue: String) {
-        grid.value?.let {
-            it.rows.value[rowIndex].cells[columnIndex].value = cell.copy(content = newValue)
+        cellState(this, rowIndex, columnIndex)?.let {
+            it.value = it.value.copy(value = newValue)
         }
+    }
+
+    companion object {
+
+        fun <T> cellState(tableState: TableState<T>, rowIndex: Int, columnIndex: Int): MutableState<TableCell<T>>? {
+            return tableState.grid.value?.let {
+                it.rows.value[rowIndex].cells[columnIndex]
+            }
+        }
+
     }
 
 }
@@ -111,29 +121,7 @@ fun <T> Table(tableState: TableState<T>) {
                                     onEvent = { tableState.onRowClick(rowIndex, it) }
                                 )
                         ) {
-                            val cell = row.cells[columnIndex].value
-                            if (tableState.enabled.value) {
-                                BasicTextField(
-                                    value = cell.content ?: "<varies>",
-                                    singleLine = true,
-                                    readOnly = tableState.readOnly.value,
-                                    modifier = Modifier
-                                        .background(color = gListItemColor, shape = gShape)
-                                        .padding(5.dp)
-                                        .fillMaxWidth(),
-                                    onValueChange = { tableState.onCellChange(cell, rowIndex, columnIndex, it) }
-                                )
-                            } else {
-                                Text(
-                                    text = cell.content ?: "<varies>",
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .background(color = gListItemColor, shape = gShape)
-                                        .padding(5.dp)
-                                        .fillMaxWidth(),
-                                )
-                            }
+                            row.cells[columnIndex].value.content(rowIndex, columnIndex, tableState)
                         }
                     }
                 }
@@ -154,15 +142,45 @@ data class TableColumn(
 )
 
 data class TableCell<T>(
-    var content: String?,
-    val source: T? = null
+    val value: String?,
+    val content: @Composable ((rowIndex: Int, columnIndex: Int, tableState: TableState<T>) -> Unit) = { rowIndex, columnIndex, tableState ->
+        if (enabled ?: tableState.enabled.value) {
+            BasicTextField(
+                value = value ?: "<varies>",
+                singleLine = true,
+                readOnly = readOnly ?: tableState.readOnly.value,
+                modifier = Modifier
+                    .background(color = gListItemColor, shape = gShape)
+                    .padding(5.dp)
+                    .fillMaxWidth(),
+                onValueChange = { newValue ->
+                    TableState.cellState(tableState, rowIndex, columnIndex)?.value?.let { cell ->
+                        tableState.onCellChange(cell, rowIndex, columnIndex, newValue)
+                    }
+                }
+            )
+        } else {
+            Text(
+                text = value ?: "<varies>",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .background(color = gListItemColor, shape = gShape)
+                    .padding(5.dp)
+                    .fillMaxWidth(),
+            )
+        }
+    },
+    var enabled: Boolean? = null,
+    var readOnly: Boolean? = null,
+    val source: T? = null,
 )
 
-data class TableRow<T>(
+class TableRow<T>(
     val cells: MutableList<MutableState<TableCell<T>>>
 )
 
-data class TableGrid<T>(
+class TableGrid<T>(
     val rows: MutableState<MutableList<TableRow<T>>>
 )
 

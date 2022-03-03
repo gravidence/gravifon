@@ -53,7 +53,7 @@ class PluginListState(
         fun grid(pluginSettingsState: PluginSettingsState): MutableState<TableGrid<Plugin>?> {
             return mutableStateOf(singleColumnTableGrid(
                 pluginSettingsState.plugins.map {
-                    TableCell(content = it.pluginDisplayName)
+                    TableCell(value = it.pluginDisplayName)
                 }
             ))
         }

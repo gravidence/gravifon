@@ -28,8 +28,8 @@ import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
 import org.gravidence.gravifon.plugin.scrobble.lastfm.event.LastfmScrobbleCacheUpdatedEvent
 import org.gravidence.gravifon.ui.PlaylistComposable
-import org.gravidence.gravifon.ui.PlaylistItemsHolder
 import org.gravidence.gravifon.ui.rememberPlaylistState
+import org.gravidence.gravifon.ui.util.ListHolder
 import org.springframework.stereotype.Component
 
 @Component
@@ -40,7 +40,7 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
         displayName = "Scrobble Cache",
         items = scrobbleCacheToPlaylistItems(lastfmScrobbler.lastfmScrobblerStorage.scrobbleCache())
     )
-    private val playlistItems: MutableState<PlaylistItemsHolder> = mutableStateOf(PlaylistItemsHolder(playlist.items()))
+    private val playlistItems: MutableState<ListHolder<PlaylistItem>> = mutableStateOf(ListHolder(playlist.items()))
 
     override fun consume(event: Event) {
         when (event) {
@@ -100,7 +100,7 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
             playlist = playlist,
         )
 
-        val pendingScrobbleCount = playlistItems.value.items.size
+        val pendingScrobbleCount = playlistItems.value.list.size
 
         Box(
             modifier = Modifier
@@ -144,7 +144,7 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
     private fun updateViewState(scrobbleCache: List<Scrobble>) {
         val scrobbleCachePlaylistItems = scrobbleCacheToPlaylistItems(scrobbleCache)
         playlist.replace(scrobbleCachePlaylistItems)
-        playlistItems.value = PlaylistItemsHolder(scrobbleCachePlaylistItems)
+        playlistItems.value = ListHolder(scrobbleCachePlaylistItems)
     }
 
 }

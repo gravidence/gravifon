@@ -25,11 +25,12 @@ import org.gravidence.gravifon.event.playlist.PlaylistUpdatedEvent
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.ui.component.*
 import org.gravidence.gravifon.ui.theme.gShape
+import org.gravidence.gravifon.ui.util.ListHolder
 
 class TrackMetadataState(
     private var playlist: Playlist? = null,
     val tracks: MutableState<List<VirtualTrack>>,
-    val tracksSnapshot: MutableState<List<VirtualTrack>> = mutableStateOf(snapshot(tracks.value)),
+    val tracksSnapshot: MutableState<ListHolder<VirtualTrack>> = mutableStateOf(snapshot(tracks.value)),
     val selectedTracks: MutableState<Set<Int>>, // refers to tracks from snapshot, aka selected for edit, but results could be reverted
     val changed: MutableState<Boolean> = mutableStateOf(false)
 ) {
@@ -43,7 +44,7 @@ class TrackMetadataState(
     }
 
     fun apply() {
-        tracksSnapshot.value.forEach { snapshotTrack ->
+        tracksSnapshot.value.list.forEach { snapshotTrack ->
             tracks.value.find { originalTrack -> originalTrack.uri() == snapshotTrack.uri() }?.apply {
                 fields.apply {
                     clear()
@@ -66,16 +67,16 @@ class TrackMetadataState(
     }
 
     fun clear() {
-        tracks.value = mutableListOf()
-        tracksSnapshot.value = mutableListOf()
-        selectedTracks.value = mutableSetOf()
+        tracks.value = listOf()
+        tracksSnapshot.value = ListHolder(listOf())
+        selectedTracks.value = setOf()
         changed.value = false
     }
 
     companion object {
 
-        fun snapshot(tracks: List<VirtualTrack>): List<VirtualTrack> {
-            return tracks.map { it.clone() }
+        fun snapshot(tracks: List<VirtualTrack>): ListHolder<VirtualTrack> {
+            return ListHolder(tracks.map { it.clone() })
         }
 
     }
@@ -110,7 +111,7 @@ class TrackMetadataListState(
         fun grid(trackMetadataState: TrackMetadataState): MutableState<TableGrid<VirtualTrack>?> {
             return mutableStateOf(singleColumnTableGrid(
                 trackMetadataState.tracks.value.map {
-                    TableCell(content = it.uri().toString())
+                    TableCell(value = it.uri().toString())
                 }
             ))
         }
@@ -131,10 +132,10 @@ class TrackMetadataTableState(
         super.onCellChange(cell, rowIndex, columnIndex, newValue)
         grid.value?.let { table ->
             cell.source?.forEach { track ->
-                track.setFieldValues(table.rows.value[rowIndex].cells[0].value.content!!, newValue)
+                track.setFieldValues(table.rows.value[rowIndex].cells[0].value.value!!, newValue)
             }
         }
-        trackMetadataState.tracksSnapshot.value = trackMetadataState.tracksSnapshot.value.toList() // propagate changes to upper level
+        trackMetadataState.tracksSnapshot.value = ListHolder(trackMetadataState.tracksSnapshot.value.list) // propagate changes to upper level
         trackMetadataState.changed.value = true
     }
 
@@ -154,7 +155,7 @@ class TrackMetadataTableState(
 
         fun grid(trackMetadataState: TrackMetadataState): MutableState<TableGrid<List<VirtualTrack>>?> {
             return mutableStateOf(buildTableGrid(
-                trackMetadataState.selectedTracks.value.map { trackMetadataState.tracksSnapshot.value[it] }
+                trackMetadataState.selectedTracks.value.map { trackMetadataState.tracksSnapshot.value.list[it] }
             ))
         }
 
@@ -291,8 +292,8 @@ private fun VirtualTrack.buildTableGridForSingleTrack(): TableGrid<List<VirtualT
         fieldValues.values.map { fieldValue ->
             TableRow(
                 cells = mutableListOf(
-                    mutableStateOf(TableCell(content = fieldKey.name, source = listOf(this))),
-                    mutableStateOf(TableCell(content = fieldValue, source = listOf(this)))
+                    mutableStateOf(TableCell(value = fieldKey.name, source = listOf(this))),
+                    mutableStateOf(TableCell(value = fieldValue, source = listOf(this)))
                 )
             )
         }
@@ -301,8 +302,8 @@ private fun VirtualTrack.buildTableGridForSingleTrack(): TableGrid<List<VirtualT
         fieldValues.values.map { fieldValue ->
             TableRow(
                 cells = mutableListOf(
-                    mutableStateOf(TableCell(content = fieldKey, source = listOf(this))),
-                    mutableStateOf(TableCell(content = fieldValue, source = listOf(this)))
+                    mutableStateOf(TableCell(value = fieldKey, source = listOf(this))),
+                    mutableStateOf(TableCell(value = fieldValue, source = listOf(this)))
                 )
             )
         }
@@ -319,8 +320,8 @@ private fun List<VirtualTrack>.buildTableGridForManyTracks(): TableGrid<List<Vir
             toTagMap().map {
                 TableRow(
                     cells = mutableListOf(
-                        mutableStateOf(TableCell(content = it.key, source = this)),
-                        mutableStateOf(TableCell(content = it.value, source = this))
+                        mutableStateOf(TableCell(value = it.key, source = this)),
+                        mutableStateOf(TableCell(value = it.value, source = this))
                     )
                 )
             }.toMutableList()
