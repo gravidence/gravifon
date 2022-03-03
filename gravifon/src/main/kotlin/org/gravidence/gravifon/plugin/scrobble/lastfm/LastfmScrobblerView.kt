@@ -27,6 +27,7 @@ import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
 import org.gravidence.gravifon.plugin.scrobble.lastfm.event.LastfmScrobbleCacheUpdatedEvent
 import org.gravidence.gravifon.ui.PlaylistComposable
+import org.gravidence.gravifon.ui.PlaylistItemsHolder
 import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.springframework.stereotype.Component
 
@@ -38,7 +39,7 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
         displayName = "Scrobble Cache",
         items = scrobbleCacheToPlaylistItems(lastfmScrobbler.lastfmScrobblerStorage.scrobbleCache())
     )
-    private val playlistItems: MutableState<List<PlaylistItem>> = mutableStateOf(playlist.items())
+    private val playlistItems: MutableState<PlaylistItemsHolder> = mutableStateOf(PlaylistItemsHolder(playlist.items()))
 
     override fun consume(event: Event) {
         when (event) {
@@ -55,7 +56,6 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
             }
             is PlaylistUpdatedEvent -> {
                 if (event.playlist === playlist) {
-                    // TODO fix view update (nothing happens for now...)
                     updateViewState(lastfmScrobbler.lastfmScrobblerStorage.scrobbleCache())
                 }
             }
@@ -84,13 +84,13 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
                         .padding(5.dp)
                 ) {
                     Text(
-                        text = "Scrobbles: ${playlistItems.value.size}",
+                        text = "Scrobbles: ${playlistItems.value.items.size}",
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .weight(1f)
                     )
                     Button(
-                        enabled = playlistItems.value.isNotEmpty(),
+                        enabled = playlistItems.value.items.isNotEmpty(),
                         onClick = { lastfmScrobbler.scrobble() }
                     ) {
                         Text("Scrobble")
@@ -111,7 +111,7 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
     private fun updateViewState(scrobbleCache: List<Scrobble>) {
         val scrobbleCachePlaylistItems = scrobbleCacheToPlaylistItems(scrobbleCache)
         playlist.replace(scrobbleCachePlaylistItems)
-        playlistItems.value = scrobbleCachePlaylistItems
+        playlistItems.value = PlaylistItemsHolder(scrobbleCachePlaylistItems)
     }
 
 }

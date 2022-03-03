@@ -23,10 +23,10 @@ import org.gravidence.gravifon.orchestration.marker.Playable
 import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.playlist.DynamicPlaylist
 import org.gravidence.gravifon.playlist.Playlist
-import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
 import org.gravidence.gravifon.ui.PlaylistComposable
+import org.gravidence.gravifon.ui.PlaylistItemsHolder
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.gravidence.gravifon.ui.theme.gShape
@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component
 class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: Bandcamp) : Viewable, Playable, EventAware {
 
     override val playlist: Playlist
-    private val playlistItems: MutableState<List<PlaylistItem>>
+    private val playlistItems: MutableState<PlaylistItemsHolder>
 
     init {
         val cc = bandcamp.componentConfiguration.value
@@ -48,15 +48,14 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
                 ownerName = bandcamp.pluginDisplayName,
                 displayName = cc.playlistId
             ).also { playlistManager.addPlaylist(it) }
-        playlistItems = mutableStateOf(playlist.items())
+        playlistItems = mutableStateOf(PlaylistItemsHolder(playlist.items()))
     }
 
     override fun consume(event: Event) {
         when (event) {
             is PlaylistUpdatedEvent -> {
                 if (event.playlist === playlist) {
-                    // TODO useless, subject of removal
-                    playlistItems.value = event.playlist.items()
+                    playlistItems.value = PlaylistItemsHolder(event.playlist.items())
                 }
             }
         }
@@ -77,7 +76,7 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
 
                 val tracks = bandcamp.parsePage(url.value)
                 playlist.append(tracks.map { TrackPlaylistItem(it) })
-                playlistItems.value = playlist.items()
+                playlistItems.value = PlaylistItemsHolder(playlist.items())
 
                 isProcessing.value = false
             }

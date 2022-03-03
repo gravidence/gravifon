@@ -21,11 +21,11 @@ import org.gravidence.gravifon.orchestration.marker.Playable
 import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.playlist.DynamicPlaylist
 import org.gravidence.gravifon.playlist.Playlist
-import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
 import org.gravidence.gravifon.query.TrackQueryParser
 import org.gravidence.gravifon.ui.PlaylistComposable
+import org.gravidence.gravifon.ui.PlaylistItemsHolder
 import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.ui.theme.gTextFieldColor
@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component
 class LibraryView(override val playlistManager: PlaylistManager, val library: Library) : Viewable, Playable, EventAware {
 
     override val playlist: Playlist
-    private val playlistItems: MutableState<List<PlaylistItem>>
+    private val playlistItems: MutableState<PlaylistItemsHolder>
 
     init {
         val cc = library.componentConfiguration.value
@@ -47,15 +47,14 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
                 ownerName = library.pluginDisplayName,
                 displayName = cc.playlistId
             ).also { playlistManager.addPlaylist(it) }
-        playlistItems = mutableStateOf(playlist.items())
+        playlistItems = mutableStateOf(PlaylistItemsHolder(playlist.items()))
     }
 
     override fun consume(event: Event) {
         when (event) {
             is PlaylistUpdatedEvent -> {
                 if (event.playlist === playlist) {
-                    // TODO useless, subject of removal
-                    playlistItems.value = event.playlist.items()
+                    playlistItems.value = PlaylistItemsHolder(event.playlist.items())
                 }
             }
         }
@@ -79,7 +78,7 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
                     .sortedWith(virtualTrackComparator(cc.sortOrder))
                     .map { TrackPlaylistItem(it) }
                 playlist.replace(selection)
-                playlistItems.value = playlist.items()
+                playlistItems.value = PlaylistItemsHolder(playlist.items())
 
                 if (cc.queryHistory.size >= cc.queryHistorySizeLimit) {
                     cc.queryHistory.removeLast()
