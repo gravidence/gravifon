@@ -35,6 +35,13 @@ import org.springframework.stereotype.Component
 @Component
 class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, EventAware {
 
+    @Suppress("UNUSED_PARAMETER")
+    override var viewEnabled: Boolean
+        get() = true
+        set(value) {}
+    override val viewDisplayName: String
+        get() = lastfmScrobbler.pluginDisplayName
+
     private val playlist: Playlist = DynamicPlaylist(
         ownerName = "Last.fm Scrobbler",
         displayName = "Scrobble Cache",
@@ -61,10 +68,6 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
                 }
             }
         }
-    }
-
-    override fun viewDisplayName(): String {
-        return lastfmScrobbler.pluginDisplayName
     }
 
     inner class LastfmScrobblerViewState(

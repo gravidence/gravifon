@@ -36,6 +36,12 @@ import org.springframework.stereotype.Component
 @Component
 class LibraryView(override val playlistManager: PlaylistManager, val library: Library) : Viewable, Playable, EventAware {
 
+    override var viewEnabled: Boolean
+        get() = library.pluginEnabled
+        set(value) { library.pluginEnabled = value }
+    override val viewDisplayName: String
+        get() = library.pluginDisplayName
+
     override val playlist: Playlist
     private val playlistItems: MutableState<ListHolder<PlaylistItem>>
 
@@ -59,10 +65,6 @@ class LibraryView(override val playlistManager: PlaylistManager, val library: Li
                 }
             }
         }
-    }
-
-    override fun viewDisplayName(): String {
-        return library.pluginDisplayName
     }
 
     inner class LibraryViewState(

@@ -69,7 +69,7 @@ class ConfigurationManager(@Lazy private val configurables: List<Configurable>, 
         logger.debug { "Collect component configuration updates: FINISH" }
 
         logger.debug { "Collect application configuration updates: START" }
-        GravifonContext.activeView.value?.let { applicationConfiguration.application.activeViewId = it.javaClass.name }
+        GravifonContext.activeView.value?.let { applicationConfiguration.application.activeViewId = it.viewDisplayName }
         GravifonContext.activePlaylist.value?.let { applicationConfiguration.application.activePlaylistId = it.id() }
         logger.debug { "Collect application configuration updates: END" }
 

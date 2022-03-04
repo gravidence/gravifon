@@ -35,7 +35,7 @@ class Orchestrator(
         }
 
         val activeViewId = configurationManager.applicationConfig().activeViewId
-        val activeView = viewables.find { it.javaClass.name == activeViewId } ?: defaultView()
+        val activeView = viewables.find { it.viewDisplayName == activeViewId } ?: defaultView()
         activeView.activateView()
 
         val activePlaylistId = configurationManager.applicationConfig().activePlaylistId

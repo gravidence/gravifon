@@ -37,6 +37,12 @@ import org.springframework.stereotype.Component
 @Component
 class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: Bandcamp) : Viewable, Playable, EventAware {
 
+    override var viewEnabled: Boolean
+        get() = bandcamp.pluginEnabled
+        set(value) { bandcamp.pluginEnabled = value }
+    override val viewDisplayName: String
+        get() = bandcamp.pluginDisplayName
+
     override val playlist: Playlist
     private val playlistItems: MutableState<ListHolder<PlaylistItem>>
 
@@ -60,10 +66,6 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
                 }
             }
         }
-    }
-
-    override fun viewDisplayName(): String {
-        return bandcamp.pluginDisplayName
     }
 
     inner class BandcampViewState(

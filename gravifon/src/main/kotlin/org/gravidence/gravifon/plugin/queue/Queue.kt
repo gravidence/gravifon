@@ -14,14 +14,19 @@ import org.springframework.stereotype.Component
 import java.util.*
 
 @Component
-class Queue(override val configurationManager: ConfigurationManager, private val playlistManager: PlaylistManager) :
-    Plugin, Viewable {
+class Queue(override val configurationManager: ConfigurationManager, private val playlistManager: PlaylistManager) : Plugin, Viewable {
 
     override var pluginEnabled: Boolean
         get() = componentConfiguration.value.enabled
         set(value) { componentConfiguration.value = componentConfiguration.value.copy(enabled = value)}
     override val pluginDisplayName: String = "Queue"
     override val pluginDescription: String = "Queue v0.1"
+
+    override var viewEnabled: Boolean
+        get() = pluginEnabled
+        set(value) { pluginEnabled = value }
+    override val viewDisplayName: String
+        get() = pluginDisplayName
 
     override val componentConfiguration = mutableStateOf(
         readComponentConfiguration {
@@ -49,10 +54,6 @@ class Queue(override val configurationManager: ConfigurationManager, private val
     @Composable
     override fun composeSettings() {
         Text("TBD")
-    }
-
-    override fun viewDisplayName(): String {
-        return pluginDisplayName
     }
 
     @Composable

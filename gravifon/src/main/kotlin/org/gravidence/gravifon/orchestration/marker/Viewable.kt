@@ -11,14 +11,15 @@ private val logger = KotlinLogging.logger {}
  */
 interface Viewable {
 
-    fun viewDisplayName(): String
+    var viewEnabled: Boolean
+    val viewDisplayName: String
 
     /**
      * Actions to be done upon view activation. DO NOT OVERRIDE, consider [activateViewExtra] instead.
      */
     fun activateView() {
         GravifonContext.activeView.value = this.also {
-            logger.debug { "View activated: ${viewDisplayName()}" }
+            logger.debug { "View activated: $viewDisplayName" }
         }
 
         activateViewExtra()

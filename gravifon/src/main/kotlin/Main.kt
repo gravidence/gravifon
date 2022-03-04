@@ -11,7 +11,6 @@ import org.gravidence.gravifon.GravifonStarter
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
 import org.gravidence.gravifon.event.playback.SubPlaybackRelativePositionEvent
-import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.ui.AppBody
 import org.gravidence.gravifon.ui.dialog.PluginSettingsDialog
 import org.gravidence.gravifon.ui.dialog.TrackMetadataDialog
@@ -77,10 +76,10 @@ fun main() = application {
             }
             Menu(text = "View") {
                 GravifonStarter.views
-                    .filter { (it as? Plugin)?.pluginEnabled ?: true }
+                    .filter { it.viewEnabled }
                     .forEach {
                         Item(
-                            text = it.viewDisplayName(),
+                            text = it.viewDisplayName,
                             onClick = { it.activateView() }
                         )
                     }
