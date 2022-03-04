@@ -1,6 +1,6 @@
 package org.gravidence.gravifon.ui.dialog
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Divider
@@ -178,9 +178,6 @@ fun TrackMetadataDialog() {
                 GravifonContext.trackMetadataDialogVisible.value = false
             }
         ) {
-            val pluginListVScrollState = rememberScrollState()
-            val pluginSettingsVScrollState = rememberScrollState()
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -195,22 +192,7 @@ fun TrackMetadataDialog() {
                             .weight(0.4f)
                             .border(width = 1.dp, color = Color.Black, shape = gShape)
                     ) {
-                        Box {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .padding(10.dp)
-                                    .verticalScroll(state = pluginListVScrollState)
-                            ) {
-                                trackListContent(GravifonContext.trackMetadataDialogState)
-                            }
-                            VerticalScrollbar(
-                                adapter = rememberScrollbarAdapter(pluginListVScrollState),
-                                modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .padding(top = 5.dp, bottom = 5.dp, end = 2.dp)
-                            )
-                        }
+                        TrackList(GravifonContext.trackMetadataDialogState)
                     }
                     Column(
                         modifier = Modifier
@@ -221,20 +203,7 @@ fun TrackMetadataDialog() {
                             modifier = Modifier
                                 .weight(1f)
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(10.dp)
-                                    .verticalScroll(state = pluginSettingsVScrollState)
-                            ) {
-                                trackContent(GravifonContext.trackMetadataDialogState)
-                            }
-                            VerticalScrollbar(
-                                adapter = rememberScrollbarAdapter(pluginSettingsVScrollState),
-                                modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .padding(top = 5.dp, bottom = 5.dp, end = 2.dp)
-                            )
+                            TrackContent(GravifonContext.trackMetadataDialogState)
                         }
                         Divider(
                             thickness = 2.dp,
@@ -270,12 +239,12 @@ fun TrackMetadataDialog() {
 }
 
 @Composable
-fun trackListContent(trackMetadataState: TrackMetadataState) {
+fun TrackList(trackMetadataState: TrackMetadataState) {
     Table(TrackMetadataListState(trackMetadataState))
 }
 
 @Composable
-fun trackContent(trackMetadataState: TrackMetadataState) {
+fun TrackContent(trackMetadataState: TrackMetadataState) {
     Table(TrackMetadataTableState(trackMetadataState))
 }
 

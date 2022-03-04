@@ -120,9 +120,6 @@ fun PluginSettingsDialog() {
         ),
         onCloseRequest = { GravifonContext.pluginSettingsDialogVisible.value = false }
     ) {
-        val pluginListHScrollState = rememberScrollState()
-        val pluginListVScrollState = rememberScrollState()
-        val pluginSettingsHScrollState = rememberScrollState()
         val pluginSettingsVScrollState = rememberScrollState()
 
         Box(
@@ -135,45 +132,24 @@ fun PluginSettingsDialog() {
                 Box(
                     modifier = Modifier
                         .weight(0.4f)
-                        .border(width = 1.dp, color = Color.Red, shape = gShape)
+                        .padding(5.dp)
+                        .border(width = 1.dp, color = Color.Black, shape = gShape)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(10.dp)
-//                            .horizontalScroll(state = pluginListHScrollState)
-                            .verticalScroll(state = pluginListVScrollState)
-                            .border(width = 1.dp, color = Color.Black, shape = gShape)
-                    ) {
-                        pluginListItem(pluginSettingsState)
-                    }
-//                    HorizontalScrollbar(
-//                        adapter = rememberScrollbarAdapter(pluginListHScrollState),
-//                        modifier = Modifier
-//                            .align(Alignment.BottomCenter)
-//                            .padding(start = 5.dp, end = 5.dp, bottom = 2.dp)
-//                    )
-                    VerticalScrollbar(
-                        adapter = rememberScrollbarAdapter(pluginListVScrollState),
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(top = 5.dp, bottom = 5.dp, end = 2.dp)
-                    )
+                    PluginList(pluginSettingsState)
                 }
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .border(width = 1.dp, color = Color.Magenta, shape = gShape)
+                        .padding(5.dp)
+                        .border(width = 1.dp, color = Color.Black, shape = gShape)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(10.dp)
 //                            .horizontalScroll(state = pluginSettingsHScrollState)
                             .verticalScroll(state = pluginSettingsVScrollState)
-                            .border(width = 1.dp, color = Color.Black, shape = gShape)
                     ) {
-                        pluginContent(pluginSettingsState)
+                        PluginContent(pluginSettingsState)
                     }
 //                    HorizontalScrollbar(
 //                        adapter = rememberScrollbarAdapter(pluginSettingsHScrollState),
@@ -194,12 +170,12 @@ fun PluginSettingsDialog() {
 }
 
 @Composable
-fun pluginListItem(pluginSettingsState: PluginSettingsState) {
+fun PluginList(pluginSettingsState: PluginSettingsState) {
     Table(PluginListState(pluginSettingsState))
 }
 
 @Composable
-fun pluginContent(pluginSettingsState: PluginSettingsState) {
+fun PluginContent(pluginSettingsState: PluginSettingsState) {
     pluginSettingsState.selectedPlugin.value?.let { plugin ->
         Box {
             Column {

@@ -2,8 +2,14 @@
 
 package org.gravidence.gravifon.ui.component
 
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +37,9 @@ open class TableState<T>(
     val readOnly: MutableState<Boolean> = mutableStateOf(false),
     val multiSelection: MutableState<Boolean> = mutableStateOf(true),
     val grid: MutableState<TableGrid<T>?> = mutableStateOf(null),
-    val selectedRows: MutableState<Set<Int>> = mutableStateOf(setOf())
+    val selectedRows: MutableState<Set<Int>> = mutableStateOf(setOf()),
+    val verticalScrollState: LazyListState = LazyListState(),
+//    val horizontalScrollState: LazyListState = LazyListState(),
 ) {
 
     open fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
@@ -119,36 +127,60 @@ fun TableHeader(layout: TableLayout) {
 
 @Composable
 fun <T> TableContent(tableState: TableState<T>) {
-    tableState.grid.value?.rows?.value?.forEachIndexed { rowIndex, row ->
-        val rowModifier = if (rowIndex in tableState.selectedRows.value) {
-            Modifier.background(color = gSelectedListItemColor, shape = gShape)
-        } else {
-            Modifier
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = rowModifier
-                .onPointerEvent(
-                    eventType = PointerEventType.Release,
-                    onEvent = { tableState.onRowClick(rowIndex, it) }
-                )
+    Box {
+        LazyColumn(
+            state = tableState.verticalScrollState,
+            modifier = Modifier
+                .fillMaxSize()
         ) {
-            tableState.layout.value.columns.forEachIndexed { columnIndex, column ->
-                val columnModifier = if (column.fraction != null) {
-                    Modifier.fillMaxWidth(column.fraction)
-                } else if (column.width != null) {
-                    Modifier.width(column.width)
-                } else {
-                    Modifier
-                }
+            tableContent(tableState)
+        }
+        VerticalScrollbar(
+            adapter = rememberScrollbarAdapter(tableState.verticalScrollState),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+        )
+    }
+}
 
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                    modifier = columnModifier
-                ) {
-                    row.cells[columnIndex].value.content(rowIndex, columnIndex, tableState)
+fun <T> LazyListScope.tableContent(tableState: TableState<T>) {
+    tableState.grid.value?.rows?.value?.let { rows ->
+        itemsIndexed(items = rows) { rowIndex, row ->
+            if (rowIndex > 0) {
+                Spacer(Modifier.height(5.dp).fillMaxWidth())
+            }
+
+            val rowModifier = if (rowIndex in tableState.selectedRows.value) {
+                Modifier
+                    .background(color = gSelectedListItemColor, shape = gShape)
+            } else {
+                Modifier
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = rowModifier
+                    .onPointerEvent(
+                        eventType = PointerEventType.Release,
+                        onEvent = { tableState.onRowClick(rowIndex, it) }
+                    )
+            ) {
+                tableState.layout.value.columns.forEachIndexed { columnIndex, column ->
+                    val columnModifier = if (column.fraction != null) {
+                        Modifier.fillMaxWidth(column.fraction)
+                    } else if (column.width != null) {
+                        Modifier.width(column.width)
+                    } else {
+                        Modifier
+                    }
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = columnModifier
+                    ) {
+                        row.cells[columnIndex].value.content(rowIndex, columnIndex, tableState)
+                    }
                 }
             }
         }
