@@ -19,7 +19,8 @@ fun AppBody() {
     val contextInformationState = rememberContextInformationState()
     val activeView = remember { GravifonContext.activeView }
 
-    val contextInformationTimer = fixedRateTimer(initialDelay = 1000, period = 1000) {
+    // TODO update period may go to advanced settings
+    fixedRateTimer(initialDelay = 1000, period = 1000) {
         contextInformationState.refresh()
     }
 
@@ -29,7 +30,7 @@ fun AppBody() {
                 topBar = {
                     TopAppBar(
                         title = {
-                            Text(text = "Gravifon")
+                            Text(text = "Gravifon / ${activeView.value?.viewDisplayName}")
                         },
                         actions = { }
                     )
