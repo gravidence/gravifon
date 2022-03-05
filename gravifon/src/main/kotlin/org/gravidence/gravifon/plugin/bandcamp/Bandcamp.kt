@@ -29,6 +29,7 @@ import org.gravidence.gravifon.plugin.bandcamp.model.bandcampSerializer
 import org.gravidence.gravifon.plugin.bandcamp.model.enhanced
 import org.gravidence.gravifon.plugin.bandcamp.model.expiresAfter
 import org.gravidence.lastfm4k.misc.toLocalDateTime
+import org.http4k.core.Uri
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.springframework.stereotype.Component
@@ -59,27 +60,64 @@ class Bandcamp(
         return document
     }
 
-    private fun selectBandcampItem(document: Document): String? {
-        return document.select("script[data-band-follow-info]").firstOrNull()?.attr("data-tralbum")
+    private fun extractAlbumOrTrackJson(document: Document): String? {
+        return document.select("script[data-band-follow-info]")
+            .map { it.attr("data-tralbum") }
+            .firstOrNull()
     }
 
-    fun parsePage(pageUrl: String): List<StreamVirtualTrack> {
+    private fun extractAlbumUrls(document: Document, discographyAbsoluteUrl: String): List<String>? {
+        val albumUrls = document.select("ol#music-grid li a[href]")
+        return if (albumUrls.isNotEmpty()) {
+            val host = Uri.of(discographyAbsoluteUrl)
+            albumUrls
+                .map { it.attr("href") }
+                .map { host.path(it).toString() }
+        } else {
+            null
+        }
+    }
+
+    private fun processAlbumOrTrackJson(json: String): List<StreamVirtualTrack> {
+        return bandcampSerializer.decodeFromString<BandcampItem>(json).also {
+            logger.debug { "Bandcamp item parsed: $it" }
+        }.let {
+            if (componentConfiguration.value.useEnhancer) {
+                it.enhanced().also {
+                    logger.debug { "Bandcamp item enhanced: $it" }
+                }
+            } else {
+                it
+            }
+        }.toStreamVirtualTracks()
+    }
+
+    /**
+     * Recognize whether supplied [url] is a Bandcamp discography, album or track page.
+     * @return list of absolute links to resulting Bandcamp pages, if any
+     */
+    fun resolveBandcampPages(url: String): List<String> {
+        logger.info { "Resolve Bandcamp pages at URL: $url" }
+        return try {
+            extractAlbumUrls(fetchPage(url), url) ?: listOf(url)
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to process URL: $url" }
+            listOf()
+        }.also {
+            logger.debug { "Bandcamp pages resolved: ${it.size}" }
+        }
+    }
+
+    /**
+     * Parse Bandcamp album or track page.
+     * @return list of stream tracks
+     */
+    fun parseBandcampPage(pageUrl: String): List<StreamVirtualTrack> {
         logger.info { "Process Bandcamp page: $pageUrl" }
         return try {
-            val bandcampItem = selectBandcampItem(fetchPage(pageUrl))
-            if (bandcampItem != null) {
-                bandcampSerializer.decodeFromString<BandcampItem>(bandcampItem).also {
-                    logger.debug { "Bandcamp item parsed: $it" }
-                }.let {
-                    if (componentConfiguration.value.useEnhancer) {
-                        it.enhanced().also {
-                            logger.debug { "Bandcamp item enhanced: $it" }
-                        }
-                    } else {
-                        it
-                    }
-                }
-                .toStreamVirtualTracks()
+            val json = extractAlbumOrTrackJson(fetchPage(pageUrl))
+            if (json != null) {
+                processAlbumOrTrackJson(json)
             } else {
                 logger.error { "Bandcamp item node not found" }
                 listOf()
@@ -90,7 +128,11 @@ class Bandcamp(
         }
     }
 
-    fun findExpiredPages(tracks: List<VirtualTrack>): Map<String, List<StreamVirtualTrack>> {
+    /**
+     * Select expired stream tracks.
+     * @return list of expired tracks grouped by source Bandcamp page
+     */
+    fun selectExpiredTracks(tracks: List<VirtualTrack>): Map<String, List<StreamVirtualTrack>> {
         return tracks
             .filterIsInstance<StreamVirtualTrack>()
             .filter { stream -> stream.expiresAfter?.compareTo(Clock.System.now())?.let { it < 0 } ?: false }
@@ -99,9 +141,12 @@ class Bandcamp(
             }
     }
 
-    fun refreshExpiredPage(pageUrl: String, streams: List<StreamVirtualTrack>) {
+    /**
+     * Update expired stream tracks by re-querying their source Bandcamp page.
+     */
+    fun refreshExpiredTracks(pageUrl: String, streams: List<StreamVirtualTrack>) {
         logger.debug { "Refresh stream URLs from Bandcamp page: $pageUrl" }
-        val freshStreams = parsePage(pageUrl)
+        val freshStreams = parseBandcampPage(pageUrl)
 
         streams.forEach { stream ->
             stream.getTrack()?.toIntOrNull()?.let { trackNumber ->

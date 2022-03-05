@@ -68,6 +68,13 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
         }
     }
 
+    companion object {
+
+        val PROGRESS_INDICATOR_STROKE_WIDTH = 3.dp
+        val PROGRESS_INDICATOR_MODIFIER = Modifier.size(24.dp)
+
+    }
+
     inner class BandcampViewState(
         val url: MutableState<String>,
         val isAdding: MutableState<Boolean>,
@@ -81,9 +88,21 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
 
         fun addPage() {
             GravifonContext.scopeDefault.launch {
+                processed.value = 0
+                toProcess.value = 0
+
                 isAdding.value = true
 
-                val tracks = bandcamp.parsePage(url.value)
+                val bandcampPages = bandcamp.resolveBandcampPages(url.value)
+                if (bandcampPages.size > 1) {
+                    toProcess.value = bandcampPages.size + 1
+                    processed.value = 1
+                }
+                val tracks = bandcampPages.flatMap {
+                    bandcamp.parseBandcampPage(it).also {
+                        processed.value++
+                    }
+                }
                 playlist.append(tracks.map { TrackPlaylistItem(it) })
                 playlistItems.value = ListHolder(playlist.items())
 
@@ -101,10 +120,11 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
                 val tracks = playlist.items()
                     .filterIsInstance<TrackPlaylistItem>()
                     .map { it.track }
-                bandcamp.findExpiredPages(tracks).also {
-                    toProcess.value = it.size
+                bandcamp.selectExpiredTracks(tracks).also {
+                    toProcess.value = it.size + 1
+                    processed.value = 1
                 }.forEach { (sourceUrl, streams) ->
-                    bandcamp.refreshExpiredPage(sourceUrl, streams)
+                    bandcamp.refreshExpiredTracks(sourceUrl, streams)
                     processed.value++
                 }
                 playlistItems.value = ListHolder(playlist.items())
@@ -177,7 +197,19 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
             onClick = { bandcampViewState.addPage() }
         ) {
             if (bandcampViewState.isAdding.value) {
-                CircularProgressIndicator(strokeWidth = 3.dp, modifier = Modifier.size(24.dp))
+                if (bandcampViewState.toProcess.value > 0) {
+                    val progress = bandcampViewState.processed.value.toFloat() / bandcampViewState.toProcess.value.toFloat()
+                    CircularProgressIndicator(
+                        progress = progress,
+                        strokeWidth = PROGRESS_INDICATOR_STROKE_WIDTH,
+                        modifier = PROGRESS_INDICATOR_MODIFIER
+                    )
+                } else {
+                    CircularProgressIndicator(
+                        strokeWidth = PROGRESS_INDICATOR_STROKE_WIDTH,
+                        modifier = PROGRESS_INDICATOR_MODIFIER
+                    )
+                }
             } else {
                 AppIcon("icons8-plus-+-24.png")
             }
@@ -189,9 +221,16 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
             if (bandcampViewState.isRefreshing.value) {
                 if (bandcampViewState.toProcess.value > 0) {
                     val progress = bandcampViewState.processed.value.toFloat() / bandcampViewState.toProcess.value.toFloat()
-                    CircularProgressIndicator(progress = progress, strokeWidth = 3.dp, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(
+                        progress = progress,
+                        strokeWidth = PROGRESS_INDICATOR_STROKE_WIDTH,
+                        modifier = PROGRESS_INDICATOR_MODIFIER
+                    )
                 } else {
-                    CircularProgressIndicator(strokeWidth = 3.dp, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(
+                        strokeWidth = PROGRESS_INDICATOR_STROKE_WIDTH,
+                        modifier = PROGRESS_INDICATOR_MODIFIER
+                    )
                 }
             } else {
                 AppIcon("icons8-synchronize-24.png")
