@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.dp
+import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import mu.KotlinLogging
@@ -62,10 +63,10 @@ class Bandcamp(
         return document.select("script[data-band-follow-info]").firstOrNull()?.attr("data-tralbum")
     }
 
-    fun parsePage(url: String): List<VirtualTrack> {
-        logger.info { "Process Bandcamp page: $url" }
+    fun parsePage(pageUrl: String): List<StreamVirtualTrack> {
+        logger.info { "Process Bandcamp page: $pageUrl" }
         return try {
-            val bandcampItem = selectBandcampItem(fetchPage(url))
+            val bandcampItem = selectBandcampItem(fetchPage(pageUrl))
             if (bandcampItem != null) {
                 bandcampSerializer.decodeFromString<BandcampItem>(bandcampItem).also {
                     logger.debug { "Bandcamp item parsed: $it" }
@@ -78,14 +79,36 @@ class Bandcamp(
                         it
                     }
                 }
-                .toVirtualTracks()
+                .toStreamVirtualTracks()
             } else {
                 logger.error { "Bandcamp item node not found" }
                 listOf()
             }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to process Bandcamp page: $url" }
+            logger.error(e) { "Failed to process Bandcamp page: $pageUrl" }
             listOf()
+        }
+    }
+
+    fun findExpiredPages(tracks: List<VirtualTrack>): Map<String, List<StreamVirtualTrack>> {
+        return tracks
+            .filterIsInstance<StreamVirtualTrack>()
+            .filter { stream -> stream.expiresAfter?.compareTo(Clock.System.now())?.let { it < 0 } ?: false }
+            .groupBy { it.sourceUrl }.also {
+                logger.debug { "Bandcamp pages to refresh: ${it.size}" }
+            }
+    }
+
+    fun refreshExpiredPage(pageUrl: String, streams: List<StreamVirtualTrack>) {
+        logger.debug { "Refresh stream URLs from Bandcamp page: $pageUrl" }
+        val freshStreams = parsePage(pageUrl)
+
+        streams.forEach { stream ->
+            stream.getTrack()?.toIntOrNull()?.let { trackNumber ->
+                freshStreams.elementAtOrNull(trackNumber - 1)?.let { freshTrack ->
+                    stream.streamUrl = freshTrack.streamUrl
+                }
+            }
         }
     }
 
@@ -154,7 +177,7 @@ class Bandcamp(
 
 }
 
-fun BandcampItem.toVirtualTracks(): List<VirtualTrack> {
+fun BandcampItem.toStreamVirtualTracks(): List<StreamVirtualTrack> {
     return tracks.map { bandcampTrack ->
         StreamVirtualTrack(
             sourceUrl = this.url,

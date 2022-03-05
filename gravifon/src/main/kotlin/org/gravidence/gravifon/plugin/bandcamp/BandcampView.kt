@@ -70,18 +70,46 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
 
     inner class BandcampViewState(
         val url: MutableState<String>,
-        val isProcessing: MutableState<Boolean>,
+        val isAdding: MutableState<Boolean>,
+        val isRefreshing: MutableState<Boolean>,
+        val processed: MutableState<Int>,
+        val toProcess: MutableState<Int>,
     ) {
+
+        val isProcessing: Boolean
+            get() = isAdding.value || isRefreshing.value
 
         fun addPage() {
             GravifonContext.scopeDefault.launch {
-                isProcessing.value = true
+                isAdding.value = true
 
                 val tracks = bandcamp.parsePage(url.value)
                 playlist.append(tracks.map { TrackPlaylistItem(it) })
                 playlistItems.value = ListHolder(playlist.items())
 
-                isProcessing.value = false
+                isAdding.value = false
+            }
+        }
+
+        fun refreshLinks() {
+            GravifonContext.scopeDefault.launch {
+                processed.value = 0
+                toProcess.value = 0
+
+                isRefreshing.value = true
+
+                val tracks = playlist.items()
+                    .filterIsInstance<TrackPlaylistItem>()
+                    .map { it.track }
+                bandcamp.findExpiredPages(tracks).also {
+                    toProcess.value = it.size
+                }.forEach { (sourceUrl, streams) ->
+                    bandcamp.refreshExpiredPage(sourceUrl, streams)
+                    processed.value++
+                }
+                playlistItems.value = ListHolder(playlist.items())
+
+                isRefreshing.value = false
             }
         }
 
@@ -90,11 +118,17 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
     @Composable
     fun rememberBandcampViewState(
         url: String = "",
-        isProcessing: Boolean = false,
-    ) = remember(url, isProcessing) {
+        isAdding: Boolean = false,
+        isRefreshing: Boolean = false,
+        processed: Int = 0,
+        toProcess: Int = 0,
+    ) = remember(url, isAdding, isRefreshing) {
         BandcampViewState(
             url = mutableStateOf(url),
-            isProcessing = mutableStateOf(isProcessing),
+            isAdding = mutableStateOf(isAdding),
+            isRefreshing = mutableStateOf(isRefreshing),
+            processed = mutableStateOf(processed),
+            toProcess = mutableStateOf(toProcess),
         )
     }
 
@@ -139,13 +173,28 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
                 .padding(5.dp)
         )
         IconButton(
-            enabled = !bandcampViewState.isProcessing.value && bandcampViewState.url.value.isNotEmpty(),
+            enabled = !bandcampViewState.isProcessing && bandcampViewState.url.value.isNotEmpty(),
             onClick = { bandcampViewState.addPage() }
         ) {
-            if (bandcampViewState.isProcessing.value) {
+            if (bandcampViewState.isAdding.value) {
                 CircularProgressIndicator(strokeWidth = 3.dp, modifier = Modifier.size(24.dp))
             } else {
                 AppIcon("icons8-plus-+-24.png")
+            }
+        }
+        IconButton(
+            enabled = !bandcampViewState.isProcessing,
+            onClick = { bandcampViewState.refreshLinks() }
+        ) {
+            if (bandcampViewState.isRefreshing.value) {
+                if (bandcampViewState.toProcess.value > 0) {
+                    val progress = bandcampViewState.processed.value.toFloat() / bandcampViewState.toProcess.value.toFloat()
+                    CircularProgressIndicator(progress = progress, strokeWidth = 3.dp, modifier = Modifier.size(24.dp))
+                } else {
+                    CircularProgressIndicator(strokeWidth = 3.dp, modifier = Modifier.size(24.dp))
+                }
+            } else {
+                AppIcon("icons8-synchronize-24.png")
             }
         }
     }
