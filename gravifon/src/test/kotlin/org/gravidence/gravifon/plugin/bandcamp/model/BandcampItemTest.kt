@@ -60,13 +60,13 @@ internal class BandcampItemTest {
             )
         )
 
-        assertThat(expected.url, equalTo(actual.url))
-        assertThat(expected.type, equalTo(actual.type))
-        assertThat(expected.details, equalTo(actual.details))
-        assertThat(expected.albumArtist, equalTo(actual.albumArtist))
-        assertThat(expected.albumReleaseDate, equalTo(actual.albumReleaseDate))
-        assertThat(expected.albumUrl, equalTo(actual.albumUrl))
-        assertThat(expected.tracks, equalTo(actual.tracks))
+        assertThat(actual.url, equalTo(expected.url))
+        assertThat(actual.type, equalTo(expected.type))
+        assertThat(actual.details, equalTo(expected.details))
+        assertThat(actual.albumArtist, equalTo(expected.albumArtist))
+        assertThat(actual.albumReleaseDate, equalTo(expected.albumReleaseDate))
+        assertThat(actual.albumUrl, equalTo(expected.albumUrl))
+        assertThat(actual.tracks, equalTo(expected.tracks))
     }
 
     @ParameterizedTest
@@ -117,13 +117,13 @@ internal class BandcampItemTest {
             )
         )
 
-        assertThat(expected.url, equalTo(actual.url))
-        assertThat(expected.type, equalTo(actual.type))
-        assertThat(expected.details, equalTo(actual.details))
-        assertThat(expected.albumArtist, equalTo(actual.albumArtist))
-        assertThat(expected.albumReleaseDate, equalTo(actual.albumReleaseDate))
-        assertThat(expected.albumUrl, equalTo(actual.albumUrl))
-        assertThat(expected.tracks, equalTo(actual.tracks))
+        assertThat(actual.url, equalTo(expected.url))
+        assertThat(actual.type, equalTo(expected.type))
+        assertThat(actual.details, equalTo(expected.details))
+        assertThat(actual.albumArtist, equalTo(expected.albumArtist))
+        assertThat(actual.albumReleaseDate, equalTo(expected.albumReleaseDate))
+        assertThat(actual.albumUrl, equalTo(expected.albumUrl))
+        assertThat(actual.tracks, equalTo(expected.tracks))
     }
 
     @ParameterizedTest
@@ -164,13 +164,13 @@ internal class BandcampItemTest {
             )
         )
 
-        assertThat(expected.url, equalTo(actual.url))
-        assertThat(expected.type, equalTo(actual.type))
-        assertThat(expected.details, equalTo(actual.details))
-        assertThat(expected.albumArtist, equalTo(actual.albumArtist))
-        assertThat(expected.albumReleaseDate, equalTo(actual.albumReleaseDate))
-        assertThat(expected.albumUrl, equalTo(actual.albumUrl))
-        assertThat(expected.tracks, equalTo(actual.tracks))
+        assertThat(actual.url, equalTo(expected.url))
+        assertThat(actual.type, equalTo(expected.type))
+        assertThat(actual.details, equalTo(expected.details))
+        assertThat(actual.albumArtist, equalTo(expected.albumArtist))
+        assertThat(actual.albumReleaseDate, equalTo(expected.albumReleaseDate))
+        assertThat(actual.albumUrl, equalTo(expected.albumUrl))
+        assertThat(actual.tracks, equalTo(expected.tracks))
     }
 
     @ParameterizedTest
@@ -211,13 +211,13 @@ internal class BandcampItemTest {
             )
         )
 
-        assertThat(expected.url, equalTo(actual.url))
-        assertThat(expected.type, equalTo(actual.type))
-        assertThat(expected.details, equalTo(actual.details))
-        assertThat(expected.albumArtist, equalTo(actual.albumArtist))
-        assertThat(expected.albumReleaseDate, equalTo(actual.albumReleaseDate))
-        assertThat(expected.albumUrl, equalTo(actual.albumUrl))
-        assertThat(expected.tracks, equalTo(actual.tracks))
+        assertThat(actual.url, equalTo(expected.url))
+        assertThat(actual.type, equalTo(expected.type))
+        assertThat(actual.details, equalTo(expected.details))
+        assertThat(actual.albumArtist, equalTo(expected.albumArtist))
+        assertThat(actual.albumReleaseDate, equalTo(expected.albumReleaseDate))
+        assertThat(actual.albumUrl, equalTo(expected.albumUrl))
+        assertThat(actual.tracks, equalTo(expected.tracks))
     }
 
 }
