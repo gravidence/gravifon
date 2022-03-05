@@ -85,7 +85,7 @@ data class BandcampTrackDetails(
     @SerialName("track_num")
     val tracknum: Int?,
     val duration: Double,
-    val file: BandcampTrackFileInfo,
+    val file: BandcampTrackFileInfo?,
 )
 
 @Serializable

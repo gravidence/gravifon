@@ -223,20 +223,22 @@ class Bandcamp(
 }
 
 fun BandcampItem.toStreamVirtualTracks(): List<StreamVirtualTrack> {
-    return tracks.map { bandcampTrack ->
-        StreamVirtualTrack(
-            sourceUrl = this.url,
-            streamUrl = bandcampTrack.file.mp3128,
-            expiresAfter = bandcampTrack.file.expiresAfter(),
-            headers = Headers(length = bandcampTrack.duration.seconds)
-        ).apply {
-            setArtist(bandcampTrack.artist ?: albumArtist)
-            setTitle(bandcampTrack.title)
-            setAlbum(resolveAlbum())
-            albumReleaseDate?.let { setDate(it.toLocalDateTime().date.toString()) }
-            setAlbumArtist(albumArtist)
-            bandcampTrack.tracknum?.let { setTrack(it.toString()) }
-            setTrackTotal(tracks.size.toString())
+    return tracks
+        .filter { it.file != null }
+        .map { bandcampTrack ->
+            StreamVirtualTrack(
+                sourceUrl = this.url,
+                streamUrl = bandcampTrack.file!!.mp3128,
+                expiresAfter = bandcampTrack.file.expiresAfter(),
+                headers = Headers(length = bandcampTrack.duration.seconds)
+            ).apply {
+                setArtist(bandcampTrack.artist ?: albumArtist)
+                setTitle(bandcampTrack.title)
+                setAlbum(resolveAlbum())
+                albumReleaseDate?.let { setDate(it.toLocalDateTime().date.toString()) }
+                setAlbumArtist(albumArtist)
+                bandcampTrack.tracknum?.let { setTrack(it.toString()) }
+                setTrackTotal(tracks.size.toString())
+            }
         }
-    }
 }
