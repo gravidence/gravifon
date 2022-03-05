@@ -4,6 +4,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.decodeFromString
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.core.io.ClassPathResource
@@ -218,6 +219,15 @@ internal class BandcampItemTest {
         assertThat(actual.albumReleaseDate, equalTo(expected.albumReleaseDate))
         assertThat(actual.albumUrl, equalTo(expected.albumUrl))
         assertThat(actual.tracks, equalTo(expected.tracks))
+    }
+
+    @Test
+    fun streamExpiresAfter() {
+        val fileInfo = BandcampTrackFileInfo(
+            mp3128 = "https://gravifon.org/stream/1234567890?p=0&ts=1646427552&t=1e6feffdaf15c0039b25d2eb99ab18c50d1c2b63&token=1646427552_5119aec272539e7d3809dd2d8e0e4756512e988d"
+        )
+
+        assertThat(fileInfo.expiresAfter(), equalTo(Instant.fromEpochSeconds(1646427552)))
     }
 
 }

@@ -9,6 +9,8 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import org.http4k.core.Uri
+import org.http4k.core.queries
 
 @Serializable
 data class BandcampItem(
@@ -91,6 +93,16 @@ data class BandcampTrackFileInfo(
     @SerialName("mp3-128")
     val mp3128: String,
 )
+
+fun BandcampTrackFileInfo.expiresAfter(): Instant? {
+    return Uri.of(mp3128)
+        .queries()
+        .filter { it.first == "ts" }
+        .map { it.second?.toLongOrNull() }
+        .first()?.let { ts ->
+            Instant.fromEpochSeconds(ts)
+        }
+}
 
 private const val BC_SEPARATOR = " - "
 

@@ -26,6 +26,7 @@ import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.bandcamp.model.BandcampItem
 import org.gravidence.gravifon.plugin.bandcamp.model.bandcampSerializer
 import org.gravidence.gravifon.plugin.bandcamp.model.enhanced
+import org.gravidence.gravifon.plugin.bandcamp.model.expiresAfter
 import org.gravidence.lastfm4k.misc.toLocalDateTime
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -158,6 +159,7 @@ fun BandcampItem.toVirtualTracks(): List<VirtualTrack> {
         StreamVirtualTrack(
             sourceUrl = this.url,
             streamUrl = bandcampTrack.file.mp3128,
+            expiresAfter = bandcampTrack.file.expiresAfter(),
             headers = Headers(length = bandcampTrack.duration.seconds)
         ).apply {
             setArtist(bandcampTrack.artist ?: albumArtist)
