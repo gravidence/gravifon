@@ -19,6 +19,8 @@ internal class BandcampItemTest {
             "/bandcamp/album-single-artist.json",
             "/bandcamp/album-single-artist_album-title-has-artist.json",
             "/bandcamp/album-single-artist_track-has-no-artist.json",
+            "/bandcamp/album-single-artist_root-has-no-album-release-date.json",
+            "/bandcamp/album-single-artist_album-has-no-release-date.json",
         ]
     )
     fun enhanceAlbumSingleArtist(path: String) {

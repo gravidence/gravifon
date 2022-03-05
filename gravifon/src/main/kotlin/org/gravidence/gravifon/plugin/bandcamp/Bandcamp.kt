@@ -188,9 +188,9 @@ fun BandcampItem.toStreamVirtualTracks(): List<StreamVirtualTrack> {
             setArtist(bandcampTrack.artist ?: albumArtist)
             setTitle(bandcampTrack.title)
             setAlbum(resolveAlbum())
-            setDate(albumReleaseDate.toLocalDateTime().date.toString())
+            albumReleaseDate?.let { setDate(it.toLocalDateTime().date.toString()) }
             setAlbumArtist(albumArtist)
-            setTrack(bandcampTrack.tracknum.toString())
+            bandcampTrack.tracknum?.let { setTrack(it.toString()) }
             setTrackTotal(tracks.size.toString())
         }
     }

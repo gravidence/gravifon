@@ -24,7 +24,7 @@ data class BandcampItem(
     val albumArtist: String,
     @SerialName("album_release_date")
     @Serializable(with = InstantAsRFC1123StringSerializer::class)
-    val albumReleaseDate: Instant,
+    val albumReleaseDate: Instant?,
     @SerialName("album_url")
     val albumUrl: String? = null,
 
@@ -83,7 +83,7 @@ data class BandcampTrackDetails(
     val artist: String? = null,
     val title: String,
     @SerialName("track_num")
-    val tracknum: Int,
+    val tracknum: Int?,
     val duration: Double,
     val file: BandcampTrackFileInfo,
 )
@@ -110,14 +110,16 @@ fun BandcampItem.enhanced(): BandcampItem {
     return when (type) {
         BandcampItemType.ALBUM -> {
             val enhancedAlbumArtist = details.artist ?: albumArtist
+            val enhancedAlbumReleaseDate = details.date ?: albumReleaseDate
 
             val isMultiArtist = tracks.all { it.artist == null && it.title.contains(BC_SEPARATOR) }
 
             copy(
+                albumReleaseDate = enhancedAlbumReleaseDate,
                 details = details.copy(
                     artist = enhancedAlbumArtist,
                     title = enhanceTitle(details.title!!, enhancedAlbumArtist),
-                    date = details.date ?: albumReleaseDate
+                    date = enhancedAlbumReleaseDate
                 ),
                 tracks = tracks.map {
                     val enhancedArtist = it.artist ?: enhanceTrackArtist(it.title, isMultiArtist) ?: enhancedAlbumArtist
