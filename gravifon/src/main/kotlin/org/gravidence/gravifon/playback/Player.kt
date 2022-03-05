@@ -70,15 +70,17 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                 publish(SubPlaybackStopEvent())
             },
             playbackFailureCallback = { duration ->
-                stop()
-
                 GravifonContext.activeVirtualTrack.value?.let {
                     logger.error { "Track playback failure: $it" }
+
+                    it.failing = true
 
                     if (duration > Duration.ZERO) {
                         publish(PubTrackFinishEvent(it, duration))
                     }
                 }
+
+                stop()
 
                 GravifonContext.activePlaylist.value?.let {
                     publish(SubPlaylistPlayNextEvent(it))

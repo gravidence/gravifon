@@ -17,6 +17,7 @@ data class StreamVirtualTrack(
     override val headers: Headers = Headers(),
     override val fields: MutableMap<FieldKey, FieldValues> = mutableMapOf(),
     override val customFields: MutableMap<String, FieldValues> = mutableMapOf(),
+    override var failing: Boolean = false,
 ) : VirtualTrack() {
 
     override fun uri(): URI {

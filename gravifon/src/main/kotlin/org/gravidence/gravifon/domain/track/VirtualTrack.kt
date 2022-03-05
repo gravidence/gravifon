@@ -32,6 +32,8 @@ sealed class VirtualTrack {
     abstract val fields: MutableMap<FieldKey, FieldValues>
     abstract val customFields: MutableMap<String, FieldValues>
 
+    abstract var failing: Boolean
+
     abstract fun uri(): URI
 
     // TODO assess if needed really
