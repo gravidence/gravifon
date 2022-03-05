@@ -25,8 +25,20 @@ class ContextInformationState(
 ) {
 
     fun refresh() {
-        totalMemory.value = FileSize(Runtime.getRuntime().totalMemory())
-        usedMemory.value = FileSize(Runtime.getRuntime().freeMemory())
+        totalMemory.value = FileSize(getTotalMemory())
+        usedMemory.value = FileSize(getUsedMemory())
+    }
+
+    companion object {
+
+        fun getTotalMemory(): Long {
+            return Runtime.getRuntime().totalMemory()
+        }
+
+        fun getUsedMemory(): Long {
+            return Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
+        }
+
     }
 
 }
@@ -35,8 +47,8 @@ class ContextInformationState(
 fun rememberContextInformationState(
     playbackState: MutableState<PlaybackState> = GravifonContext.playbackState,
     activePlaylist: MutableState<Playlist?> = GravifonContext.activePlaylist,
-    totalMemory: MutableState<FileSize> = mutableStateOf(FileSize(Runtime.getRuntime().totalMemory())),
-    usedMemory: MutableState<FileSize> = mutableStateOf(FileSize(Runtime.getRuntime().freeMemory())),
+    totalMemory: MutableState<FileSize> = mutableStateOf(FileSize(ContextInformationState.getTotalMemory())),
+    usedMemory: MutableState<FileSize> = mutableStateOf(FileSize(ContextInformationState.getUsedMemory())),
 ) = remember(playbackState, activePlaylist, totalMemory, usedMemory) {
     ContextInformationState(
         playbackState,
