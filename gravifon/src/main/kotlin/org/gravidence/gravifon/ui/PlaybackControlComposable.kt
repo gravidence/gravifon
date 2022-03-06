@@ -143,6 +143,7 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                 ) {
                     AppIcon("icons8-end-24.png")
                 }
+                Spacer(Modifier.width(5.dp))
                 Text(text = playbackControlState.elapsedTime(), fontWeight = FontWeight.Light)
                 Slider(
                     value = playbackControlState.playbackPositionState.value.runningPosition
