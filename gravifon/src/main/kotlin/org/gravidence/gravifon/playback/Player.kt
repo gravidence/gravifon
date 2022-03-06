@@ -106,8 +106,8 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                 GravifonContext.playbackState.value = it
             }
 
-            timer = fixedRateTimer(initialDelay = 1000, period = 100) {
-                logger.trace { "Time to send playback status update events" }
+            timer = fixedRateTimer(initialDelay = 1000, period = 200) {
+                logger.trace { "Ask components to update playback status" }
                 updatePlaybackPositionState()
             }
         }

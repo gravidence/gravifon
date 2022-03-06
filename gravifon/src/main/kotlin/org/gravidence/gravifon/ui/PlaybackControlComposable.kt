@@ -5,8 +5,6 @@ import androidx.compose.material.Button
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -20,65 +18,51 @@ import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
 import org.gravidence.gravifon.event.playlist.SubPlaylistPlayPrevEvent
 import org.gravidence.gravifon.playback.PlaybackState
-import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
 import org.gravidence.gravifon.util.DurationUtil
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-class PlaybackControlState(
-    val playbackState: MutableState<PlaybackState>,
-    val playbackPositionState: MutableState<PlaybackPositionState>,
-    val activePlaylist: MutableState<Playlist?>
-) {
+class PlaybackControlState {
 
-    fun onPrev() {
-        activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayPrevEvent(it)) }
+    companion object {
+
+        fun onPrev() {
+            GravifonContext.activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayPrevEvent(it)) }
+        }
+
+        fun onStop() {
+            EventBus.publish(SubPlaybackStopEvent())
+        }
+
+        fun onPause() {
+            EventBus.publish(SubPlaybackPauseEvent())
+        }
+
+        fun onPlay() {
+            GravifonContext.activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayCurrentEvent(it)) }
+        }
+
+        fun onNext() {
+            GravifonContext.activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayNextEvent(it)) }
+        }
+
+        fun onPositionChange(rawPosition: Float) {
+            val position = rawPosition.toLong().toDuration(DurationUnit.MILLISECONDS)
+            EventBus.publish(SubPlaybackAbsolutePositionEvent(position))
+        }
+
+        fun elapsedTime(playbackPositionState: PlaybackPositionState): String {
+            return DurationUtil.format(playbackPositionState.runningPosition)
+        }
+
+        fun remainingTime(playbackPositionState: PlaybackPositionState): String {
+            return DurationUtil.format(playbackPositionState.endingPosition.minus(playbackPositionState.runningPosition))
+        }
+
     }
 
-    fun onStop() {
-        EventBus.publish(SubPlaybackStopEvent())
-    }
-
-    fun onPause() {
-        EventBus.publish(SubPlaybackPauseEvent())
-    }
-
-    fun onPlay() {
-        activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayCurrentEvent(it)) }
-    }
-
-    fun onNext() {
-        activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayNextEvent(it)) }
-    }
-
-    fun onPositionChange(rawPosition: Float) {
-        val position = rawPosition.toLong().toDuration(DurationUnit.MILLISECONDS)
-        EventBus.publish(SubPlaybackAbsolutePositionEvent(position))
-    }
-
-    fun elapsedTime(): String {
-        return DurationUtil.format(playbackPositionState.value.runningPosition)
-    }
-
-    fun remainingTime(): String {
-        return DurationUtil.format(playbackPositionState.value.endingPosition.minus(playbackPositionState.value.runningPosition))
-    }
-
-}
-
-@Composable
-fun rememberPlaybackControlState(
-    playbackState: MutableState<PlaybackState> = GravifonContext.playbackState,
-    playbackPositionState: MutableState<PlaybackPositionState> = GravifonContext.playbackPositionState,
-    activePlaylist: MutableState<Playlist?> = GravifonContext.activePlaylist
-) = remember(playbackState, playbackPositionState, activePlaylist) {
-    PlaybackControlState(
-        playbackState,
-        playbackPositionState,
-        activePlaylist
-    )
 }
 
 private val defaultPlaybackButtonModifier = Modifier
@@ -89,7 +73,7 @@ private val activePlaybackButtonModifier = Modifier
     .padding(0.dp)
 
 @Composable
-fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
+fun PlaybackControlComposable(playbackState: PlaybackState, playbackPositionState: PlaybackPositionState) {
     Box(
         modifier = Modifier
             .padding(5.dp)
@@ -102,14 +86,14 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                     .padding(10.dp)
             ) {
                 Button(
-                    onClick = playbackControlState::onPrev,
+                    onClick = PlaybackControlState::onPrev,
                     modifier = defaultPlaybackButtonModifier
                 ) {
                     AppIcon("icons8-skip-to-start-24.png")
                 }
                 Button(
-                    onClick = playbackControlState::onStop,
-                    modifier = if (playbackControlState.playbackState.value == PlaybackState.STOPPED) {
+                    onClick = PlaybackControlState::onStop,
+                    modifier = if (playbackState == PlaybackState.STOPPED) {
                         activePlaybackButtonModifier
                     } else {
                         defaultPlaybackButtonModifier
@@ -118,8 +102,8 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                     AppIcon("icons8-stop-24.png")
                 }
                 Button(
-                    onClick = playbackControlState::onPause,
-                    modifier = if (playbackControlState.playbackState.value == PlaybackState.PAUSED) {
+                    onClick = PlaybackControlState::onPause,
+                    modifier = if (playbackState == PlaybackState.PAUSED) {
                         activePlaybackButtonModifier
                     } else {
                         defaultPlaybackButtonModifier
@@ -128,8 +112,8 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                     AppIcon("icons8-pause-24.png")
                 }
                 Button(
-                    onClick = playbackControlState::onPlay,
-                    modifier = if (playbackControlState.playbackState.value == PlaybackState.PLAYING) {
+                    onClick = PlaybackControlState::onPlay,
+                    modifier = if (playbackState == PlaybackState.PLAYING) {
                         activePlaybackButtonModifier
                     } else {
                         defaultPlaybackButtonModifier
@@ -138,26 +122,26 @@ fun PlaybackControlComposable(playbackControlState: PlaybackControlState) {
                     AppIcon("icons8-play-24.png")
                 }
                 Button(
-                    onClick = playbackControlState::onNext,
+                    onClick = PlaybackControlState::onNext,
                     modifier = defaultPlaybackButtonModifier
                 ) {
                     AppIcon("icons8-end-24.png")
                 }
                 Spacer(Modifier.width(5.dp))
-                Text(text = playbackControlState.elapsedTime(), fontWeight = FontWeight.Light)
+                Text(text = PlaybackControlState.elapsedTime(playbackPositionState), fontWeight = FontWeight.Light)
                 Slider(
-                    value = playbackControlState.playbackPositionState.value.runningPosition
+                    value = playbackPositionState.runningPosition
                         .inWholeMilliseconds.toFloat(),
-                    valueRange = 0f..playbackControlState.playbackPositionState.value.endingPosition
+                    valueRange = 0f..playbackPositionState.endingPosition
                         .inWholeMilliseconds.toFloat(),
                     onValueChange = {
-                        playbackControlState.onPositionChange(it)
+                        PlaybackControlState.onPositionChange(it)
                     },
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
                 )
-                Text(text = "-${playbackControlState.remainingTime()}", fontWeight = FontWeight.Light)
+                Text(text = "-${PlaybackControlState.remainingTime(playbackPositionState)}", fontWeight = FontWeight.Light)
             }
         }
     }

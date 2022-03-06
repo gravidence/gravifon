@@ -10,19 +10,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.ui.theme.gShape
-import kotlin.concurrent.fixedRateTimer
 
 @Composable
 fun AppBody() {
-    val playbackInformationState = rememberPlaybackInformationState()
-    val playbackControlState = rememberPlaybackControlState()
-    val contextInformationState = rememberContextInformationState()
     val activeView = remember { GravifonContext.activeView }
-
-    // TODO update period may go to advanced settings
-    fixedRateTimer(initialDelay = 1000, period = 1000) {
-        contextInformationState.refresh()
-    }
 
     MaterialTheme {
         Column {
@@ -47,7 +38,7 @@ fun AppBody() {
                                     .fillMaxWidth()
                                     .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
-                                PlaybackInformationComposable(playbackInformationState)
+                                PlaybackInformationComposable(rememberPlaybackInformationState())
                             }
                             Divider(color = Color.Transparent, thickness = 5.dp)
                             Row(
@@ -55,7 +46,7 @@ fun AppBody() {
                                     .fillMaxWidth()
                                     .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
-                                PlaybackControlComposable(playbackControlState)
+                                PlaybackControlComposable(GravifonContext.playbackState.value, GravifonContext.playbackPositionState.value)
                             }
                             Divider(color = Color.Transparent, thickness = 5.dp)
                             Row(
@@ -78,7 +69,7 @@ fun AppBody() {
                                     .fillMaxWidth()
                                     .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
-                                ContextInformationComposable(contextInformationState)
+                                ContextInformationComposable(GravifonContext.playbackState.value, GravifonContext.activePlaylist.value)
                             }
                         }
                     }
