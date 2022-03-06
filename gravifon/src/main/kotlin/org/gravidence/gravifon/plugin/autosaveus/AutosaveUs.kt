@@ -50,18 +50,16 @@ class AutosaveUs(
     private fun setupIntervalSecondsHandler() {
         val cc = componentConfiguration.value
 
+        timer?.cancel()
         if (pluginEnabled && cc.intervalSeconds > 0 ) {
             logger.info { "Register handler: save every ${cc.intervalSeconds} seconds" }
-            fixedRateTimer(
-                name = "Autosave-Us",
+            timer = fixedRateTimer(
                 initialDelay = cc.intervalSeconds * 1000,
                 period = cc.intervalSeconds * 1000
             ) {
                 logger.debug { "Autosave us..." }
                 publish(PersistConfigurationEvent())
             }
-        } else {
-            timer?.cancel()
         }
     }
 
