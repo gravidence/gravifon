@@ -3,9 +3,24 @@
         <resetJUL>true</resetJUL>
     </contextListener>
 
+    <property name="PATTERN" value="%date{ISO8601} %-5level [%-27thread] %-40logger{40}| %message%n" />
+    <property name="LOG_DIR" value="." />
+    <property name="LOG_FILE" value="gravifon" />
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%date{ISO8601} %-5level [%-27thread] %-40logger{40}| %message%n</pattern>
+            <pattern>${PATTERN}</pattern>
+        </encoder>
+    </appender>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/${LOG_FILE}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>30MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${PATTERN}</pattern>
         </encoder>
     </appender>
 
@@ -14,5 +29,6 @@
 
     <root level="WARN">
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </root>
 </configuration>

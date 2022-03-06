@@ -29,6 +29,8 @@ class Orchestrator(
     }
 
     fun startup() {
+        logger.info { "Startup routine, started" }
+
         eventAwares.forEach {
             logger.info { "Subscribe ${it::class.simpleName} to event flow" }
             EventBus.subscribe(it::receive)
@@ -43,11 +45,15 @@ class Orchestrator(
         activePlaylist?.activatePlaylist()
 
         EventBus.publish(ApplicationStartedEvent())
+
+        logger.info { "Startup routine, completed" }
     }
 
     fun shutdown() {
         logger.info { "Shutdown routine, started" }
+
         shutdownAwares.forEach { it.beforeShutdown() }
+
         logger.info { "Shutdown routine, completed" }
     }
 
