@@ -21,8 +21,8 @@ import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.track.PubTrackFinishEvent
-import org.gravidence.gravifon.event.track.PubTrackStartEvent
+import org.gravidence.gravifon.event.track.TrackFinishedEvent
+import org.gravidence.gravifon.event.track.TrackStartedEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
@@ -67,13 +67,13 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
     override fun consume(event: Event) {
         if (pluginEnabled) {
             when (event) {
-                is PubTrackStartEvent -> handle(event)
-                is PubTrackFinishEvent -> handle(event)
+                is TrackStartedEvent -> handle(event)
+                is TrackFinishedEvent -> handle(event)
             }
         }
     }
 
-    private fun handle(event: PubTrackStartEvent) {
+    private fun handle(event: TrackStartedEvent) {
         event.track.toLastfmTrack()?.let {
             pendingScrobble = Scrobble(track = event.track, startedAt = event.timestamp)
 
@@ -95,7 +95,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
         }
     }
 
-    private fun handle(event: PubTrackFinishEvent) {
+    private fun handle(event: TrackFinishedEvent) {
         event.track.toLastfmTrack()?.let {
             val pendingScrobbleFixed = pendingScrobble
 
@@ -139,7 +139,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
     /**
      * Fulfill [pendingScrobble] with final details from [trackFinishEvent] and add it to [lastfmScrobblerStorage].
      */
-    private fun completePendingScrobble(pendingScrobble: Scrobble, trackFinishEvent: PubTrackFinishEvent) {
+    private fun completePendingScrobble(pendingScrobble: Scrobble, trackFinishEvent: TrackFinishedEvent) {
         pendingScrobble.duration = trackFinishEvent.duration
         pendingScrobble.finishedAt = trackFinishEvent.timestamp
 
@@ -166,7 +166,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
      * Verify that scrobble meets Last.fm requirements regarding duration.
      * See [documentation](https://www.last.fm/api/scrobbling#when-is-a-scrobble-a-scrobble).
      */
-    private fun scrobbleDurationMeetsRequirements(scrobbleEvent: PubTrackFinishEvent): Boolean {
+    private fun scrobbleDurationMeetsRequirements(scrobbleEvent: TrackFinishedEvent): Boolean {
         val scrobbleDuration = scrobbleEvent.duration
 
         if (scrobbleDuration < absoluteMinScrobbleDuration) {

@@ -4,7 +4,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.gravidence.gravifon.domain.track.VirtualTrack
 
-class PubTrackStartEvent(
+class TrackStartedEvent(
     override val track: VirtualTrack,
     /**
      * The time the track started playing.

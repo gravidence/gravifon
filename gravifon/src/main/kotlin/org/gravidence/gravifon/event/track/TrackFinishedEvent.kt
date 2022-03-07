@@ -5,7 +5,7 @@ import kotlinx.datetime.Instant
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import kotlin.time.Duration
 
-class PubTrackFinishEvent(
+class TrackFinishedEvent(
     override val track: VirtualTrack,
     /**
      * The duration the track actually played (could less or more than track length).

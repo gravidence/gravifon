@@ -5,9 +5,9 @@ import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.playback.*
-import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
-import org.gravidence.gravifon.event.track.PubTrackFinishEvent
-import org.gravidence.gravifon.event.track.PubTrackStartEvent
+import org.gravidence.gravifon.event.playlist.PlayNextFromPlaylistEvent
+import org.gravidence.gravifon.event.track.TrackFinishedEvent
+import org.gravidence.gravifon.event.track.TrackStartedEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.ShutdownAware
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
@@ -26,22 +26,22 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
 
     override fun consume(event: Event) {
         when (event) {
-            is SubPlaybackStartEvent -> {
+            is StartPlaybackEvent -> {
                 start(event.track)
             }
-            is SubPlaybackPauseEvent -> {
+            is PausePlaybackEvent -> {
                 if (GravifonContext.playbackState.value != PlaybackState.STOPPED) {
                     pause()
                 }
             }
-            is SubPlaybackStopEvent -> {
+            is StopPlaybackEvent -> {
                 stop()
             }
-            is SubPlaybackAbsolutePositionEvent -> {
+            is RepositionPlaybackPointAbsoluteEvent -> {
                 seek(event.position)
             }
-            is SubPlaybackRelativePositionEvent -> {
-                seek(DurationUtil.max(Duration.ZERO, audioBackend.queryPosition() + event.position))
+            is RepositionPlaybackPointRelativeEvent -> {
+                seek(DurationUtil.max(Duration.ZERO, audioBackend.queryPosition() + event.positionDelta))
             }
         }
     }
@@ -56,18 +56,18 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
             audioStreamChangedCallback = { nextTrack, duration ->
                 GravifonContext.activeVirtualTrack.value?.let {
                     if (duration > Duration.ZERO) {
-                        publish(PubTrackFinishEvent(it, duration))
+                        publish(TrackFinishedEvent(it, duration))
                     }
                 }
 
                 nextTrack?.let {
                     logger.debug { "Switch over to next track: $it" }
                     GravifonContext.activeVirtualTrack.value = it
-                    publish(PubTrackStartEvent(it))
+                    publish(TrackStartedEvent(it))
                 } // if there's no next track, endOfStreamCallback will handle post-playback state clean-up
             },
             endOfStreamCallback = {
-                publish(SubPlaybackStopEvent())
+                publish(StopPlaybackEvent())
             },
             playbackFailureCallback = { duration ->
                 GravifonContext.activeVirtualTrack.value?.let {
@@ -76,14 +76,14 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                     it.failing = true
 
                     if (duration > Duration.ZERO) {
-                        publish(PubTrackFinishEvent(it, duration))
+                        publish(TrackFinishedEvent(it, duration))
                     }
                 }
 
                 stop()
 
                 GravifonContext.activePlaylist.value?.let {
-                    publish(SubPlaylistPlayNextEvent(it))
+                    publish(PlayNextFromPlaylistEvent(it))
                 }
             }
         )

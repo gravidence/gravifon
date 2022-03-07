@@ -9,8 +9,8 @@ import kotlinx.coroutines.launch
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.GravifonStarter
 import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
-import org.gravidence.gravifon.event.playback.SubPlaybackRelativePositionEvent
+import org.gravidence.gravifon.event.playback.PausePlaybackEvent
+import org.gravidence.gravifon.event.playback.RepositionPlaybackPointRelativeEvent
 import org.gravidence.gravifon.ui.AppBody
 import org.gravidence.gravifon.ui.dialog.PluginSettingsDialog
 import org.gravidence.gravifon.ui.dialog.TrackMetadataDialog
@@ -39,7 +39,7 @@ fun main() = application {
         onPreviewKeyEvent = {
             // TODO below doesn't work, see https://github.com/JetBrains/compose-jb/issues/1840
             if (it.key == Key.MediaPlayPause && it.type == KeyEventType.KeyUp) {
-                EventBus.publish(SubPlaybackPauseEvent())
+                EventBus.publish(PausePlaybackEvent())
                 return@Window true
             }
 
@@ -54,18 +54,18 @@ fun main() = application {
                 Item(
                     text = "Play/Pause",
                     shortcut = KeyShortcut(key = Key.Spacebar, shift = true),
-                    onClick = { EventBus.publish(SubPlaybackPauseEvent()) }
+                    onClick = { EventBus.publish(PausePlaybackEvent()) }
                 )
                 Separator()
                 Item(
                     text = "Jump forward",
                     shortcut = KeyShortcut(key = Key.DirectionRight),
-                    onClick = { EventBus.publish(SubPlaybackRelativePositionEvent(10.seconds)) }
+                    onClick = { EventBus.publish(RepositionPlaybackPointRelativeEvent(10.seconds)) }
                 )
                 Item(
                     text = "Jump backward",
                     shortcut = KeyShortcut(key = Key.DirectionLeft),
-                    onClick = { EventBus.publish(SubPlaybackRelativePositionEvent((-10).seconds)) }
+                    onClick = { EventBus.publish(RepositionPlaybackPointRelativeEvent((-10).seconds)) }
                 )
                 Separator()
                 Item(text = "Stop after current", onClick = {})

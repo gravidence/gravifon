@@ -11,12 +11,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.playback.SubPlaybackAbsolutePositionEvent
-import org.gravidence.gravifon.event.playback.SubPlaybackPauseEvent
-import org.gravidence.gravifon.event.playback.SubPlaybackStopEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistPlayNextEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistPlayPrevEvent
+import org.gravidence.gravifon.event.playback.RepositionPlaybackPointAbsoluteEvent
+import org.gravidence.gravifon.event.playback.PausePlaybackEvent
+import org.gravidence.gravifon.event.playback.StopPlaybackEvent
+import org.gravidence.gravifon.event.playlist.PlayCurrentFromPlaylistEvent
+import org.gravidence.gravifon.event.playlist.PlayNextFromPlaylistEvent
+import org.gravidence.gravifon.event.playlist.PlayPreviousFromPlaylistEvent
 import org.gravidence.gravifon.playback.PlaybackState
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
@@ -29,28 +29,28 @@ class PlaybackControlState {
     companion object {
 
         fun onPrev() {
-            GravifonContext.activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayPrevEvent(it)) }
+            GravifonContext.activePlaylist.value?.let { EventBus.publish(PlayPreviousFromPlaylistEvent(it)) }
         }
 
         fun onStop() {
-            EventBus.publish(SubPlaybackStopEvent())
+            EventBus.publish(StopPlaybackEvent())
         }
 
         fun onPause() {
-            EventBus.publish(SubPlaybackPauseEvent())
+            EventBus.publish(PausePlaybackEvent())
         }
 
         fun onPlay() {
-            GravifonContext.activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayCurrentEvent(it)) }
+            GravifonContext.activePlaylist.value?.let { EventBus.publish(PlayCurrentFromPlaylistEvent(it)) }
         }
 
         fun onNext() {
-            GravifonContext.activePlaylist.value?.let { EventBus.publish(SubPlaylistPlayNextEvent(it)) }
+            GravifonContext.activePlaylist.value?.let { EventBus.publish(PlayNextFromPlaylistEvent(it)) }
         }
 
         fun onPositionChange(rawPosition: Float) {
             val position = rawPosition.toLong().toDuration(DurationUnit.MILLISECONDS)
-            EventBus.publish(SubPlaybackAbsolutePositionEvent(position))
+            EventBus.publish(RepositionPlaybackPointAbsoluteEvent(position))
         }
 
         fun elapsedTime(playbackPositionState: PlaybackPositionState): String {

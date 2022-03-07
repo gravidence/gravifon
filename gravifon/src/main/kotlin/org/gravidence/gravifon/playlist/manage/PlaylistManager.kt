@@ -7,7 +7,7 @@ import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.configHomeDir
 import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.event.Event
-import org.gravidence.gravifon.event.playback.SubPlaybackStartEvent
+import org.gravidence.gravifon.event.playback.StartPlaybackEvent
 import org.gravidence.gravifon.event.playlist.*
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Stateful
@@ -39,10 +39,10 @@ class PlaylistManager : EventAware, Stateful {
 
     override fun consume(event: Event) {
         when (event) {
-            is SubPlaylistPlayCurrentEvent -> playCurrent(event.playlist, event.playlistItem)
-            is SubPlaylistPlayNextEvent -> playNext(event.playlist)
-            is SubPlaylistPlayPrevEvent -> playPrev(event.playlist)
-            is RemovePlaylistItemsEvent -> event.apply {
+            is PlayCurrentFromPlaylistEvent -> playCurrent(event.playlist, event.playlistItem)
+            is PlayNextFromPlaylistEvent -> playNext(event.playlist)
+            is PlayPreviousFromPlaylistEvent -> playPrev(event.playlist)
+            is RemoveFromPlaylistEvent -> event.apply {
                 // only handle users of PlaylistManager, other playlist holders are likely have own update logic
                 if (getPlaylist(playlist.id()) != null) {
                     playlist.remove(playlistItemIndexes.map { it + 1 }.toSet())
@@ -55,7 +55,7 @@ class PlaylistManager : EventAware, Stateful {
     private fun play(playlist: Playlist, trackPlaylistItem: TrackPlaylistItem?): TrackPlaylistItem? {
         if (trackPlaylistItem != null) {
             GravifonContext.activePlaylist.value = playlist
-            publish(SubPlaybackStartEvent(trackPlaylistItem.track))
+            publish(StartPlaybackEvent(trackPlaylistItem.track))
         }
 
         return trackPlaylistItem

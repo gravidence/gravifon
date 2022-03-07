@@ -28,8 +28,8 @@ import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.StreamVirtualTrack
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.playlist.RemovePlaylistItemsEvent
-import org.gravidence.gravifon.event.playlist.SubPlaylistPlayCurrentEvent
+import org.gravidence.gravifon.event.playlist.RemoveFromPlaylistEvent
+import org.gravidence.gravifon.event.playlist.PlayCurrentFromPlaylistEvent
 import org.gravidence.gravifon.playback.PlaybackState
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
@@ -70,7 +70,7 @@ class PlaylistState(
         return if (keyEvent.type == KeyEventType.KeyUp) {
             when (keyEvent.key) {
                 Key.Delete -> {
-                    EventBus.publish(RemovePlaylistItemsEvent(playlist, selectedPlaylistItems.value.keys))
+                    EventBus.publish(RemoveFromPlaylistEvent(playlist, selectedPlaylistItems.value.keys))
                     selectedPlaylistItems.value = mapOf()
                     true
                 }
@@ -94,7 +94,7 @@ class PlaylistState(
     fun onPointerEvent(pointerEvent: PointerEvent, index: Int, playlistItem: PlaylistItem) {
         (pointerEvent.nativeEvent as? MouseEvent)?.let {
             if (it.button == 1 && it.clickCount == 2) {
-                EventBus.publish(SubPlaylistPlayCurrentEvent(playlist, playlistItem))
+                EventBus.publish(PlayCurrentFromPlaylistEvent(playlist, playlistItem))
             } else if (it.button == 1 && it.clickCount == 1 && !it.isControlDown) {
                 selectedPlaylistItems.value = mapOf(Pair(index, playlistItem))
             } else if (it.button == 1 && it.clickCount == 1 && it.isControlDown) {

@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.playlist.PlaylistUpdatedEvent
-import org.gravidence.gravifon.event.playlist.RemovePlaylistItemsEvent
+import org.gravidence.gravifon.event.playlist.RemoveFromPlaylistEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.playlist.DynamicPlaylist
@@ -54,7 +54,7 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
             is LastfmScrobbleCacheUpdatedEvent -> {
                 updateViewState(event.scrobbleCache)
             }
-            is RemovePlaylistItemsEvent -> {
+            is RemoveFromPlaylistEvent -> {
                 if (event.playlist === playlist) {
                     lastfmScrobbler.lastfmScrobblerStorage.apply {
                         removeFromScrobbleCache(event.playlistItemIndexes)
