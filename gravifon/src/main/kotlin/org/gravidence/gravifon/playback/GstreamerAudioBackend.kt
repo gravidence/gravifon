@@ -36,6 +36,7 @@ class GstreamerAudioBackend : AudioBackend {
     override fun registerCallback(
         aboutToFinishCallback: () -> Unit,
         audioStreamChangedCallback: (VirtualTrack?, Duration) -> Unit,
+        audioStreamBufferingCallback: (Int) -> Unit,
         endOfStreamCallback: () -> Unit,
         playbackFailureCallback: (Duration) -> Unit,
     ) {
@@ -62,16 +63,18 @@ class GstreamerAudioBackend : AudioBackend {
             logger.debug { "End of stream reached" }
             endOfStreamCallback()
         })
+        logger.debug { "Callback 'end-of-stream' registered" }
 
-        playbin.bus.connect(Bus.BUFFERING { source, percent ->
-            logger.warn { "Stream buffering is happening (source=$source percent=$percent), please handle me" }
+        playbin.bus.connect(Bus.BUFFERING { _, percent ->
+            audioStreamBufferingCallback(percent)
         })
+        logger.debug { "Callback 'stream-buffering' registered" }
 
-        playbin.bus.connect(Bus.WARNING { source, code, message ->
+        playbin.bus.connect(Bus.WARNING { _, code, message ->
             logger.warn { "Gstreamer warning occurred: code=$code, message=$message" }
         })
 
-        playbin.bus.connect(Bus.ERROR { source, code, message ->
+        playbin.bus.connect(Bus.ERROR { _, code, message ->
             logger.error { "Gstreamer error occurred: code=$code, message=$message" }
 
             // stream doesn't contain enough data
@@ -79,6 +82,7 @@ class GstreamerAudioBackend : AudioBackend {
                 playbackFailureCallback(stopwatch.stop())
             }
         })
+        logger.debug { "Callback 'playback-failure' registered" }
     }
 
     override fun play(): PlaybackState {

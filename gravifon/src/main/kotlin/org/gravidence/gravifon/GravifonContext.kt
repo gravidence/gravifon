@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import org.gravidence.gravifon.domain.notification.Notification
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.playback.PlaybackState
@@ -19,6 +20,7 @@ object GravifonContext {
     val activeView: MutableState<Viewable?> = mutableStateOf(null)
     val activePlaylist: MutableState<Playlist?> = mutableStateOf(null)
     val activeVirtualTrack: MutableState<VirtualTrack?> = mutableStateOf(null)
+    val activeInnerNotification: MutableState<Notification?> = mutableStateOf(null)
 
     val pluginSettingsDialogVisible: MutableState<Boolean> = mutableStateOf(false)
 

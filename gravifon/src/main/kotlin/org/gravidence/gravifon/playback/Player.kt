@@ -2,8 +2,12 @@ package org.gravidence.gravifon.playback
 
 import mu.KotlinLogging
 import org.gravidence.gravifon.GravifonContext
+import org.gravidence.gravifon.domain.notification.Notification
+import org.gravidence.gravifon.domain.notification.NotificationLifespan
+import org.gravidence.gravifon.domain.notification.NotificationType
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
+import org.gravidence.gravifon.event.application.PushInnerNotificationEvent
 import org.gravidence.gravifon.event.playback.*
 import org.gravidence.gravifon.event.playlist.PlayNextFromPlaylistEvent
 import org.gravidence.gravifon.event.track.TrackFinishedEvent
@@ -66,12 +70,28 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                     publish(TrackStartedEvent(it))
                 } // if there's no next track, endOfStreamCallback will handle post-playback state clean-up
             },
+            audioStreamBufferingCallback = {
+                publish(
+                    PushInnerNotificationEvent(
+                        Notification(message = "Buffering, $it%...")
+                    )
+                )
+            },
             endOfStreamCallback = {
                 publish(StopPlaybackEvent())
             },
             playbackFailureCallback = { duration ->
                 GravifonContext.activeVirtualTrack.value?.let {
                     logger.error { "Track playback failure: $it" }
+                    publish(
+                        PushInnerNotificationEvent(
+                            Notification(
+                                message = "Playback failure",
+                                type = NotificationType.ERROR,
+                                lifespan = NotificationLifespan.MEDIUM
+                            )
+                        )
+                    )
 
                     it.failing = true
 

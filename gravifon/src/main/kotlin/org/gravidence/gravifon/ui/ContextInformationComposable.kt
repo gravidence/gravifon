@@ -8,9 +8,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ch.qos.logback.core.util.FileSize
+import org.gravidence.gravifon.GravifonContext
+import org.gravidence.gravifon.domain.notification.NotificationType
 import org.gravidence.gravifon.playback.PlaybackState
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.ui.image.AppIcon
@@ -60,13 +63,15 @@ fun ContextInformationComposable(playbackState: PlaybackState, activePlaylist: P
             Spacer(Modifier.width(3.dp))
             PlaybackSourcePanel(playbackState, activePlaylist)
             Spacer(Modifier.width(10.dp))
+            InnerNotificationPanel()
+            Spacer(Modifier.width(10.dp))
             MemoryConsumptionPanel(contextInformationState)
         }
     }
 }
 
 @Composable
-fun RowScope.PlaybackSourcePanel(playbackState: PlaybackState, activePlaylist: Playlist?) {
+fun PlaybackSourcePanel(playbackState: PlaybackState, activePlaylist: Playlist?) {
     val playbackSourceIconColor = if (playbackState == PlaybackState.STOPPED) {
         Color.LightGray
     } else {
@@ -75,7 +80,29 @@ fun RowScope.PlaybackSourcePanel(playbackState: PlaybackState, activePlaylist: P
 
     AppIcon(path = "icons8-audio-wave-24.png", tint = playbackSourceIconColor)
     Spacer(Modifier.width(4.dp))
-    Text(text = "${activePlaylist?.ownerName}", fontWeight = FontWeight.ExtraLight, modifier = Modifier.weight(1f))
+    Text(text = "${activePlaylist?.ownerName}", fontWeight = FontWeight.ExtraLight)
+}
+
+@Composable
+fun RowScope.InnerNotificationPanel() {
+    val notification = GravifonContext.activeInnerNotification.value
+
+    val color = when (notification?.type) {
+        NotificationType.REGULAR -> Color.Unspecified
+        NotificationType.ERROR -> Color.Red
+        else -> Color.Unspecified
+    }
+
+    Text(
+        text = notification?.message ?: "",
+        maxLines = 1,
+        fontStyle = FontStyle.Italic,
+        fontWeight = FontWeight.ExtraLight,
+        color = color,
+        modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f)
+    )
 }
 
 @Composable
