@@ -1,4 +1,6 @@
 /.gradle
 /.idea
+/.vagrant
+/distrib
 **/build
 .attach_pid*
