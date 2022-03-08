@@ -21,8 +21,13 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.domain.header.Headers
+import org.gravidence.gravifon.domain.notification.Notification
+import org.gravidence.gravifon.domain.notification.NotificationLifespan
+import org.gravidence.gravifon.domain.notification.NotificationType
 import org.gravidence.gravifon.domain.track.StreamVirtualTrack
 import org.gravidence.gravifon.domain.track.VirtualTrack
+import org.gravidence.gravifon.event.EventBus
+import org.gravidence.gravifon.event.application.PushInnerNotificationEvent
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.bandcamp.model.BandcampItem
 import org.gravidence.gravifon.plugin.bandcamp.model.bandcampSerializer
@@ -101,7 +106,17 @@ class Bandcamp(
         return try {
             extractAlbumUrls(fetchPage(url), url) ?: listOf(url)
         } catch (e: Exception) {
-            logger.error(e) { "Failed to process URL: $url" }
+            val message = "Failed to process URL: $url"
+            logger.error(e) { message }
+            EventBus.publish(
+                PushInnerNotificationEvent(
+                    Notification(
+                        message = message,
+                        type = NotificationType.ERROR,
+                        lifespan = NotificationLifespan.MEDIUM
+                    )
+                )
+            )
             listOf()
         }.also {
             logger.debug { "Bandcamp pages resolved: ${it.size}" }
@@ -113,17 +128,36 @@ class Bandcamp(
      * @return list of stream tracks
      */
     fun parseBandcampPage(pageUrl: String): List<StreamVirtualTrack> {
-        logger.info { "Process Bandcamp page: $pageUrl" }
+        logger.info { "Process page: $pageUrl" }
         return try {
             val json = extractAlbumOrTrackJson(fetchPage(pageUrl))
             if (json != null) {
                 processAlbumOrTrackJson(json)
             } else {
                 logger.error { "Bandcamp item node not found" }
+                EventBus.publish(
+                    PushInnerNotificationEvent(
+                        Notification(
+                            message = "Unable to process: not a Bandcamp page",
+                            type = NotificationType.REGULAR,
+                            lifespan = NotificationLifespan.MEDIUM
+                        )
+                    )
+                )
                 listOf()
             }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to process Bandcamp page: $pageUrl" }
+            val message = "Failed to process page: $pageUrl"
+            logger.error(e) { message }
+            EventBus.publish(
+                PushInnerNotificationEvent(
+                    Notification(
+                        message = message,
+                        type = NotificationType.ERROR,
+                        lifespan = NotificationLifespan.MEDIUM
+                    )
+                )
+            )
             listOf()
         }
     }
