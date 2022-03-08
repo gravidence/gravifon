@@ -19,8 +19,12 @@ import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.ConfigurationManager
+import org.gravidence.gravifon.domain.notification.Notification
+import org.gravidence.gravifon.domain.notification.NotificationLifespan
+import org.gravidence.gravifon.domain.notification.NotificationType
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.Event
+import org.gravidence.gravifon.event.application.PushInnerNotificationEvent
 import org.gravidence.gravifon.event.track.TrackFinishedEvent
 import org.gravidence.gravifon.event.track.TrackStartedEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
@@ -105,7 +109,17 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                 if (!scrobbleDurationMeetsRequirements(event)) {
                     logger.info { "Last.fm scrobbling criteria not met: trackLength=${event.track.getLength()}, scrobbleDuration=${event.duration}" }
                 } else {
-                    completePendingScrobble(pendingScrobbleFixed, event)
+                    completePendingScrobble(pendingScrobbleFixed, event).also {
+                        publish(
+                            PushInnerNotificationEvent(
+                                Notification(
+                                    message = "Complete scrobble. ${lastfmScrobblerStorage.scrobbleCache().size} scrobbles in cache",
+                                    type = NotificationType.MINOR,
+                                    lifespan = NotificationLifespan.MEDIUM
+                                )
+                            )
+                        )
+                    }
 
                     if (componentConfiguration.value.autoScrobble) {
                         scrobble()
@@ -122,13 +136,33 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
             while (lastfmScrobblerStorage.scrobbleCache().isNotEmpty()) {
                 val scrobbleCache = lastfmScrobblerStorage.scrobbleCache()
                 val candidateScrobbles = scrobbleCache.take(50).also {
-                    logger.info { "Submitting ${it.size} out of ${scrobbleCache.size} scrobbles..." }
+                    val message = "Submitting ${it.size} out of ${scrobbleCache.size} scrobbles..."
+                    logger.info { message }
+                    publish(
+                        PushInnerNotificationEvent(
+                            Notification(
+                                message = message,
+                                type = NotificationType.REGULAR,
+                                lifespan = NotificationLifespan.MEDIUM
+                            )
+                        )
+                    )
                 }
 
                 val response = lastfmClient.trackApi.scrobble(candidateScrobbles.map { it.toLastfmScrobble() })
 
                 if (response.responseHolder.summary.ignored > 0) {
-                    logger.info { "${response.responseHolder.summary.ignored} scrobbles were ignored by service" }
+                    val message = "${response.responseHolder.summary.ignored} scrobbles were ignored by service"
+                    logger.info { message }
+                    publish(
+                        PushInnerNotificationEvent(
+                            Notification(
+                                message = message,
+                                type = NotificationType.REGULAR,
+                                lifespan = NotificationLifespan.MEDIUM
+                            )
+                        )
+                    )
                 }
 
                 lastfmScrobblerStorage.removeFromScrobbleCache(candidateScrobbles)
@@ -224,6 +258,18 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
             "Failed to call Last.fm service, please see logs for details"
         } finally {
             logger.debug { "${lastfmScrobblerStorage.scrobbleCache().size} scrobbles in cache" }
+        }.also {
+            it?.let {
+                publish(
+                    PushInnerNotificationEvent(
+                        Notification(
+                            message = it,
+                            type = NotificationType.ERROR,
+                            lifespan = NotificationLifespan.LONG
+                        )
+                    )
+                )
+            }
         }
     }
 

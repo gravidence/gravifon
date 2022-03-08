@@ -73,7 +73,11 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
             audioStreamBufferingCallback = {
                 publish(
                     PushInnerNotificationEvent(
-                        Notification(message = "Buffering, $it%...")
+                        Notification(
+                            message = "Buffering audio stream, $it%...",
+                            type = NotificationType.MINOR,
+                            lifespan = NotificationLifespan.SHORT
+                        )
                     )
                 )
             },
@@ -82,11 +86,12 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
             },
             playbackFailureCallback = { duration ->
                 GravifonContext.activeVirtualTrack.value?.let {
-                    logger.error { "Track playback failure: $it" }
+                    val message = "Playback failure: ${it.uri()}"
+                    logger.error { message }
                     publish(
                         PushInnerNotificationEvent(
                             Notification(
-                                message = "Playback failure",
+                                message = message,
                                 type = NotificationType.ERROR,
                                 lifespan = NotificationLifespan.MEDIUM
                             )
