@@ -7,25 +7,34 @@ import org.gravidence.lastfm4k.api.auth.AuthApi
 import org.gravidence.lastfm4k.api.auth.Session
 import org.gravidence.lastfm4k.api.auth.Token
 import org.gravidence.lastfm4k.api.track.TrackApi
+import org.gravidence.lastfm4k.api.user.UserApi
+import org.gravidence.lastfm4k.api.user.UserInfo
 import org.gravidence.lastfm4k.exception.LastfmException
 import org.http4k.core.*
 
 private val logger = KotlinLogging.logger {}
 
 class LastfmClient(
-    val apiRoot: String = "http://ws.audioscrobbler.com/2.0/",
+    val apiRoot: String = "https://ws.audioscrobbler.com/2.0/",
     val apiKey: String,
     val apiSecret: String,
-    session: Session? = null
+    session: Session? = null,
 ) {
 
     private val context = LastfmApiContext(
-        LastfmApiClient(apiRoot, apiKey, apiSecret),
-        session
+        client = LastfmApiClient(apiRoot, apiKey, apiSecret),
+        session = session,
     )
 
-    val authApi: AuthApi = AuthApi(context)
-    val trackApi: TrackApi = TrackApi(context)
+    val authApi: AuthApi by lazy { AuthApi(context) }
+
+    val userApi: UserApi by lazy { UserApi(context) }
+    /**
+     * Cached user info for non-interactive use (e.g. username or registration date don't change).
+     */
+    private val userInfo: UserInfo by lazy { userApi.getInfo().userInfo }
+
+    val trackApi: TrackApi by lazy { TrackApi(context, userInfo) }
 
     @Throws(LastfmException::class)
     fun authorizeStep1(): Pair<Token, Uri> {

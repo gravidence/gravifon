@@ -4,6 +4,7 @@ import org.gravidence.lastfm4k.api.auth.Session
 import org.gravidence.lastfm4k.api.auth.Token
 import org.gravidence.lastfm4k.api.track.Scrobble
 import org.gravidence.lastfm4k.api.track.Track
+import org.gravidence.lastfm4k.api.user.UserInfo
 import org.gravidence.lastfm4k.misc.Param
 
 private fun keyWithSuffix(key: String, index: Int?): String {
@@ -24,6 +25,10 @@ fun Token.paramToken(): Param {
 
 fun Session.paramSessionKey(): Param {
     return Param("sk", key)
+}
+
+fun UserInfo.paramUsername(): Param {
+    return Param("username", name)
 }
 
 fun Track.paramArtist(index: Int? = null): Param {

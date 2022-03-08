@@ -8,6 +8,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import org.gravidence.lastfm4k.misc.BooleanAsIntSerializer
 
 @Serializable
 class NowPlayingResponse(
@@ -45,6 +46,7 @@ class BatchScrobbleResponseHolder(
 
 @Serializable
 class ScrobbleResult(
+    @SerialName("timestamp")
     val timestamp: Long? = null,
     @SerialName("ignoredMessage")
     val scrobbleCorrectionSummary: ScrobbleCorrectionSummary,
@@ -136,8 +138,29 @@ class ParamCorrectionSummary(
 
 @Serializable
 class ScrobbleSummary(
+    @SerialName("accepted")
     val accepted: Int,
+    @SerialName("ignored")
     val ignored: Int
+)
+
+@Serializable
+class TrackInfoResponse(
+    @SerialName("track")
+    val track: TrackInfo
+)
+
+@Serializable
+class TrackInfo(
+    @SerialName("listeners")
+    val listeners: Long,
+    @SerialName("playcount")
+    val playcount: Long,
+    @SerialName("userplaycount")
+    val userPlaycount: Long?,
+    @SerialName("userloved")
+    @Serializable(with = BooleanAsIntSerializer::class)
+    val userLoved: Boolean,
 )
 
 fun ScrobbleResponse.toBatchScrobbleResponse(): BatchScrobbleResponse {

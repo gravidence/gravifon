@@ -1,14 +1,12 @@
 package org.gravidence.lastfm4k.api.track
 
 import kotlinx.serialization.json.decodeFromJsonElement
-import mu.KotlinLogging
 import org.gravidence.lastfm4k.api.*
+import org.gravidence.lastfm4k.api.user.UserInfo
 import org.gravidence.lastfm4k.misc.lastfmSerializer
 import org.gravidence.lastfm4k.misc.toJsonObject
 
-private val logger = KotlinLogging.logger {}
-
-class TrackApi(private val context: LastfmApiContext) {
+class TrackApi(private val context: LastfmApiContext, private val userInfo: UserInfo) {
 
     fun updateNowPlaying(track: Track): NowPlayingResponse {
         val response = context.client.post(
@@ -53,6 +51,20 @@ class TrackApi(private val context: LastfmApiContext) {
         } else {
             lastfmSerializer.decodeFromJsonElement<BatchScrobbleResponse>(response.toJsonObject())
         }
+    }
+
+    fun getInfo(track: Track): TrackInfoResponse {
+        val response = context.client.get(
+            LastfmApiMethod.TRACK_GETINFO,
+            listOf(
+                userInfo.paramUsername(),
+                track.paramArtist(),
+                track.paramTrack(),
+                track.paramMbId(),
+            )
+        )
+
+        return lastfmSerializer.decodeFromJsonElement(response.toJsonObject())
     }
 
 }
