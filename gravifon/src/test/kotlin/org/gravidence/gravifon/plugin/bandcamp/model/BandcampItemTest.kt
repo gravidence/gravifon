@@ -78,6 +78,7 @@ internal class BandcampItemTest {
             "/bandcamp/album-multi-artist.json",
             "/bandcamp/album-multi-artist_track-title-has-artist.json",
             "/bandcamp/album-multi-artist_track-title-has-different-artists.json",
+            "/bandcamp/album-multi-artist_unnecessary-spaces.json",
         ]
     )
     fun enhanceAlbumMultiArtist(path: String) {
@@ -89,19 +90,19 @@ internal class BandcampItemTest {
             url = "https://gravifon.org/album/qwe",
             type = BandcampItemType.ALBUM,
             details = BandcampItemDetails(
-                artist = "QWE",
-                title = "0101",
+                artist = "QWE QWE",
+                title = "01 01",
                 date = Instant.parse("2020-02-20T00:00:00Z")
             ),
 
-            albumArtist = "QWE",
+            albumArtist = "QWE QWE",
             albumReleaseDate = Instant.parse("2020-02-20T00:00:00Z"),
             albumUrl = null,
 
             tracks = listOf(
                 BandcampTrackDetails(
-                    artist = "ASD",
-                    title = "AAA",
+                    artist = "ASD ASD",
+                    title = "AAA AAA",
                     tracknum = 1,
                     duration = 100.1,
                     file = BandcampTrackFileInfo(
@@ -109,8 +110,8 @@ internal class BandcampItemTest {
                     )
                 ),
                 BandcampTrackDetails(
-                    artist = "ZXC",
-                    title = "BBB",
+                    artist = "ZXC ZXC",
+                    title = "BBB BBB",
                     tracknum = 2,
                     duration = 200.2,
                     file = BandcampTrackFileInfo(

@@ -105,44 +105,63 @@ fun BandcampTrackFileInfo.expiresAfter(): Instant? {
 }
 
 private const val BC_SEPARATOR = " - "
+private val duplicateWhitespaceRegex = """\s+""".toRegex()
 
 fun BandcampItem.enhanced(): BandcampItem {
-    return when (type) {
-        BandcampItemType.ALBUM -> {
-            val enhancedAlbumArtist = details.artist ?: albumArtist
-            val enhancedAlbumReleaseDate = details.date ?: albumReleaseDate
+    return normalizeWhitespaces().run {
+        when (type) {
+            BandcampItemType.ALBUM -> {
+                val enhancedAlbumArtist = details.artist ?: albumArtist
+                val enhancedAlbumReleaseDate = details.date ?: albumReleaseDate
 
-            val isMultiArtist = tracks.all { it.artist == null && it.title.contains(BC_SEPARATOR) }
+                val isMultiArtist = tracks.all { it.artist == null && it.title.contains(BC_SEPARATOR) }
 
-            copy(
-                albumReleaseDate = enhancedAlbumReleaseDate,
-                details = details.copy(
-                    artist = enhancedAlbumArtist,
-                    title = enhanceTitle(details.title!!, enhancedAlbumArtist),
-                    date = enhancedAlbumReleaseDate
-                ),
-                tracks = tracks.map {
-                    val enhancedArtist = it.artist ?: enhanceTrackArtist(it.title, isMultiArtist) ?: enhancedAlbumArtist
-                    val enhancedTitle = enhanceTitle(it.title, enhancedArtist)
+                copy(
+                    albumReleaseDate = enhancedAlbumReleaseDate,
+                    details = details.copy(
+                        artist = enhancedAlbumArtist,
+                        title = enhanceTitle(details.title!!, enhancedAlbumArtist),
+                        date = enhancedAlbumReleaseDate
+                    ),
+                    tracks = tracks.map {
+                        val enhancedArtist = it.artist ?: enhanceTrackArtist(it.title, isMultiArtist) ?: enhancedAlbumArtist
+                        val enhancedTitle = enhanceTitle(it.title, enhancedArtist)
 
-                    it.copy(artist = enhancedArtist, title = enhancedTitle)
-                }
-            )
-        }
-        BandcampItemType.TRACK -> {
-            copy(
-                details = details.copy(
-                    date = details.date ?: albumReleaseDate
-                ),
-                tracks = tracks.map {
-                    val enhancedArtist = details.artist ?: it.artist
-                    val enhancedTitle = details.title ?: it.title
+                        it.copy(artist = enhancedArtist, title = enhancedTitle)
+                    }
+                )
+            }
+            BandcampItemType.TRACK -> {
+                copy(
+                    details = details.copy(
+                        date = details.date ?: albumReleaseDate
+                    ),
+                    tracks = tracks.map {
+                        val enhancedArtist = details.artist ?: it.artist
+                        val enhancedTitle = details.title ?: it.title
 
-                    it.copy(artist = enhancedArtist, title = enhancedTitle)
-                }
-            )
+                        it.copy(artist = enhancedArtist, title = enhancedTitle)
+                    }
+                )
+            }
         }
     }
+}
+
+fun BandcampItem.normalizeWhitespaces(): BandcampItem {
+    return copy(
+        albumArtist = albumArtist.normalizeWhitespaces(),
+        details = details.copy(
+            artist = details.artist?.normalizeWhitespaces(),
+            title = details.title?.normalizeWhitespaces(),
+        ),
+        tracks = tracks.map {
+            it.copy(
+                artist = it.artist?.normalizeWhitespaces(),
+                title = it.title.normalizeWhitespaces(),
+            )
+        },
+    )
 }
 
 private fun enhanceTrackArtist(title: String, isMultiArtist: Boolean): String? {
@@ -154,4 +173,8 @@ private fun enhanceTrackArtist(title: String, isMultiArtist: Boolean): String? {
 }
 private fun enhanceTitle(title: String, artist: String): String {
     return title.removePrefix(artist + BC_SEPARATOR)
+}
+
+private fun String.normalizeWhitespaces(): String {
+    return trim().replace(duplicateWhitespaceRegex, " ")
 }
