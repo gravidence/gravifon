@@ -86,6 +86,8 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
             } else {
                 logger.debug { "\"Now Playing\" notifications are disabled" }
             }
+
+            getTrackInfo(it)
         }
     }
 
@@ -96,6 +98,22 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
             if (response.result.scrobbleCorrectionSummary.status != IgnoreStatus.OK) {
                 logger.info { "Scrobble will be ignored by service: reason=${response.result.scrobbleCorrectionSummary.status}" }
             }
+        }
+    }
+
+    private fun getTrackInfo(track: Track) {
+        handleLastfmException {
+            val response = lastfmClient.trackApi.getInfo(track)
+
+            publish(
+                PushInnerNotificationEvent(
+                    Notification(
+                        message = "You got ${response.track.userPlaycount} scrobbles for \"${track.artist} - ${track.track}\"",
+                        type = NotificationType.REGULAR,
+                        lifespan = NotificationLifespan.LONG
+                    )
+                )
+            )
         }
     }
 
