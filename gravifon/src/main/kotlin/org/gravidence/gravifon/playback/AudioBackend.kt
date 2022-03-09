@@ -10,7 +10,7 @@ interface AudioBackend {
         audioStreamChangedCallback: (VirtualTrack?, Duration) -> Unit,
         audioStreamBufferingCallback: (Int) -> Unit,
         endOfStreamCallback: () -> Unit,
-        playbackFailureCallback: (Duration) -> Unit,
+        playbackFailureCallback: (VirtualTrack?, Duration) -> Unit,
     )
 
     fun play(): PlaybackState
