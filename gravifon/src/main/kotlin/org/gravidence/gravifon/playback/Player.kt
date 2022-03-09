@@ -94,7 +94,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                             Notification(
                                 message = message,
                                 type = NotificationType.ERROR,
-                                lifespan = NotificationLifespan.MEDIUM
+                                lifespan = NotificationLifespan.LONG
                             )
                         )
                     )
