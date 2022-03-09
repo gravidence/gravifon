@@ -44,7 +44,7 @@ import org.gravidence.gravifon.util.*
 import java.awt.event.MouseEvent
 
 class PlaylistState(
-    val activeVirtualTrack: MutableState<VirtualTrack?>,
+    val activeTrack: MutableState<VirtualTrack?>,
     val playlistItems: MutableState<ListHolder<PlaylistItem>>,
     val selectedPlaylistItems: MutableState<Map<Int, PlaylistItem>>,
     val preselectedPlaylistItem: MutableState<PlaylistItem?>,
@@ -111,14 +111,14 @@ class PlaylistState(
 
 @Composable
 fun rememberPlaylistState(
-    activeVirtualTrack: VirtualTrack? = GravifonContext.activeVirtualTrack.value,
+    activeTrack: VirtualTrack? = GravifonContext.activeTrack.value,
     playlistItems: ListHolder<PlaylistItem> = ListHolder(listOf()),
     selectedPlaylistItems: Map<Int, PlaylistItem> = mapOf(),
     preselectedPlaylistItem: PlaylistItem? = null,
     playlist: Playlist
-) = remember(activeVirtualTrack, playlistItems, selectedPlaylistItems, preselectedPlaylistItem) {
+) = remember(activeTrack, playlistItems, selectedPlaylistItems, preselectedPlaylistItem) {
     PlaylistState(
-        activeVirtualTrack = mutableStateOf(activeVirtualTrack),
+        activeTrack = mutableStateOf(activeTrack),
         playlistItems = mutableStateOf(playlistItems),
         selectedPlaylistItems = mutableStateOf(selectedPlaylistItems),
         preselectedPlaylistItem = mutableStateOf(preselectedPlaylistItem),
@@ -234,7 +234,7 @@ val selectedPlaylistItemModifier = Modifier
 @Composable
 fun PlaylistItemComposable(index: Int, playlistItem: PlaylistItem, playlistState: PlaylistState) {
     val thisPlaylist = playlistState.playlist === GravifonContext.activePlaylist
-    val thisTrack = (playlistItem as? TrackPlaylistItem)?.track === playlistState.activeVirtualTrack.value
+    val thisTrack = (playlistItem as? TrackPlaylistItem)?.track === playlistState.activeTrack.value
     val fontWeight = if (thisPlaylist && thisTrack) {
         FontWeight.Bold
     } else {

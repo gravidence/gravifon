@@ -60,16 +60,16 @@ class PlaybackInformationState(
 
 @Composable
 fun rememberPlaybackInformationState(
-    activeVirtualTrack: VirtualTrack? = GravifonContext.activeVirtualTrack.value,
+    activeTrack: VirtualTrack? = GravifonContext.activeTrack.value,
     playbackState: PlaybackState = GravifonContext.playbackState.value,
     trackLength: Duration = GravifonContext.playbackPositionState.value.endingPosition,
-) = remember(activeVirtualTrack, playbackState, trackLength) {
+) = remember(activeTrack, playbackState, trackLength) {
     PlaybackInformationState(
         playbackState = playbackState,
-        artistInformation = PlaybackInformationState.renderArtistInformation(activeVirtualTrack),
-        trackInformation = PlaybackInformationState.renderTrackInformation(activeVirtualTrack),
+        artistInformation = PlaybackInformationState.renderArtistInformation(activeTrack),
+        trackInformation = PlaybackInformationState.renderTrackInformation(activeTrack),
         trackExtraInformation = PlaybackInformationState.renderTrackExtraInformation(trackLength),
-        albumInformation = PlaybackInformationState.renderAlbumInformation(activeVirtualTrack),
+        albumInformation = PlaybackInformationState.renderAlbumInformation(activeTrack),
     )
 }
 

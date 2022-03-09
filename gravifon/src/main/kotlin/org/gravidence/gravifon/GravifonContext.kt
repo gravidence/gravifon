@@ -19,7 +19,7 @@ object GravifonContext {
 
     val activeView: MutableState<Viewable?> = mutableStateOf(null)
     val activePlaylist: MutableState<Playlist?> = mutableStateOf(null)
-    val activeVirtualTrack: MutableState<VirtualTrack?> = mutableStateOf(null)
+    val activeTrack: MutableState<VirtualTrack?> = mutableStateOf(null)
     val activeTrackExtraInfo: MutableState<List<String>> = mutableStateOf(listOf())
     val activeInnerNotification: MutableState<Notification?> = mutableStateOf(null)
 
@@ -35,7 +35,7 @@ object GravifonContext {
     val playbackPositionState: MutableState<PlaybackPositionState> = mutableStateOf(PlaybackPositionState())
 
     fun setActiveTrack(track: VirtualTrack?) {
-        activeVirtualTrack.value = track
+        activeTrack.value = track
         activeTrackExtraInfo.value = listOf()
     }
 
