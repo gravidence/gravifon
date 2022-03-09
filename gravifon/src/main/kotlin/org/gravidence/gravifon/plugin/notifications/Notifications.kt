@@ -1,5 +1,6 @@
 package org.gravidence.gravifon.plugin.notifications
 
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
@@ -20,7 +21,7 @@ private val logger = KotlinLogging.logger {}
 @Component
 class Notifications : EventAware {
 
-    private val innerNotificationChannel = Channel<Notification>(Channel.CONFLATED)
+    private val innerNotificationChannel = Channel<Notification>(capacity = 5, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     init {
         handleInnerNotifications()
