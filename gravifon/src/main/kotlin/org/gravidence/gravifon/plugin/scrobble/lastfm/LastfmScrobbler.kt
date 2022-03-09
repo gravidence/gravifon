@@ -108,8 +108,8 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
         handleLastfmException {
             val response = lastfmClient.trackApi.getInfo(track)
 
-            val playcountExtraInfo = "${response.track.userPlaycount} scrobbles"
-            val lovedExtraInfo = if (response.track.userLoved) "♥" else null
+            val playcountExtraInfo = "${response.trackInfo.userPlaycount} scrobbles"
+            val lovedExtraInfo = if (response.trackInfo.userLoved) "♥" else null
             GravifonContext.activeTrackExtraInfo.value += listOf(playcountExtraInfo, lovedExtraInfo)
                 .filterNotNull()
                 .joinToString(separator = ",", prefix = "Last.fm: ")
@@ -117,7 +117,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
             publish(
                 PushInnerNotificationEvent(
                     Notification(
-                        message = "You got ${response.track.userPlaycount} scrobbles for \"${track.artist} - ${track.track}\"",
+                        message = "You got ${response.trackInfo.userPlaycount} scrobbles for \"${track.artist} - ${track.track}\"",
                         type = NotificationType.REGULAR,
                         lifespan = NotificationLifespan.LONG
                     )

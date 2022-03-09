@@ -147,7 +147,7 @@ class ScrobbleSummary(
 @Serializable
 class TrackInfoResponse(
     @SerialName("track")
-    val track: TrackInfo
+    val trackInfo: TrackInfo
 )
 
 @Serializable
