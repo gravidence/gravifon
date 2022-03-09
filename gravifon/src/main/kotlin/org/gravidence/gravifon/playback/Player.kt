@@ -66,7 +66,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
 
                 nextTrack?.let {
                     logger.debug { "Switch over to next track: $it" }
-                    GravifonContext.activeVirtualTrack.value = it
+                    GravifonContext.setActiveTrack(it)
                     publish(TrackStartedEvent(it))
                 } // if there's no next track, endOfStreamCallback will handle post-playback state clean-up
             },
@@ -152,7 +152,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
             GravifonContext.playbackState.value = it
         }
 
-        GravifonContext.activeVirtualTrack.value = null
+        GravifonContext.setActiveTrack(null)
         updatePlaybackPositionState(Duration.ZERO, Duration.ZERO)
     }
 

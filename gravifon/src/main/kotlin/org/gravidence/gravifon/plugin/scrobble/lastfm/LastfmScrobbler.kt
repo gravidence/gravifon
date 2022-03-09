@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+
 package org.gravidence.gravifon.plugin.scrobble.lastfm
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -17,6 +19,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
+import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.domain.notification.Notification
@@ -104,6 +107,12 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
     private fun getTrackInfo(track: Track) {
         handleLastfmException {
             val response = lastfmClient.trackApi.getInfo(track)
+
+            val playcountExtraInfo = "${response.track.userPlaycount} scrobbles"
+            val lovedExtraInfo = if (response.track.userLoved) "♥" else null
+            GravifonContext.activeTrackExtraInfo.value += listOf(playcountExtraInfo, lovedExtraInfo)
+                .filterNotNull()
+                .joinToString(separator = ",", prefix = "Last.fm: ")
 
             publish(
                 PushInnerNotificationEvent(
@@ -334,7 +343,6 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
         LastfmScrobblerSettingsState()
     }
 
-    @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
     @Composable
     override fun composeSettings() {
         val state = rememberLastfmScrobblerSettingsState()

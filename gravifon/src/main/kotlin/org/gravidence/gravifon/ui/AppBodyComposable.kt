@@ -1,5 +1,9 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package org.gravidence.gravifon.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -38,7 +42,18 @@ fun AppBody() {
                                     .fillMaxWidth()
                                     .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
-                                PlaybackInformationComposable(rememberPlaybackInformationState())
+                                TooltipArea(
+                                    delayMillis = 1000,
+                                    tooltip = {
+                                        GravifonContext.activeTrackExtraInfo.value.apply {
+                                            if (isNotEmpty()) {
+                                                tooltip(joinToString(System.lineSeparator()))
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    PlaybackInformationComposable(rememberPlaybackInformationState())
+                                }
                             }
                             Divider(color = Color.Transparent, thickness = 5.dp)
                             Row(
