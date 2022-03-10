@@ -1,9 +1,7 @@
 package org.gravidence.lastfm4k.api.track
 
-import kotlinx.serialization.json.decodeFromJsonElement
 import org.gravidence.lastfm4k.api.*
 import org.gravidence.lastfm4k.api.user.UserInfo
-import org.gravidence.lastfm4k.misc.lastfmSerializer
 import org.gravidence.lastfm4k.misc.toJsonObject
 
 class TrackApi(private val context: LastfmApiContext, private val userInfo: UserInfo) {
@@ -23,7 +21,7 @@ class TrackApi(private val context: LastfmApiContext, private val userInfo: User
             )
         )
 
-        return lastfmSerializer.decodeFromJsonElement(response.toJsonObject())
+        return decodeApiResponse(response.toJsonObject())
     }
 
     fun scrobble(scrobbles: List<Scrobble>): BatchScrobbleResponse {
@@ -46,10 +44,10 @@ class TrackApi(private val context: LastfmApiContext, private val userInfo: User
         )
 
         return if (scrobbles.size == 1) {
-            lastfmSerializer.decodeFromJsonElement<ScrobbleResponse>(response.toJsonObject())
+            decodeApiResponse<ScrobbleResponse>(response.toJsonObject())
                 .toBatchScrobbleResponse()
         } else {
-            lastfmSerializer.decodeFromJsonElement<BatchScrobbleResponse>(response.toJsonObject())
+            decodeApiResponse(response.toJsonObject())
         }
     }
 
@@ -64,7 +62,7 @@ class TrackApi(private val context: LastfmApiContext, private val userInfo: User
             )
         )
 
-        return lastfmSerializer.decodeFromJsonElement(response.toJsonObject())
+        return decodeApiResponse(response.toJsonObject())
     }
 
 }

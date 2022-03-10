@@ -1,7 +1,9 @@
 package org.gravidence.lastfm4k.api
 
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import mu.KotlinLogging
+import org.gravidence.lastfm4k.api.error.ErrorApiResponse
 import org.gravidence.lastfm4k.exception.LastfmApiException
 import org.gravidence.lastfm4k.exception.LastfmException
 import org.gravidence.lastfm4k.exception.LastfmNetworkException
@@ -84,4 +86,22 @@ class LastfmApiClient(
         ).plus(params)
     }
 
+}
+
+/**
+ * Decodes Last.fm API response entity.
+ * This method covers case when 200 OK response contains [ErrorApiResponse] body.
+ */
+@Throws(LastfmException::class)
+inline fun <reified T> decodeApiResponse(jsonObject: JsonObject): T {
+    try {
+        return lastfmSerializer.decodeFromJsonElement(jsonObject)
+    } catch (e: Exception) {
+        val errorApiResponse = try {
+            lastfmSerializer.decodeFromJsonElement<ErrorApiResponse>(jsonObject)
+        } catch (ee: Exception) {
+            throw LastfmException("Unhandled: ${ee.message}")
+        }
+        throw LastfmApiException(errorApiResponse)
+    }
 }

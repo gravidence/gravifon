@@ -1,12 +1,11 @@
 package org.gravidence.lastfm4k.api.auth
 
-import kotlinx.serialization.json.decodeFromJsonElement
 import mu.KotlinLogging
 import org.gravidence.lastfm4k.api.LastfmApiContext
 import org.gravidence.lastfm4k.api.LastfmApiMethod
+import org.gravidence.lastfm4k.api.decodeApiResponse
 import org.gravidence.lastfm4k.api.paramToken
 import org.gravidence.lastfm4k.misc.Param
-import org.gravidence.lastfm4k.misc.lastfmSerializer
 import org.gravidence.lastfm4k.misc.lfmQueryParams
 import org.gravidence.lastfm4k.misc.toJsonObject
 import org.http4k.core.Method
@@ -44,7 +43,7 @@ class AuthApi(private val context: LastfmApiContext) {
     private fun refreshToken(): Token {
         val response = context.client.get(LastfmApiMethod.AUTH_GETTOKEN)
 
-        return lastfmSerializer.decodeFromJsonElement(response.toJsonObject())
+        return decodeApiResponse(response.toJsonObject())
     }
 
     private fun refreshSession(token: Token): Session {
@@ -55,7 +54,7 @@ class AuthApi(private val context: LastfmApiContext) {
             )
         )
 
-        return lastfmSerializer.decodeFromJsonElement<SessionResponse>(response.toJsonObject())
+        return decodeApiResponse<SessionResponse>(response.toJsonObject())
             .session
     }
 

@@ -1,11 +1,10 @@
 package org.gravidence.lastfm4k.api.user
 
-import kotlinx.serialization.json.decodeFromJsonElement
 import org.gravidence.lastfm4k.api.LastfmApiContext
 import org.gravidence.lastfm4k.api.LastfmApiMethod
+import org.gravidence.lastfm4k.api.decodeApiResponse
 import org.gravidence.lastfm4k.api.paramSessionKey
 import org.gravidence.lastfm4k.misc.Param
-import org.gravidence.lastfm4k.misc.lastfmSerializer
 import org.gravidence.lastfm4k.misc.toJsonObject
 
 class UserApi(private val context: LastfmApiContext) {
@@ -21,7 +20,7 @@ class UserApi(private val context: LastfmApiContext) {
             )
         )
 
-        return lastfmSerializer.decodeFromJsonElement(response.toJsonObject())
+        return decodeApiResponse(response.toJsonObject())
     }
 
 }
