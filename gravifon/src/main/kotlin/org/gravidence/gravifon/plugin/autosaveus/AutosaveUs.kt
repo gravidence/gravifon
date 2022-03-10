@@ -12,9 +12,13 @@ import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.ConfigurationManager
+import org.gravidence.gravifon.domain.notification.Notification
+import org.gravidence.gravifon.domain.notification.NotificationLifespan
+import org.gravidence.gravifon.domain.notification.NotificationType
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.application.ApplicationStartedEvent
 import org.gravidence.gravifon.event.application.PersistConfigurationEvent
+import org.gravidence.gravifon.event.application.PushInnerNotificationEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.ui.image.AppIcon
@@ -57,8 +61,18 @@ class AutosaveUs(
                 initialDelay = cc.intervalSeconds * 1000,
                 period = cc.intervalSeconds * 1000
             ) {
-                logger.debug { "Autosave us..." }
+                val message = "Autosave us..."
+                logger.debug { message }
                 publish(PersistConfigurationEvent())
+                publish(
+                    PushInnerNotificationEvent(
+                        Notification(
+                            message = message,
+                            type = NotificationType.REGULAR,
+                            lifespan = NotificationLifespan.LONG
+                        )
+                    )
+                )
             }
         }
     }
