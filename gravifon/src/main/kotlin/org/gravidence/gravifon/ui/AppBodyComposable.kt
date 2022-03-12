@@ -8,7 +8,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -17,15 +16,13 @@ import org.gravidence.gravifon.ui.theme.gShape
 
 @Composable
 fun AppBody() {
-    val activeView = remember { GravifonContext.activeView }
-
     MaterialTheme {
         Column {
             Scaffold(
                 topBar = {
                     TopAppBar(
                         title = {
-                            Text(text = "Gravifon / ${activeView.value?.viewDisplayName}")
+                            Text(text = "Gravifon / ${GravifonContext.activeView.value?.viewDisplayName}")
                         },
                         actions = { }
                     )
@@ -61,7 +58,7 @@ fun AppBody() {
                                     .fillMaxWidth()
                                     .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
-                                PlaybackControlComposable(GravifonContext.playbackState.value, GravifonContext.playbackPositionState.value)
+                                PlaybackControlComposable()
                             }
                             Divider(color = Color.Transparent, thickness = 5.dp)
                             Row(
@@ -70,13 +67,7 @@ fun AppBody() {
                                     .weight(1f)
                                     .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
-                                val value = activeView.value
-                                if (value == null) {
-                                    // TODO make proper initialization indicator
-                                    Text("Initialization...")
-                                } else {
-                                    value.composeView()
-                                }
+                                ActiveView()
                             }
                             Divider(color = Color.Transparent, thickness = 5.dp)
                             Row(
@@ -91,5 +82,17 @@ fun AppBody() {
                 }
             )
         }
+    }
+}
+
+@Composable
+fun ActiveView() {
+    val activeView = GravifonContext.activeView.value
+
+    if (activeView == null) {
+        // TODO make proper initialization indicator
+        Text("Initialization...")
+    } else {
+        activeView.composeView()
     }
 }

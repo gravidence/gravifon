@@ -2,6 +2,7 @@ package org.gravidence.gravifon
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.gravidence.gravifon.domain.notification.Notification
@@ -21,7 +22,7 @@ object GravifonContext {
     val activePlaylist: MutableState<Playlist?> = mutableStateOf(null)
     val activeTrack: MutableState<VirtualTrack?> = mutableStateOf(null)
     val activeTrackExtraInfo: MutableState<List<String>> = mutableStateOf(listOf())
-    val activeInnerNotification: MutableState<Notification?> = mutableStateOf(null)
+    val activeInnerNotification: MutableState<Notification?> = mutableStateOf(null, referentialEqualityPolicy())
 
     val pluginSettingsDialogVisible: MutableState<Boolean> = mutableStateOf(false)
 
@@ -32,7 +33,7 @@ object GravifonContext {
     )
 
     val playbackState: MutableState<PlaybackState> = mutableStateOf(PlaybackState.STOPPED)
-    val playbackPositionState: MutableState<PlaybackPositionState> = mutableStateOf(PlaybackPositionState())
+    val playbackPositionState: MutableState<PlaybackPositionState> = mutableStateOf(PlaybackPositionState(), referentialEqualityPolicy())
 
     fun setActiveTrack(track: VirtualTrack?) {
         activeTrack.value = track

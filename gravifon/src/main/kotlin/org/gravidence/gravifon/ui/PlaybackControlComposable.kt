@@ -73,7 +73,7 @@ private val activePlaybackButtonModifier = Modifier
     .padding(0.dp)
 
 @Composable
-fun PlaybackControlComposable(playbackState: PlaybackState, playbackPositionState: PlaybackPositionState) {
+fun PlaybackControlComposable() {
     Box(
         modifier = Modifier
             .padding(5.dp)
@@ -85,64 +85,78 @@ fun PlaybackControlComposable(playbackState: PlaybackState, playbackPositionStat
                 modifier = Modifier
                     .padding(10.dp)
             ) {
-                Button(
-                    onClick = PlaybackControlState::onPrev,
-                    modifier = defaultPlaybackButtonModifier
-                ) {
-                    AppIcon("icons8-skip-to-start-24.png")
-                }
-                Button(
-                    onClick = PlaybackControlState::onStop,
-                    modifier = if (playbackState == PlaybackState.STOPPED) {
-                        activePlaybackButtonModifier
-                    } else {
-                        defaultPlaybackButtonModifier
-                    }
-                ) {
-                    AppIcon("icons8-stop-24.png")
-                }
-                Button(
-                    onClick = PlaybackControlState::onPause,
-                    modifier = if (playbackState == PlaybackState.PAUSED) {
-                        activePlaybackButtonModifier
-                    } else {
-                        defaultPlaybackButtonModifier
-                    }
-                ) {
-                    AppIcon("icons8-pause-24.png")
-                }
-                Button(
-                    onClick = PlaybackControlState::onPlay,
-                    modifier = if (playbackState == PlaybackState.PLAYING) {
-                        activePlaybackButtonModifier
-                    } else {
-                        defaultPlaybackButtonModifier
-                    }
-                ) {
-                    AppIcon("icons8-play-24.png")
-                }
-                Button(
-                    onClick = PlaybackControlState::onNext,
-                    modifier = defaultPlaybackButtonModifier
-                ) {
-                    AppIcon("icons8-end-24.png")
-                }
+                PlaybackControl()
                 Spacer(Modifier.width(5.dp))
-                Text(text = PlaybackControlState.elapsedTime(playbackPositionState), fontWeight = FontWeight.Light)
-                Slider(
-                    value = playbackPositionState.runningPosition
-                        .inWholeMilliseconds.toFloat(),
-                    valueRange = 0f..playbackPositionState.endingPosition
-                        .inWholeMilliseconds.toFloat(),
-                    onValueChange = {
-                        PlaybackControlState.onPositionChange(it)
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                )
-                Text(text = "-${PlaybackControlState.remainingTime(playbackPositionState)}", fontWeight = FontWeight.Light)
+                PositionControl()
             }
         }
     }
+}
+
+@Composable
+fun PlaybackControl() {
+    val playbackState = GravifonContext.playbackState.value
+
+    Button(
+        onClick = PlaybackControlState::onPrev,
+        modifier = defaultPlaybackButtonModifier
+    ) {
+        AppIcon("icons8-skip-to-start-24.png")
+    }
+    Button(
+        onClick = PlaybackControlState::onStop,
+        modifier = if (playbackState == PlaybackState.STOPPED) {
+            activePlaybackButtonModifier
+        } else {
+            defaultPlaybackButtonModifier
+        }
+    ) {
+        AppIcon("icons8-stop-24.png")
+    }
+    Button(
+        onClick = PlaybackControlState::onPause,
+        modifier = if (playbackState == PlaybackState.PAUSED) {
+            activePlaybackButtonModifier
+        } else {
+            defaultPlaybackButtonModifier
+        }
+    ) {
+        AppIcon("icons8-pause-24.png")
+    }
+    Button(
+        onClick = PlaybackControlState::onPlay,
+        modifier = if (playbackState == PlaybackState.PLAYING) {
+            activePlaybackButtonModifier
+        } else {
+            defaultPlaybackButtonModifier
+        }
+    ) {
+        AppIcon("icons8-play-24.png")
+    }
+    Button(
+        onClick = PlaybackControlState::onNext,
+        modifier = defaultPlaybackButtonModifier
+    ) {
+        AppIcon("icons8-end-24.png")
+    }
+}
+
+@Composable
+fun RowScope.PositionControl() {
+    val playbackPositionState = GravifonContext.playbackPositionState.value
+
+    Text(text = PlaybackControlState.elapsedTime(playbackPositionState), fontWeight = FontWeight.Light)
+    Slider(
+        value = playbackPositionState.runningPosition
+            .inWholeMilliseconds.toFloat(),
+        valueRange = 0f..playbackPositionState.endingPosition
+            .inWholeMilliseconds.toFloat(),
+        onValueChange = {
+            PlaybackControlState.onPositionChange(it)
+        },
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+    )
+    Text(text = "-${PlaybackControlState.remainingTime(playbackPositionState)}", fontWeight = FontWeight.Light)
 }
