@@ -34,7 +34,6 @@ import org.gravidence.gravifon.plugin.bandcamp.model.bandcampSerializer
 import org.gravidence.gravifon.plugin.bandcamp.model.enhanced
 import org.gravidence.gravifon.plugin.bandcamp.model.expiresAfter
 import org.gravidence.lastfm4k.misc.toLocalDateTime
-import org.http4k.core.Uri
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.springframework.stereotype.Component
@@ -75,14 +74,17 @@ class Bandcamp(
     private fun extractAlbumUrls(document: Document, discographyAbsoluteUrl: String): List<String>? {
         val albumUrls = document.select("ol#music-grid li a[href]")
         return if (albumUrls.isNotEmpty()) {
-            val host = Uri.of(discographyAbsoluteUrl)
+            val discographyUri = URI(discographyAbsoluteUrl)
             albumUrls
                 .map { it.attr("href") }
                 .map {
-                    if (URI(it).isAbsolute) {
-                        it                          // links to albums from artist dedicated pages are absolute
+                    val releaseUri = URI(it)
+                    if (releaseUri.isAbsolute) {
+                        // links to artist dedicated pages are absolute
+                        it
                     } else {
-                        host.path(it).toString()    // otherwise, refer to label's relative page
+                        // otherwise, refer to label's relative page
+                        discographyUri.resolve(releaseUri).toString()
                     }
                 }
         } else {
