@@ -38,6 +38,7 @@ import org.http4k.core.Uri
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.springframework.stereotype.Component
+import java.net.URI
 import java.util.*
 import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.seconds
@@ -77,7 +78,13 @@ class Bandcamp(
             val host = Uri.of(discographyAbsoluteUrl)
             albumUrls
                 .map { it.attr("href") }
-                .map { host.path(it).toString() }
+                .map {
+                    if (URI(it).isAbsolute) {
+                        it                          // links to albums from artist dedicated pages are absolute
+                    } else {
+                        host.path(it).toString()    // otherwise, refer to label's relative page
+                    }
+                }
         } else {
             null
         }
