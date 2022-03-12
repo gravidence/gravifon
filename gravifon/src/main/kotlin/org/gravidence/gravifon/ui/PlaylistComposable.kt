@@ -28,8 +28,8 @@ import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.StreamVirtualTrack
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
-import org.gravidence.gravifon.event.playlist.RemoveFromPlaylistEvent
 import org.gravidence.gravifon.event.playlist.PlayCurrentFromPlaylistEvent
+import org.gravidence.gravifon.event.playlist.RemoveFromPlaylistEvent
 import org.gravidence.gravifon.playback.PlaybackState
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
@@ -42,6 +42,8 @@ import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.ui.util.ListHolder
 import org.gravidence.gravifon.util.*
 import java.awt.event.MouseEvent
+import kotlin.math.max
+import kotlin.math.min
 
 class PlaylistState(
     val activeTrack: MutableState<VirtualTrack?>,
@@ -95,14 +97,19 @@ class PlaylistState(
         (pointerEvent.nativeEvent as? MouseEvent)?.let {
             if (it.button == 1 && it.clickCount == 2) {
                 EventBus.publish(PlayCurrentFromPlaylistEvent(playlist, playlistItem))
-            } else if (it.button == 1 && it.clickCount == 1 && !it.isControlDown) {
-                selectedPlaylistItems.value = mapOf(Pair(index, playlistItem))
             } else if (it.button == 1 && it.clickCount == 1 && it.isControlDown) {
                 if (selectedPlaylistItems.value.contains(index)) {
                     selectedPlaylistItems.value -= index
                 } else {
                     selectedPlaylistItems.value += Pair(index, playlistItem)
                 }
+            } else if (it.button == 1 && it.clickCount == 1 && it.isShiftDown && selectedPlaylistItems.value.isNotEmpty()) {
+                val indexOfFirstSelected = selectedPlaylistItems.value.keys.minOf { indexOfSelected -> indexOfSelected }
+                for (i in min(index, indexOfFirstSelected)..max(index, indexOfFirstSelected)) {
+                    selectedPlaylistItems.value += Pair(i, playlistItems.value.list[i])
+                }
+            } else if (it.button == 1 && it.clickCount == 1 && !it.isControlDown) {
+                selectedPlaylistItems.value = mapOf(Pair(index, playlistItem))
             }
         }
     }
