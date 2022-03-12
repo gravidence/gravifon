@@ -45,6 +45,7 @@ import org.gravidence.lastfm4k.api.track.Track
 import org.gravidence.lastfm4k.exception.LastfmApiException
 import org.gravidence.lastfm4k.exception.LastfmException
 import org.gravidence.lastfm4k.exception.LastfmNetworkException
+import org.gravidence.lastfm4k.exception.LastfmSerializationException
 import org.http4k.core.Uri
 import org.springframework.stereotype.Component
 import kotlin.time.Duration.Companion.minutes
@@ -280,6 +281,9 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
             "Failed to call Last.fm service: HTTP ${e.response.status.code}".also {
                 logger.warn(e) { it }
             }
+        } catch (e: LastfmSerializationException) {
+            logger.error(e.reason) { "Failed to decode Last.fm API response: ${e.json}" }
+            "Failed to call Last.fm service, please see logs for details"
         } catch (e: LastfmException) {
             logger.error(e) { "Exception caught while handling Last.fm API request" }
             "Failed to call Last.fm service, please see logs for details"

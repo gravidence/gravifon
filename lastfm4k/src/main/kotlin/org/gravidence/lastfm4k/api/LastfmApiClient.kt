@@ -1,7 +1,6 @@
 package org.gravidence.lastfm4k.api
 
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.decodeFromJsonElement
 import mu.KotlinLogging
 import org.gravidence.lastfm4k.api.error.ErrorApiResponse
 import org.gravidence.lastfm4k.exception.LastfmApiException
@@ -39,7 +38,12 @@ class LastfmApiClient(
 
             if (!response.status.successful) {
                 if (response.header("content-type") == "application/json") {
-                    throw LastfmApiException(lastfmSerializer.decodeFromJsonElement(response.toJsonObject()))
+                    val jsonObject = response.toJsonObject()
+                    if (isErrorApiResponse(jsonObject)) {
+                        throw LastfmApiException(jsonObject.decodeTo())
+                    } else {
+                        throw LastfmException("Unknown response type: $jsonObject")
+                    }
                 } else if (response.status.serverError || response.status.code in extraNetworkErrorCodes) {
                     throw LastfmNetworkException(response)
                 } else {
@@ -88,20 +92,17 @@ class LastfmApiClient(
 
 }
 
+fun isErrorApiResponse(jsonObject: JsonObject): Boolean = jsonObject.containsKey("error")
+
 /**
  * Decodes Last.fm API response entity.
  * This method covers case when 200 OK response contains [ErrorApiResponse] body.
  */
 @Throws(LastfmException::class)
 inline fun <reified T> decodeApiResponse(jsonObject: JsonObject): T {
-    try {
-        return lastfmSerializer.decodeFromJsonElement(jsonObject)
-    } catch (e: Exception) {
-        val errorApiResponse = try {
-            lastfmSerializer.decodeFromJsonElement<ErrorApiResponse>(jsonObject)
-        } catch (ee: Exception) {
-            throw LastfmException("Unhandled: ${ee.message}")
-        }
-        throw LastfmApiException(errorApiResponse)
+    if (isErrorApiResponse(jsonObject)) {
+        throw LastfmApiException(jsonObject.decodeTo())
+    } else {
+        return jsonObject.decodeTo()
     }
 }
