@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -39,7 +38,7 @@ class TrackMetadataState(
         this.playlist = playlist
         this.tracks.value = tracks
         this.tracksSnapshot.value = snapshot(tracks)
-        this.selectedTracks.value = mutableSetOf()
+        this.selectedTracks.value = List(tracks.size) { index -> index }.toSet() // user is likely expects all selected by default
         this.changed.value = false
     }
 
@@ -87,13 +86,9 @@ class TrackMetadataListState(
     private val trackMetadataState: TrackMetadataState
 ) : TableState<VirtualTrack>(
     layout = layout(),
-    grid = grid(trackMetadataState)
+    grid = grid(trackMetadataState),
+    selectedRows = trackMetadataState.selectedTracks // share dialog's selection set with the table
 ) {
-
-    override fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
-        super.onRowClick(rowIndex, pointerEvent)
-        trackMetadataState.selectedTracks.value = selectedRows.value
-    }
 
     companion object {
 
