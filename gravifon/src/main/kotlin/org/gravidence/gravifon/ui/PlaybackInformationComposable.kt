@@ -36,7 +36,7 @@ class PlaybackInformationState(
         }
 
         fun renderTrackExtraInformation(trackLength: Duration): String {
-            return "(" + DurationUtil.format(trackLength) + ")"
+            return "(" + DurationUtil.formatShortHours(trackLength) + ")"
         }
 
         fun renderAlbumInformation(track: VirtualTrack?): String {

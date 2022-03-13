@@ -58,7 +58,7 @@ class PlaylistState(
             is TrackPlaylistItem -> {
                 val artist = playlistItem.track.getArtist()
                 val title = playlistItem.track.getTitle()
-                val length = DurationUtil.format(playlistItem.track.getLength())
+                val length = DurationUtil.formatShortHours(playlistItem.track.getLength())
                 listOf("$artist - $title ($length)")
             }
             is AlbumPlaylistItem -> TODO()

@@ -54,11 +54,11 @@ class PlaybackControlState {
         }
 
         fun elapsedTime(playbackPositionState: PlaybackPositionState): String {
-            return DurationUtil.format(playbackPositionState.runningPosition)
+            return DurationUtil.formatShortHours(playbackPositionState.runningPosition)
         }
 
         fun remainingTime(playbackPositionState: PlaybackPositionState): String {
-            return DurationUtil.format(playbackPositionState.endingPosition.minus(playbackPositionState.runningPosition))
+            return DurationUtil.formatShortHours(playbackPositionState.endingPosition.minus(playbackPositionState.runningPosition))
         }
 
     }

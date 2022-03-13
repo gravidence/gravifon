@@ -85,18 +85,29 @@ fun PlaybackSourcePanel() {
         null
     }
 
-    val playlistOwnerName = activePlaylist?.ownerName
-    val totalDuration = activePlaylist?.run {
+    val playlistOwnerName = activePlaylist?.ownerName!!
+    val totalDuration = activePlaylist.run {
         items()
             .filterIsInstance<TrackPlaylistItem>()
             .mapNotNull { it.track.getLength() }
             .reduceOrNull { acc, duration -> acc.plus(duration) }
+    }?.let {
+        if (it.inWholeDays > 0) {
+            DurationUtil.formatLongDays(it)
+        } else {
+            DurationUtil.formatLongHours(it)
+        }
     }
 
+    val infoBlockText = if (totalDuration == null) {
+        playlistOwnerName
+    } else {
+        "$playlistOwnerName ($totalDuration)"
+    }
 
     AppIcon(path = "icons8-audio-wave-24.png", tint = playbackSourceIconColor)
     Spacer(Modifier.width(4.dp))
-    Text(text = "$playlistOwnerName (${DurationUtil.format(totalDuration)})", fontSize = smallFont, fontWeight = FontWeight.ExtraLight)
+    Text(text = infoBlockText, fontSize = smallFont, fontWeight = FontWeight.ExtraLight)
 }
 
 @Composable
