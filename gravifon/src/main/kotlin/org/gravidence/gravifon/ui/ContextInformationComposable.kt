@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
@@ -15,8 +16,10 @@ import ch.qos.logback.core.util.FileSize
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.notification.NotificationType
 import org.gravidence.gravifon.playback.PlaybackState
-import org.gravidence.gravifon.playlist.Playlist
+import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.ui.image.AppIcon
+import org.gravidence.gravifon.ui.theme.smallFont
+import org.gravidence.gravifon.util.DurationUtil
 import kotlin.concurrent.fixedRateTimer
 
 class ContextInformationState(
@@ -48,7 +51,7 @@ class ContextInformationState(
 }
 
 @Composable
-fun ContextInformationComposable(playbackState: PlaybackState, activePlaylist: Playlist?) {
+fun ContextInformationComposable() {
     val contextInformationState = remember { ContextInformationState() }
 
     Box(
@@ -57,11 +60,12 @@ fun ContextInformationComposable(playbackState: PlaybackState, activePlaylist: P
     ) {
         Row(
             horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
         ) {
             Spacer(Modifier.width(3.dp))
-            PlaybackSourcePanel(playbackState, activePlaylist)
+            PlaybackSourcePanel()
             Spacer(Modifier.width(10.dp))
             InnerNotificationPanel()
             Spacer(Modifier.width(10.dp))
@@ -71,16 +75,28 @@ fun ContextInformationComposable(playbackState: PlaybackState, activePlaylist: P
 }
 
 @Composable
-fun PlaybackSourcePanel(playbackState: PlaybackState, activePlaylist: Playlist?) {
+fun PlaybackSourcePanel() {
+    val playbackState = GravifonContext.playbackState.value
+    val activePlaylist = GravifonContext.activePlaylist.value
+
     val playbackSourceIconColor = if (playbackState == PlaybackState.STOPPED) {
         Color.LightGray
     } else {
         null
     }
 
+    val playlistOwnerName = activePlaylist?.ownerName
+    val totalDuration = activePlaylist?.run {
+        items()
+            .filterIsInstance<TrackPlaylistItem>()
+            .mapNotNull { it.track.getLength() }
+            .reduceOrNull { acc, duration -> acc.plus(duration) }
+    }
+
+
     AppIcon(path = "icons8-audio-wave-24.png", tint = playbackSourceIconColor)
     Spacer(Modifier.width(4.dp))
-    Text(text = "${activePlaylist?.ownerName}", fontWeight = FontWeight.ExtraLight)
+    Text(text = "$playlistOwnerName (${DurationUtil.format(totalDuration)})", fontSize = smallFont, fontWeight = FontWeight.ExtraLight)
 }
 
 @Composable
@@ -96,6 +112,7 @@ fun RowScope.InnerNotificationPanel() {
     Text(
         text = notification?.message ?: "",
         maxLines = 1,
+        fontSize = smallFont,
         fontStyle = FontStyle.Italic,
         fontWeight = FontWeight.ExtraLight,
         color = color,
@@ -107,7 +124,7 @@ fun RowScope.InnerNotificationPanel() {
 
 @Composable
 fun MemoryConsumptionPanel(contextInformationState: ContextInformationState) {
-    Text(text = "Total: ${contextInformationState.totalMemory.value}", fontWeight = FontWeight.ExtraLight)
+    Text(text = "Total: ${contextInformationState.totalMemory.value}", fontSize = smallFont, fontWeight = FontWeight.ExtraLight)
     Spacer(Modifier.width(10.dp))
-    Text(text = "Used: ${contextInformationState.usedMemory.value}", fontWeight = FontWeight.ExtraLight)
+    Text(text = "Used: ${contextInformationState.usedMemory.value}", fontSize = smallFont, fontWeight = FontWeight.ExtraLight)
 }

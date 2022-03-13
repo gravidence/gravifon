@@ -75,7 +75,7 @@ fun AppBody() {
                                     .fillMaxWidth()
                                     .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
-                                ContextInformationComposable(GravifonContext.playbackState.value, GravifonContext.activePlaylist.value)
+                                ContextInformationComposable()
                             }
                         }
                     }
