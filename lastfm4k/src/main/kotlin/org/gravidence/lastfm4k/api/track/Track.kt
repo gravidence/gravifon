@@ -15,3 +15,14 @@ data class Track(
      */
     val duration: Long? = null
 )
+
+/**
+ * Apply workarounds to make track data comply to Last.fm (sometimes controversial) limitations.
+ */
+fun Track.comply(): Track {
+    return if (albumArtist == "VA" || albumArtist == "V/A") {
+        copy(albumArtist = "Various Artists")
+    } else {
+        this
+    }
+}

@@ -42,6 +42,7 @@ import org.gravidence.lastfm4k.api.auth.Session
 import org.gravidence.lastfm4k.api.auth.Token
 import org.gravidence.lastfm4k.api.track.IgnoreStatus
 import org.gravidence.lastfm4k.api.track.Track
+import org.gravidence.lastfm4k.api.track.comply
 import org.gravidence.lastfm4k.exception.LastfmApiException
 import org.gravidence.lastfm4k.exception.LastfmException
 import org.gravidence.lastfm4k.exception.LastfmNetworkException
@@ -100,7 +101,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
             val response = lastfmClient.trackApi.updateNowPlaying(track)
 
             if (response.result.scrobbleCorrectionSummary.status != IgnoreStatus.OK) {
-                logger.info { "Scrobble will be ignored by service: reason=${response.result.scrobbleCorrectionSummary.status}" }
+                logger.info { "Scrobble will be ignored by service: ${response.result.scrobbleCorrectionSummary.status}" }
             }
         }
     }
@@ -258,7 +259,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                 album = getAlbum(),
                 albumArtist = getAlbumArtist(),
                 duration = getLength()?.inWholeSeconds,
-            )
+            ).comply()
         }
     }
 
