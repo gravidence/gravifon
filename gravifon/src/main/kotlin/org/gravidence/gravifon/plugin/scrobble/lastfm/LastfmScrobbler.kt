@@ -101,7 +101,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
             val response = lastfmClient.trackApi.updateNowPlaying(track)
 
             if (response.result.scrobbleCorrectionSummary.status != IgnoreStatus.OK) {
-                logger.info { "Scrobble will be ignored by service: ${response.result.scrobbleCorrectionSummary.status}" }
+                logger.warn { "Scrobble will be ignored by service: ${response.result.scrobbleCorrectionSummary.status}" }
             }
         }
     }
@@ -182,13 +182,13 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
 
                 if (response.responseHolder.summary.ignored > 0) {
                     val message = "${response.responseHolder.summary.ignored} scrobbles were ignored by service"
-                    logger.info { message }
+                    logger.warn { message }
                     publish(
                         PushInnerNotificationEvent(
                             Notification(
                                 message = message,
                                 type = NotificationType.REGULAR,
-                                lifespan = NotificationLifespan.MEDIUM
+                                lifespan = NotificationLifespan.INFINITE
                             )
                         )
                     )
