@@ -27,6 +27,11 @@ internal class VirtualTrackFormatterTest {
     }
 
     @Test
+    fun formatUnknownToken() {
+        assertThat(track.format("%album% (%releasetype%)"), equalTo("BBB ()"))
+    }
+
+    @Test
     fun formatNoTokens() {
         assertThat(track.format("Lorem ipsum dolor sit amet"), equalTo("Lorem ipsum dolor sit amet"))
     }
