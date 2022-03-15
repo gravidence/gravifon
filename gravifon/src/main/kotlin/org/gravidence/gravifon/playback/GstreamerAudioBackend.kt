@@ -24,6 +24,8 @@ class GstreamerAudioBackend : AudioBackend {
 
     private var stopwatch: Stopwatch = Stopwatch()
 
+    // internal state
+    private var activeTrack: VirtualTrack? = null
     private var nextTrack: VirtualTrack? = null
 
     init {
@@ -35,10 +37,10 @@ class GstreamerAudioBackend : AudioBackend {
 
     override fun registerCallback(
         aboutToFinishCallback: () -> Unit,
-        audioStreamChangedCallback: (VirtualTrack?, Duration) -> Unit,
-        audioStreamBufferingCallback: (Int) -> Unit,
+        audioStreamChangedCallback: (played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) -> Unit,
+        audioStreamBufferingCallback: (percent: Int) -> Unit,
         endOfStreamCallback: () -> Unit,
-        playbackFailureCallback: (VirtualTrack?, Duration) -> Unit,
+        playbackFailureCallback: (played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) -> Unit,
     ) {
         logger.debug { "Register callbacks" }
 
@@ -54,8 +56,8 @@ class GstreamerAudioBackend : AudioBackend {
                 logger.debug { "Audio stream changed. Now points to ${it.get("current-uri")}" }
             }
 
-            audioStreamChangedCallback(nextTrack, stopwatch.stop()).also {
-                // clear next-track as it is becoming active-track in callback
+            audioStreamChangedCallback(activeTrack, nextTrack, stopwatch.stop()).also {
+                activeTrack = nextTrack
                 nextTrack = null
             }
             stopwatch.count()
@@ -82,7 +84,7 @@ class GstreamerAudioBackend : AudioBackend {
 
             // stream doesn't contain enough data
             if (code == 4) {
-                playbackFailureCallback(nextTrack, stopwatch.stop())
+                playbackFailureCallback(activeTrack, nextTrack, stopwatch.stop())
             }
         })
         logger.debug { "Callback 'playback-failure' registered" }

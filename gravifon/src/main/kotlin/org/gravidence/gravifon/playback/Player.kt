@@ -57,8 +57,10 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                     start(it, false)
                 }
             },
-            audioStreamChangedCallback = { nextTrack, duration ->
-                GravifonContext.activeTrack.value?.let {
+            audioStreamChangedCallback = { playedTrack, nextTrack, duration ->
+                logger.debug { "Enter audio stream changed callback: playedTrack=$playedTrack, playtime=$duration, next=$nextTrack" }
+
+                playedTrack?.let {
                     if (duration > Duration.ZERO) {
                         publish(TrackFinishedEvent(it, duration))
                     }
@@ -84,9 +86,9 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
             endOfStreamCallback = {
                 publish(StopPlaybackEvent())
             },
-            playbackFailureCallback = { nextTrack, duration ->
+            playbackFailureCallback = { playedTrack, nextTrack, duration ->
                 // report playback failure for either already active or next (failed to start) track
-                (GravifonContext.activeTrack.value ?: nextTrack)?.let {
+                (playedTrack ?: nextTrack)?.let {
                     val message = "Playback failure: ${it.uri()}"
                     logger.error { message }
                     publish(

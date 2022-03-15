@@ -7,10 +7,10 @@ interface AudioBackend {
 
     fun registerCallback(
         aboutToFinishCallback: () -> Unit,
-        audioStreamChangedCallback: (VirtualTrack?, Duration) -> Unit,
-        audioStreamBufferingCallback: (Int) -> Unit,
+        audioStreamChangedCallback: (played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) -> Unit,
+        audioStreamBufferingCallback: (percent: Int) -> Unit,
         endOfStreamCallback: () -> Unit,
-        playbackFailureCallback: (VirtualTrack?, Duration) -> Unit,
+        playbackFailureCallback: (played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) -> Unit,
     )
 
     fun play(): PlaybackState
