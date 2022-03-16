@@ -55,10 +55,12 @@ class Bandcamp(
     override val pluginDisplayName: String = "Bandcamp"
     override val pluginDescription: String = "Bandcamp v0.1"
 
+    private val pageCache: MutableMap<String, Document> = mutableMapOf()
+
     private fun fetchPage(url: String): Document {
         val document: Document
         measureTimeMillis {
-            document = Jsoup.connect(url).get()
+            document = pageCache.getOrElse(url) { Jsoup.connect(url).get() }
         }.also {
             logger.debug { "Fetched in ${it}ms" }
         }
@@ -107,13 +109,21 @@ class Bandcamp(
     }
 
     /**
+     * Page cache is used to avoid fetching same page twice. This method performs a clean-up, should be called upon processing completion.
+     */
+    fun clearPageCache() {
+        pageCache.clear()
+    }
+
+    /**
      * Recognize whether supplied [url] is a Bandcamp discography, album or track page.
      * @return list of absolute links to resulting Bandcamp pages, if any
      */
     fun resolveBandcampPages(url: String): List<String> {
         logger.info { "Resolve Bandcamp pages at URL: $url" }
         return try {
-            extractAlbumUrls(fetchPage(url), url) ?: listOf(url)
+            val document = pageCache.getOrPut(url) { fetchPage(url) }
+            extractAlbumUrls(document, url) ?: listOf(url)
         } catch (e: Exception) {
             val message = "Failed to process URL: $url"
             logger.error(e) { message }

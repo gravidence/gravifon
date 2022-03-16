@@ -102,6 +102,8 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
                     bandcamp.parseBandcampPage(it).also {
                         processed.value++
                     }
+                }.also {
+                    bandcamp.clearPageCache()
                 }
                 playlist.append(tracks.map { TrackPlaylistItem(it) })
                 playlistItems.value = ListHolder(playlist.items())
