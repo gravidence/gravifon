@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package org.gravidence.gravifon.ui.dialog
 
 import androidx.compose.foundation.border
@@ -9,8 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -158,6 +163,11 @@ class TrackMetadataTableState(
 
 }
 
+private fun closeDialog() {
+    GravifonContext.trackMetadataDialogState.clear()
+    GravifonContext.trackMetadataDialogVisible.value = false
+}
+
 @Composable
 fun TrackMetadataDialog() {
     if (GravifonContext.trackMetadataDialogVisible.value) {
@@ -168,10 +178,15 @@ fun TrackMetadataDialog() {
                 position = WindowPosition(Alignment.Center),
                 size = DpSize(800.dp, 600.dp)
             ),
-            onCloseRequest = {
-                GravifonContext.trackMetadataDialogState.clear()
-                GravifonContext.trackMetadataDialogVisible.value = false
-            }
+            onPreviewKeyEvent = {
+                if (it.key == Key.Escape && !GravifonContext.trackMetadataDialogState.changed.value) {
+                    closeDialog()
+                    true
+                } else {
+                    false
+                }
+            },
+            onCloseRequest = { closeDialog() }
         ) {
             Box(
                 modifier = Modifier
@@ -212,6 +227,15 @@ fun TrackMetadataDialog() {
                                     .fillMaxWidth()
                                     .padding(horizontal = 15.dp, vertical = 10.dp)
                             ) {
+                                Button(
+                                    enabled = GravifonContext.trackMetadataDialogState.changed.value,
+                                    onClick = {
+                                        GravifonContext.trackMetadataDialogState.apply()
+                                        closeDialog()
+                                    }
+                                ) {
+                                    Text("Apply & Close")
+                                }
                                 Button(
                                     enabled = GravifonContext.trackMetadataDialogState.changed.value,
                                     onClick = { GravifonContext.trackMetadataDialogState.apply() }
