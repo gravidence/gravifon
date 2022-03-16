@@ -35,12 +35,14 @@ class LastfmScrobblerStorage : Stateful {
 
     @Synchronized
     fun appendToScrobbleCache(scrobble: Scrobble) {
+        logger.info { "Add scrobble to cache: $scrobble" }
         scrobbleCache += scrobble
         publishUpdate()
     }
 
     @Synchronized
     fun removeFromScrobbleCache(scrobbles: List<Scrobble>) {
+        logger.info { "Remove scrobbles from cache: $scrobbles" }
         scrobbleCache.removeAll(scrobbles)
         publishUpdate()
     }
@@ -50,7 +52,7 @@ class LastfmScrobblerStorage : Stateful {
      */
     @Synchronized
     fun removeFromScrobbleCache(scrobbleIndexes: Set<Int>) {
-        scrobbleIndexes.forEach { scrobbleCache.removeAt(it) }
+        scrobbleIndexes.sortedDescending().forEach { scrobbleCache.removeAt(it) }
         publishUpdate()
     }
 
