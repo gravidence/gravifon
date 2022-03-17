@@ -199,15 +199,16 @@ class Bandcamp(
      */
     fun refreshExpiredTracks(pageUrl: String, tracks: List<StreamVirtualTrack>) {
         logger.debug { "Refresh stream URLs from Bandcamp page: $pageUrl" }
-        val freshStreams = parseBandcampPage(pageUrl)
+        val freshTracks = parseBandcampPage(pageUrl)
 
         tracks.forEach { track ->
-            track.getTrack()?.toIntOrNull()?.let { trackNumber ->
-                freshStreams.elementAtOrNull(trackNumber - 1)?.let { freshTrack ->
-                    track.streamUrl = freshTrack.streamUrl
-                    // reset failing flag as stream url has been changed
-                    track.failing = false
-                }
+            // below mapping is unsafe since trackNum is optional field in Bandcamp world
+            freshTracks.find { it.getTrack() == track.getTrack() }?.let { freshTrack ->
+                logger.debug { "Found a refreshment pair: old=$track, fresh=$freshTrack" }
+                track.streamUrl = freshTrack.streamUrl
+                track.expiresAfter = freshTrack.expiresAfter
+                // reset failing flag as stream url has been changed
+                track.failing = false
             }
         }
     }
