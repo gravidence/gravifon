@@ -99,13 +99,14 @@ class LogbackConfigurator : ContextAwareBase(), Configurator {
         rollingPolicy.context = context
         rollingPolicy.setParent(appender)
         rollingPolicy.setTotalSizeCap(FileSize(30 * FileSize.MB_COEFFICIENT))
-        rollingPolicy.start()
 
         appender.name = "FILE"
         appender.file = logFile.toString()
         appender.rollingPolicy = rollingPolicy
         appender.encoder = encoder
         appender.context = context
+
+        rollingPolicy.start()
         appender.start()
 
         return appender
