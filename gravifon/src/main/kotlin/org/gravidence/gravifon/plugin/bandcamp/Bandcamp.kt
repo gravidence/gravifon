@@ -197,14 +197,16 @@ class Bandcamp(
     /**
      * Update expired stream tracks by re-querying their source Bandcamp page.
      */
-    fun refreshExpiredTracks(pageUrl: String, streams: List<StreamVirtualTrack>) {
+    fun refreshExpiredTracks(pageUrl: String, tracks: List<StreamVirtualTrack>) {
         logger.debug { "Refresh stream URLs from Bandcamp page: $pageUrl" }
         val freshStreams = parseBandcampPage(pageUrl)
 
-        streams.forEach { stream ->
-            stream.getTrack()?.toIntOrNull()?.let { trackNumber ->
+        tracks.forEach { track ->
+            track.getTrack()?.toIntOrNull()?.let { trackNumber ->
                 freshStreams.elementAtOrNull(trackNumber - 1)?.let { freshTrack ->
-                    stream.streamUrl = freshTrack.streamUrl
+                    track.streamUrl = freshTrack.streamUrl
+                    // reset failing flag as stream url has been changed
+                    track.failing = false
                 }
             }
         }
