@@ -195,6 +195,18 @@ class Bandcamp(
     }
 
     /**
+     * Verify if two URLs point to same stream track. URL _path_ part is used as matching criteria.
+     */
+    private fun doMatch(u1: String, u2: String): Boolean {
+        return try {
+            URI(u1).path == URI(u2).path
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to match urls" }
+            false
+        }
+    }
+
+    /**
      * Update expired stream tracks by re-querying their source Bandcamp page.
      */
     fun refreshExpiredTracks(pageUrl: String, tracks: List<StreamVirtualTrack>) {
@@ -205,6 +217,10 @@ class Bandcamp(
             // below mapping is unsafe since trackNum is optional field in Bandcamp world
             freshTracks.find { it.getTrack() == track.getTrack() }?.let { freshTrack ->
                 logger.debug { "Found a refreshment pair: old=$track, fresh=$freshTrack" }
+                if (!doMatch(track.streamUrl, freshTrack.streamUrl)) {
+                    logger.warn { "Possibly an incorrect match detected" }
+                }
+
                 track.streamUrl = freshTrack.streamUrl
                 track.expiresAfter = freshTrack.expiresAfter
                 // reset failing flag as stream url has been changed
