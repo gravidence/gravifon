@@ -18,5 +18,6 @@ enum class VirtualTrackFormatSelectors(val selector: (VirtualTrack) -> Any?) {
     TRACK_TOTAL(VirtualTrack::getTrackTotal),
     DISC(VirtualTrack::getDisc),
     DISC_TOTAL(VirtualTrack::getDiscTotal),
+    DURATION_SHORT(VirtualTrack::getLengthFormatShortHours),
 
 }

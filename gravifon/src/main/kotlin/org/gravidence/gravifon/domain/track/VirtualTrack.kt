@@ -7,6 +7,7 @@ import org.gravidence.gravifon.domain.header.Headers
 import org.gravidence.gravifon.domain.tag.FieldValue
 import org.gravidence.gravifon.domain.tag.FieldValues
 import org.gravidence.gravifon.domain.track.compare.VirtualTrackSelectors
+import org.gravidence.gravifon.util.DurationUtil
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.jaudiotagger.tag.FieldKey
 import java.net.URI
@@ -128,6 +129,10 @@ sealed class VirtualTrack {
 
     fun getLength(): Duration? {
         return headers.length
+    }
+
+    fun getLengthFormatShortHours(): String {
+        return DurationUtil.formatShortHours(headers.length)
     }
 
     fun getArtist(): String? {
