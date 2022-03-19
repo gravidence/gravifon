@@ -16,7 +16,7 @@ val bandcampSerializer = Json { ignoreUnknownKeys = true }
 
 object InstantAsRFC1123StringSerializer : KSerializer<Instant> {
 
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Instant", PrimitiveKind.STRING)
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("InstantAsRFC1123String", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): Instant {
         val date = ZonedDateTime.parse(decoder.decodeString(), DateTimeFormatter.RFC_1123_DATE_TIME)
