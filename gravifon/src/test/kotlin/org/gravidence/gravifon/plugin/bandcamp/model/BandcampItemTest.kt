@@ -138,6 +138,7 @@ internal class BandcampItemTest {
     @ValueSource(
         strings = [
             "/bandcamp/track-single-artist.json",
+            "/bandcamp/track-single-artist_track-has-no-artist.json",
             "/bandcamp/track-single-artist_track-title-has-artist.json",
         ]
     )

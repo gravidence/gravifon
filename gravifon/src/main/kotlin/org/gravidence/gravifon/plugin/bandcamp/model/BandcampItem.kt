@@ -14,6 +14,7 @@ import org.http4k.core.queries
 
 @Serializable
 data class BandcampItem(
+    @SerialName("url")
     val url: String,
     @SerialName("item_type")
     val type: BandcampItemType,
@@ -73,7 +74,9 @@ enum class BandcampItemType(val code: String) {
 
 @Serializable
 data class BandcampItemDetails(
+    @SerialName("artist")
     val artist: String? = null,
+    @SerialName("title")
     val title: String? = null,
     @SerialName("release_date")
     @Serializable(with = InstantAsRFC1123StringSerializer::class)
@@ -90,15 +93,19 @@ data class BandcampPlayCapDetails(
 
 @Serializable
 data class BandcampTrackDetails(
+    @SerialName("artist")
     val artist: String? = null,
+    @SerialName("title")
     val title: String,
     @SerialName("track_num")
     val tracknum: Int?,
+    @SerialName("duration")
     val duration: Double,
     @SerialName("is_capped")
     val isCapped: Boolean? = null,
     @SerialName("play_count")
     val playcount: Int? = null,
+    @SerialName("file")
     val file: BandcampTrackFileInfo?,
 )
 
@@ -123,11 +130,11 @@ private val duplicateWhitespaceRegex = """\s+""".toRegex()
 
 fun BandcampItem.enhanced(): BandcampItem {
     return normalizeWhitespaces().run {
+        val enhancedAlbumArtist = details.artist ?: albumArtist
+        val enhancedAlbumReleaseDate = details.date ?: albumReleaseDate
+
         when (type) {
             BandcampItemType.ALBUM -> {
-                val enhancedAlbumArtist = details.artist ?: albumArtist
-                val enhancedAlbumReleaseDate = details.date ?: albumReleaseDate
-
                 val isMultiArtist = tracks.all { it.artist == null && it.title.contains(BC_SEPARATOR) }
 
                 copy(
@@ -147,11 +154,13 @@ fun BandcampItem.enhanced(): BandcampItem {
             }
             BandcampItemType.TRACK -> {
                 copy(
+                    albumReleaseDate = enhancedAlbumReleaseDate,
                     details = details.copy(
-                        date = details.date ?: albumReleaseDate
+                        artist = enhancedAlbumArtist,
+                        date = enhancedAlbumReleaseDate
                     ),
                     tracks = tracks.map {
-                        val enhancedArtist = details.artist ?: it.artist
+                        val enhancedArtist = it.artist ?: enhancedAlbumArtist
                         val enhancedTitle = details.title ?: it.title
 
                         it.copy(artist = enhancedArtist, title = enhancedTitle)

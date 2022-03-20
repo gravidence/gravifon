@@ -1,0 +1,28 @@
+{
+  "url": "https://gravifon.org/track/aaa",
+  "item_type": "track",
+  "artist": "QWE",
+  "album_release_date": "20 Jan 2020 00:00:00 GMT",
+  "album_url": "/album/0101",
+  "current": {
+    "release_date": null,
+    "artist": null,
+    "track_number": 1,
+    "title": "AAA"
+  },
+  "play_cap_data": {
+    "streaming_limits_enabled": true,
+    "streaming_limit": 3
+  },
+  "trackinfo": [
+    {
+      "artist": null,
+      "file": {
+        "mp3-128": "https://gravifon.org/stream/aaa"
+      },
+      "track_num": 1,
+      "title": "AAA",
+      "duration": 100.1
+    }
+  ]
+}
