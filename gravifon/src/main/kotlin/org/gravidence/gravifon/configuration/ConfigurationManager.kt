@@ -1,5 +1,8 @@
 package org.gravidence.gravifon.configuration
 
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.window.WindowPlacement
+import androidx.compose.ui.window.WindowPosition
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import mu.KotlinLogging
@@ -7,6 +10,7 @@ import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.application.PersistConfigurationEvent
+import org.gravidence.gravifon.event.application.WindowStateChangedEvent
 import org.gravidence.gravifon.orchestration.marker.Configurable
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.ShutdownAware
@@ -31,6 +35,7 @@ class ConfigurationManager(@Lazy private val configurables: List<Configurable>, 
     override fun consume(event: Event) {
         when (event) {
             is PersistConfigurationEvent -> persistEverything()
+            is WindowStateChangedEvent -> updateWindowState(event.size, event.position, event.placement)
         }
     }
 
@@ -98,9 +103,31 @@ class ConfigurationManager(@Lazy private val configurables: List<Configurable>, 
         logger.debug { "Persist component file storage: FINISH" }
     }
 
+    @Synchronized
     private fun persistEverything() {
         persistComponentStates()
         persistApplicationConfiguration()
+    }
+
+    @Synchronized
+    private fun updateWindowState(size: DpSize? = null, position: WindowPosition? = null, placement: WindowPlacement? = null) {
+        applicationConfiguration.application.window.apply {
+            size?.let {
+                this.size.width = it.width.value.toInt()
+                this.size.height = it.height.value.toInt()
+            }
+            position?.let {
+                if (this.position.remembered) {
+                    this.position.x = it.x.value.toInt()
+                    this.position.y = it.y.value.toInt()
+                }
+            }
+            placement?.let {
+                if (this.placement.remembered) {
+                    this.placement.placement = it
+                }
+            }
+        }
     }
 
 }

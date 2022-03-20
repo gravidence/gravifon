@@ -1,6 +1,7 @@
 package org.gravidence.gravifon
 
 import mu.KotlinLogging
+import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.orchestration.Orchestrator
 import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.plugin.Plugin
@@ -17,6 +18,7 @@ object GravifonStarter {
     private val ctx: ApplicationContext
 
     val orchestrator: Orchestrator
+    val configurationManager: ConfigurationManager
 
     val views: Collection<Viewable>
     val plugins: Collection<Plugin>
@@ -33,6 +35,7 @@ object GravifonStarter {
 
         logger.debug { "Expose global beans" }
         orchestrator = ctx.getBean()
+        configurationManager = ctx.getBean()
         views = ctx.getBeansOfType<Viewable>().values
         plugins = ctx.getBeansOfType<Plugin>().values
             .sortedBy { it.pluginDisplayName }

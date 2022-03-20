@@ -1,14 +1,18 @@
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.window.MenuBar
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.*
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.GravifonStarter
 import org.gravidence.gravifon.event.EventBus
+import org.gravidence.gravifon.event.application.WindowStateChangedEvent
 import org.gravidence.gravifon.event.playback.PausePlaybackEvent
 import org.gravidence.gravifon.event.playback.RepositionPlaybackPointRelativeEvent
 import org.gravidence.gravifon.ui.AppBody
@@ -18,16 +22,11 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() = application {
-    remember {
-        GravifonContext.scopeDefault.launch {
-            // launch startup in default coroutine scope
-            // to have component configuration mutable states available there for further operation
-            GravifonStarter.orchestrator.startup()
-        }
-    }
+    val windowState = remember { readWindowState() }
 
     Window(
         title = "Gravifon",
+        state = windowState,
         onCloseRequest = {
             GravifonStarter.orchestrator.shutdown()
 
@@ -46,6 +45,21 @@ fun main() = application {
             return@Window false
         }
     ) {
+        LaunchedEffect(windowState) {
+            snapshotFlow { windowState.size }
+                .onEach { EventBus.publish(WindowStateChangedEvent(size = it)) }
+                .launchIn(this)
+
+            snapshotFlow { windowState.position }
+                .filter { it.isSpecified }
+                .onEach { EventBus.publish(WindowStateChangedEvent(position = it)) }
+                .launchIn(this)
+
+            snapshotFlow { windowState.placement }
+                .onEach { EventBus.publish(WindowStateChangedEvent(placement = it)) }
+                .launchIn(this)
+        }
+
         MenuBar {
             Menu(text = "File") {
 
@@ -93,5 +107,31 @@ fun main() = application {
 
         PluginSettingsDialog()
         TrackMetadataDialog()
+    }
+
+    remember { GravifonStarter.orchestrator.startup() }
+}
+
+fun readWindowState(): WindowState = runBlocking {
+    GravifonStarter.configurationManager.applicationConfig().window.run {
+        val size = DpSize(width = size.width.dp, height = size.height.dp)
+        val position = if (position.remembered && position.x != null && position.y != null) {
+            WindowPosition.Absolute(x = position.x!!.dp, y = position.y!!.dp)
+        } else {
+            WindowPosition.PlatformDefault
+        }
+
+        if (placement.remembered) {
+            WindowState(
+                size = size,
+                position = position,
+                placement = placement.placement,
+            )
+        } else {
+            WindowState(
+                size = size,
+                position = position,
+            )
+        }
     }
 }
