@@ -10,6 +10,10 @@
     "track_number": 1,
     "title": "AAA"
   },
+  "play_cap_data": {
+    "streaming_limits_enabled": true,
+    "streaming_limit": 3
+  },
   "trackinfo": [
     {
       "artist": "ASD",

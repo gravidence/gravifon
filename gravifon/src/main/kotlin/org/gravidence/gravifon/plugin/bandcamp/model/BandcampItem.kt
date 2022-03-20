@@ -28,6 +28,8 @@ data class BandcampItem(
     @SerialName("album_url")
     val albumUrl: String? = null,
 
+    @SerialName("play_cap_data")
+    val playCapDetails: BandcampPlayCapDetails,
     @SerialName("trackinfo")
     val tracks: List<BandcampTrackDetails>,
 ) {
@@ -79,12 +81,24 @@ data class BandcampItemDetails(
 )
 
 @Serializable
+data class BandcampPlayCapDetails(
+    @SerialName("streaming_limits_enabled")
+    val enabled: Boolean,
+    @SerialName("streaming_limit")
+    val limit: Int,
+)
+
+@Serializable
 data class BandcampTrackDetails(
     val artist: String? = null,
     val title: String,
     @SerialName("track_num")
     val tracknum: Int?,
     val duration: Double,
+    @SerialName("is_capped")
+    val isCapped: Boolean? = null,
+    @SerialName("play_count")
+    val playcount: Int? = null,
     val file: BandcampTrackFileInfo?,
 )
 

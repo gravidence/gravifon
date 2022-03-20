@@ -41,6 +41,8 @@ internal class BandcampItemTest {
             albumReleaseDate = Instant.parse("2020-02-20T00:00:00Z"),
             albumUrl = null,
 
+            playCapDetails = BandcampPlayCapDetails(true, 3),
+
             tracks = listOf(
                 BandcampTrackDetails(
                     artist = "QWE",
@@ -99,6 +101,8 @@ internal class BandcampItemTest {
             albumReleaseDate = Instant.parse("2020-02-20T00:00:00Z"),
             albumUrl = null,
 
+            playCapDetails = BandcampPlayCapDetails(true, 3),
+
             tracks = listOf(
                 BandcampTrackDetails(
                     artist = "ASD ASD",
@@ -155,6 +159,8 @@ internal class BandcampItemTest {
             albumReleaseDate = Instant.parse("2020-01-20T00:00:00Z"),
             albumUrl = "/album/0101",
 
+            playCapDetails = BandcampPlayCapDetails(true, 3),
+
             tracks = listOf(
                 BandcampTrackDetails(
                     artist = "QWE",
@@ -201,6 +207,8 @@ internal class BandcampItemTest {
             albumArtist = "QWE",
             albumReleaseDate = Instant.parse("2020-01-20T00:00:00Z"),
             albumUrl = "/album/0101",
+
+            playCapDetails = BandcampPlayCapDetails(true, 3),
 
             tracks = listOf(
                 BandcampTrackDetails(
