@@ -85,8 +85,8 @@ fun PlaybackSourcePanel() {
         null
     }
 
-    val playlistOwnerName = activePlaylist?.ownerName!!
-    val totalDuration = activePlaylist.run {
+    val playlistOwnerName = activePlaylist?.ownerName ?: ""
+    val totalDuration = activePlaylist?.run {
         items()
             .filterIsInstance<TrackPlaylistItem>()
             .mapNotNull { it.track.getLength() }
