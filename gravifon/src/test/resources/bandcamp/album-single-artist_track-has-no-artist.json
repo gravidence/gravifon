@@ -8,10 +8,6 @@
     "artist": "QWE",
     "title": "0101"
   },
-  "play_cap_data": {
-    "streaming_limits_enabled": true,
-    "streaming_limit": 3
-  },
   "trackinfo": [
     {
       "artist": null,

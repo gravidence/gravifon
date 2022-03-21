@@ -30,7 +30,7 @@ data class BandcampItem(
     val albumUrl: String? = null,
 
     @SerialName("play_cap_data")
-    val playCapDetails: BandcampPlayCapDetails,
+    val playCapDetails: BandcampPlayCapDetails? = null,
     @SerialName("trackinfo")
     val tracks: List<BandcampTrackDetails>,
 ) {
