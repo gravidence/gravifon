@@ -1,9 +1,10 @@
 package org.gravidence.gravifon.playback
 
 import org.gravidence.gravifon.domain.track.VirtualTrack
+import org.gravidence.gravifon.orchestration.marker.Configurable
 import kotlin.time.Duration
 
-interface AudioBackend {
+interface AudioBackend : Configurable {
 
     fun registerCallback(
         aboutToFinishCallback: () -> Unit,

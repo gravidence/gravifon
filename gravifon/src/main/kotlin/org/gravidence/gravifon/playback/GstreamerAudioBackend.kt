@@ -1,8 +1,23 @@
 package org.gravidence.gravifon.playback
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Checkbox
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.unit.dp
+import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import org.freedesktop.gstreamer.*
 import org.freedesktop.gstreamer.elements.PlayBin
+import org.gravidence.gravifon.configuration.ComponentConfiguration
+import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.util.Stopwatch
 import org.springframework.stereotype.Component
@@ -18,7 +33,7 @@ private val logger = KotlinLogging.logger {}
  * See [documentation](https://gstreamer.freedesktop.org/documentation/playback/playbin.html#playbin-page).
  */
 @Component
-class GstreamerAudioBackend : AudioBackend {
+class GstreamerAudioBackend(override val configurationManager: ConfigurationManager) : AudioBackend {
 
     private val playbin: PlayBin
 
@@ -42,7 +57,13 @@ class GstreamerAudioBackend : AudioBackend {
         endOfStreamCallback: () -> Unit,
         playbackFailureCallback: (played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) -> Unit,
     ) {
-        logger.debug { "Register callbacks" }
+        playbin.connect(PlayBin.SOURCE_SETUP { _, element ->
+            try {
+                element.set("ssl-strict", componentConfiguration.value.sslStrict)
+            } catch (e: IllegalArgumentException) {
+                logger.error(e) { "Failed to set 'ssl-strict' property" }
+            }
+        })
 
         playbin.connect(PlayBin.ABOUT_TO_FINISH {
             logger.debug { "Playing stream is about to finish" }
@@ -166,6 +187,65 @@ class GstreamerAudioBackend : AudioBackend {
         nextTrack = track
 
         logger.debug { "Next track to play: $track" }
+    }
+
+    @Serializable
+    data class GstreamerComponentConfiguration(
+        var sslStrict: Boolean = true,
+    ) : ComponentConfiguration
+
+    override val componentConfiguration = mutableStateOf(
+        readComponentConfiguration {
+            GstreamerComponentConfiguration()
+        }
+    )
+
+    inner class GstreamerSettingsState {
+
+        fun toggleSslStrict() {
+            componentConfiguration.value = componentConfiguration.value.copy(sslStrict = componentConfiguration.value.sslStrict.not())
+        }
+
+    }
+
+    @Composable
+    fun rememberGstreamerSettingsState(
+    ) = remember {
+        GstreamerSettingsState()
+    }
+
+    @OptIn(ExperimentalComposeUiApi::class)
+    @Composable
+    override fun composeSettings() {
+        val state = rememberGstreamerSettingsState()
+
+        Box(
+            modifier = Modifier
+                .widthIn(min = 400.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Row {
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .onPointerEvent(
+                                    eventType = PointerEventType.Release,
+                                    onEvent = { state.toggleSslStrict() }
+                                )
+                        ) {
+                            Checkbox(
+                                checked = componentConfiguration.value.sslStrict,
+                                onCheckedChange = {  }
+                            )
+                            Text("Strict SSL certificate checking")
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }
