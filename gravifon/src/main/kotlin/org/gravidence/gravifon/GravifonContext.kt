@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import org.gravidence.gravifon.domain.notification.Notification
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.orchestration.marker.Viewable
-import org.gravidence.gravifon.playback.PlaybackState
+import org.gravidence.gravifon.playback.PlaybackStatus
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.ui.dialog.TrackMetadataState
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
@@ -32,7 +32,7 @@ object GravifonContext {
         selectedTracks = mutableStateOf(setOf())
     )
 
-    val playbackState: MutableState<PlaybackState> = mutableStateOf(PlaybackState.STOPPED)
+    val playbackStatusState: MutableState<PlaybackStatus> = mutableStateOf(PlaybackStatus.STOPPED)
     val playbackPositionState: MutableState<PlaybackPositionState> = mutableStateOf(PlaybackPositionState(), referentialEqualityPolicy())
 
     fun setActiveTrack(track: VirtualTrack?) {

@@ -1,4 +1,4 @@
-package org.gravidence.gravifon.playback
+package org.gravidence.gravifon.playback.backend.gstreamer
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Checkbox
@@ -19,6 +19,9 @@ import org.freedesktop.gstreamer.elements.PlayBin
 import org.gravidence.gravifon.configuration.ComponentConfiguration
 import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.domain.track.VirtualTrack
+import org.gravidence.gravifon.playback.PlaybackStatus
+import org.gravidence.gravifon.playback.backend.AudioBackend
+import org.gravidence.gravifon.playback.backend.gstreamer.configuration.ElementConfiguration
 import org.gravidence.gravifon.util.Stopwatch
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
@@ -33,7 +36,7 @@ private val logger = KotlinLogging.logger {}
  * See [documentation](https://gstreamer.freedesktop.org/documentation/playback/playbin.html#playbin-page).
  */
 @Component
-class GstreamerAudioBackend(override val configurationManager: ConfigurationManager) : AudioBackend {
+class GstreamerAudioBackend(override val configurationManager: ConfigurationManager, private val elementConfigurations: List<ElementConfiguration>) : AudioBackend {
 
     private val playbin: PlayBin
 
@@ -58,11 +61,7 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
         playbackFailureCallback: (played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) -> Unit,
     ) {
         playbin.connect(PlayBin.SOURCE_SETUP { _, element ->
-            try {
-                element.set("ssl-strict", componentConfiguration.value.sslStrict)
-            } catch (e: IllegalArgumentException) {
-                logger.error(e) { "Failed to set 'ssl-strict' property" }
-            }
+            elementConfigurations.find { element.typeName == it.typeName }?.apply(element, componentConfiguration.value)
         })
 
         playbin.connect(PlayBin.ABOUT_TO_FINISH {
@@ -111,39 +110,39 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
         logger.debug { "Callback 'playback-failure' registered" }
     }
 
-    override fun play(): PlaybackState {
+    override fun play(): PlaybackStatus {
         playbin.play().also {
             if (it == StateChangeReturn.FAILURE) {
                 logger.warn { "Unable to play stream" }
-                return PlaybackState.STOPPED
+                return PlaybackStatus.STOPPED
             }
         }
 
-        return PlaybackState.PLAYING
+        return PlaybackStatus.PLAYING
     }
 
-    override fun pause(): PlaybackState {
+    override fun pause(): PlaybackStatus {
         when (playbin.state) {
             State.PLAYING -> {
                 playbin.pause()
                 stopwatch.pause()
-                return PlaybackState.PAUSED
+                return PlaybackStatus.PAUSED
             }
             State.PAUSED -> {
                 return play().also {
-                    if (it == PlaybackState.PLAYING) {
+                    if (it == PlaybackStatus.PLAYING) {
                         stopwatch.count()
                     }
                 }
             }
             else -> {
                 // keep current state
-                return PlaybackState.STOPPED
+                return PlaybackStatus.STOPPED
             }
         }
     }
 
-    override fun stop(): PlaybackState {
+    override fun stop(): PlaybackStatus {
         // clear next track, so it won't affect AUDIO_CHANGED event logic
         nextTrack = null
 
@@ -152,7 +151,7 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
         // make sure stopwatch is stopped (all related logic is executed in AUDIO_CHANGED event handler)
         stopwatch.stop()
 
-        return PlaybackState.STOPPED
+        return PlaybackStatus.STOPPED
     }
 
     /**

@@ -14,6 +14,7 @@ import org.gravidence.gravifon.event.track.TrackFinishedEvent
 import org.gravidence.gravifon.event.track.TrackStartedEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.ShutdownAware
+import org.gravidence.gravifon.playback.backend.AudioBackend
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
 import org.gravidence.gravifon.util.DurationUtil
 import org.springframework.stereotype.Component
@@ -24,7 +25,7 @@ import kotlin.time.Duration
 private val logger = KotlinLogging.logger {}
 
 @Component
-class Player(private val audioBackend: AudioBackend, private val audioFlow: AudioFlow) : EventAware, ShutdownAware {
+class PlaybackManager(private val audioBackend: AudioBackend, private val audioFlow: AudioFlow) : EventAware, ShutdownAware {
 
     private var timer = Timer()
 
@@ -34,7 +35,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
                 start(event.track)
             }
             is PausePlaybackEvent -> {
-                if (GravifonContext.playbackState.value != PlaybackState.STOPPED) {
+                if (GravifonContext.playbackStatusState.value != PlaybackStatus.STOPPED) {
                     pause()
                 }
             }
@@ -131,7 +132,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
 
         if (forcePlay) {
             audioBackend.play().also {
-                GravifonContext.playbackState.value = it
+                GravifonContext.playbackStatusState.value = it
             }
 
             timer = fixedRateTimer(initialDelay = 1000, period = 200) {
@@ -143,7 +144,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
 
     private fun pause() {
         audioBackend.pause().also {
-            GravifonContext.playbackState.value = it
+            GravifonContext.playbackStatusState.value = it
         }
     }
 
@@ -151,7 +152,7 @@ class Player(private val audioBackend: AudioBackend, private val audioFlow: Audi
         timer.cancel()
 
         audioBackend.stop().also {
-            GravifonContext.playbackState.value = it
+            GravifonContext.playbackStatusState.value = it
         }
 
         GravifonContext.setActiveTrack(null)

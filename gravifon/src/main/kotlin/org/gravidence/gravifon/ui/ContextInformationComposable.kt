@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import ch.qos.logback.core.util.FileSize
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.notification.NotificationType
-import org.gravidence.gravifon.playback.PlaybackState
+import org.gravidence.gravifon.playback.PlaybackStatus
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.smallFont
@@ -76,10 +76,10 @@ fun ContextInformationComposable() {
 
 @Composable
 fun PlaybackSourcePanel() {
-    val playbackState = GravifonContext.playbackState.value
+    val playbackStatus = GravifonContext.playbackStatusState.value
     val activePlaylist = GravifonContext.activePlaylist.value
 
-    val playbackSourceIconColor = if (playbackState == PlaybackState.STOPPED) {
+    val playbackSourceIconColor = if (playbackStatus == PlaybackStatus.STOPPED) {
         Color.LightGray
     } else {
         null

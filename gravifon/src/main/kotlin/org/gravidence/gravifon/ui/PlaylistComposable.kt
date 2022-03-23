@@ -30,7 +30,7 @@ import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.PlayCurrentFromPlaylistEvent
 import org.gravidence.gravifon.event.playlist.RemoveFromPlaylistEvent
-import org.gravidence.gravifon.playback.PlaybackState
+import org.gravidence.gravifon.playback.PlaybackStatus
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
 import org.gravidence.gravifon.playlist.item.PlaylistItem
@@ -273,11 +273,11 @@ fun PlaylistItemComposable(index: Int, playlistItem: PlaylistItem, playlistState
                 ) {
                     if (playlistState.playlist.position() == index + 1) {
                         AppIcon(
-                            path = when (GravifonContext.playbackState.value) {
+                            path = when (GravifonContext.playbackStatusState.value) {
                                 // TODO consider icons8-musical-notes-24.png
-                                PlaybackState.PLAYING -> "icons8-play-24.png"
-                                PlaybackState.PAUSED -> "icons8-pause-24.png"
-                                PlaybackState.STOPPED -> "icons8-stop-24.png"
+                                PlaybackStatus.PLAYING -> "icons8-play-24.png"
+                                PlaybackStatus.PAUSED -> "icons8-pause-24.png"
+                                PlaybackStatus.STOPPED -> "icons8-stop-24.png"
                             },
                             modifier = Modifier
                                 .size(16.dp)

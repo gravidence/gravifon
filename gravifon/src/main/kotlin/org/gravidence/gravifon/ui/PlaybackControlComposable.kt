@@ -17,7 +17,7 @@ import org.gravidence.gravifon.event.playback.StopPlaybackEvent
 import org.gravidence.gravifon.event.playlist.PlayCurrentFromPlaylistEvent
 import org.gravidence.gravifon.event.playlist.PlayNextFromPlaylistEvent
 import org.gravidence.gravifon.event.playlist.PlayPreviousFromPlaylistEvent
-import org.gravidence.gravifon.playback.PlaybackState
+import org.gravidence.gravifon.playback.PlaybackStatus
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
 import org.gravidence.gravifon.util.DurationUtil
@@ -95,7 +95,7 @@ fun PlaybackControlComposable() {
 
 @Composable
 fun PlaybackControl() {
-    val playbackState = GravifonContext.playbackState.value
+    val playbackStatus = GravifonContext.playbackStatusState.value
 
     Button(
         onClick = PlaybackControlState::onPrev,
@@ -105,7 +105,7 @@ fun PlaybackControl() {
     }
     Button(
         onClick = PlaybackControlState::onStop,
-        modifier = if (playbackState == PlaybackState.STOPPED) {
+        modifier = if (playbackStatus == PlaybackStatus.STOPPED) {
             activePlaybackButtonModifier
         } else {
             defaultPlaybackButtonModifier
@@ -115,7 +115,7 @@ fun PlaybackControl() {
     }
     Button(
         onClick = PlaybackControlState::onPause,
-        modifier = if (playbackState == PlaybackState.PAUSED) {
+        modifier = if (playbackStatus == PlaybackStatus.PAUSED) {
             activePlaybackButtonModifier
         } else {
             defaultPlaybackButtonModifier
@@ -125,7 +125,7 @@ fun PlaybackControl() {
     }
     Button(
         onClick = PlaybackControlState::onPlay,
-        modifier = if (playbackState == PlaybackState.PLAYING) {
+        modifier = if (playbackStatus == PlaybackStatus.PLAYING) {
             activePlaybackButtonModifier
         } else {
             defaultPlaybackButtonModifier

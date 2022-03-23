@@ -6,7 +6,7 @@ import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.gravidence.gravifon.configuration.ComponentConfiguration
-import org.gravidence.gravifon.playback.GstreamerAudioBackend
+import org.gravidence.gravifon.playback.backend.gstreamer.GstreamerAudioBackend
 import org.gravidence.gravifon.plugin.autosaveus.AutosaveUs
 import org.gravidence.gravifon.plugin.bandcamp.Bandcamp
 import org.gravidence.gravifon.plugin.library.Library

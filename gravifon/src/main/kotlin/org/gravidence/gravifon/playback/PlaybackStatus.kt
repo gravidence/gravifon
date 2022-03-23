@@ -1,6 +1,6 @@
 package org.gravidence.gravifon.playback
 
-enum class PlaybackState {
+enum class PlaybackStatus {
 
     STOPPED,
     PLAYING,

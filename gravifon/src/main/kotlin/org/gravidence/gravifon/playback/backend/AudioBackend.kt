@@ -1,7 +1,8 @@
-package org.gravidence.gravifon.playback
+package org.gravidence.gravifon.playback.backend
 
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.orchestration.marker.Configurable
+import org.gravidence.gravifon.playback.PlaybackStatus
 import kotlin.time.Duration
 
 interface AudioBackend : Configurable {
@@ -14,9 +15,9 @@ interface AudioBackend : Configurable {
         playbackFailureCallback: (played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) -> Unit,
     )
 
-    fun play(): PlaybackState
-    fun pause(): PlaybackState
-    fun stop(): PlaybackState
+    fun play(): PlaybackStatus
+    fun pause(): PlaybackStatus
+    fun stop(): PlaybackStatus
 
     /**
      * Returns stream length.

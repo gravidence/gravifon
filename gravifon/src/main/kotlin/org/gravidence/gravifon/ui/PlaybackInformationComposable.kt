@@ -13,12 +13,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.VirtualTrack
-import org.gravidence.gravifon.playback.PlaybackState
+import org.gravidence.gravifon.playback.PlaybackStatus
 import org.gravidence.gravifon.util.DurationUtil
 import kotlin.time.Duration
 
 class PlaybackInformationState(
-    val playbackState: PlaybackState,
+    val playbackStatus: PlaybackStatus,
     val artistInformation: String,
     val trackInformation: String,
     val trackExtraInformation: String,
@@ -61,11 +61,11 @@ class PlaybackInformationState(
 @Composable
 fun rememberPlaybackInformationState(
     activeTrack: VirtualTrack? = GravifonContext.activeTrack.value,
-    playbackState: PlaybackState = GravifonContext.playbackState.value,
+    playbackStatus: PlaybackStatus = GravifonContext.playbackStatusState.value,
     trackLength: Duration = GravifonContext.playbackPositionState.value.endingPosition,
-) = remember(activeTrack, playbackState, trackLength) {
+) = remember(activeTrack, playbackStatus, trackLength) {
     PlaybackInformationState(
-        playbackState = playbackState,
+        playbackStatus = playbackStatus,
         artistInformation = PlaybackInformationState.renderArtistInformation(activeTrack),
         trackInformation = PlaybackInformationState.renderTrackInformation(activeTrack),
         trackExtraInformation = PlaybackInformationState.renderTrackExtraInformation(trackLength),
@@ -86,7 +86,7 @@ fun PlaybackInformationComposable(playbackInformationState: PlaybackInformationS
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            if (playbackInformationState.playbackState == PlaybackState.STOPPED) {
+            if (playbackInformationState.playbackStatus == PlaybackStatus.STOPPED) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
