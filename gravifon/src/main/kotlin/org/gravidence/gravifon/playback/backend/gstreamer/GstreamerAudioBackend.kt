@@ -38,6 +38,8 @@ private val logger = KotlinLogging.logger {}
 @Component
 class GstreamerAudioBackend(override val configurationManager: ConfigurationManager, private val elementConfigurations: List<ElementConfiguration>) : AudioBackend {
 
+    override val id: String = "Gstreamer"
+
     private val playbin: PlayBin
 
     private var stopwatch: Stopwatch = Stopwatch()

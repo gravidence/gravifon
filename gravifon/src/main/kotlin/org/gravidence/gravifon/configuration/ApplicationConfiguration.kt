@@ -9,6 +9,7 @@ data class GConfig(val application: GApplication = GApplication(), val component
 @Serializable
 data class GApplication(
     var window: GWindow = GWindow(),
+    var activeAudioBackendId: String? = null,
     var activeViewId: String? = null,
     var activePlaylistId: String? = null
 )

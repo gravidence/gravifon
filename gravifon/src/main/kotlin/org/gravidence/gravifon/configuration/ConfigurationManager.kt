@@ -11,6 +11,7 @@ import org.gravidence.gravifon.configuration.ConfigUtil.settingsFile
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.application.PersistConfigurationEvent
 import org.gravidence.gravifon.event.application.WindowStateChangedEvent
+import org.gravidence.gravifon.event.playback.SelectAudioBackendEvent
 import org.gravidence.gravifon.orchestration.marker.Configurable
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.ShutdownAware
@@ -36,6 +37,7 @@ class ConfigurationManager(@Lazy private val configurables: List<Configurable>, 
         when (event) {
             is PersistConfigurationEvent -> persistEverything()
             is WindowStateChangedEvent -> updateWindowState(event.size, event.position, event.placement)
+            is SelectAudioBackendEvent -> applicationConfiguration.application.activeAudioBackendId = event.audioBackend.id
         }
     }
 
@@ -61,9 +63,14 @@ class ConfigurationManager(@Lazy private val configurables: List<Configurable>, 
         logger.info { "Read application configuration from $settingsFile" }
 
         return try {
-            gravifonSerializer.decodeFromString(Files.readString(settingsFile))
+            if (Files.exists(settingsFile)) {
+                gravifonSerializer.decodeFromString(Files.readString(settingsFile))
+            } else {
+                logger.info { "Application configuration file not found, use default configuration" }
+                GConfig()
+            }
         } catch (e: Exception) {
-            logger.error(e) { "Failed to read application configuration from $settingsFile" }
+            logger.error(e) { "Failed to read application configuration from $settingsFile, use default configuration" }
             GConfig()
         }
     }

@@ -25,97 +25,96 @@ import kotlin.time.Duration
 private val logger = KotlinLogging.logger {}
 
 @Component
-class PlaybackManager(private val audioBackend: AudioBackend, private val audioFlow: AudioFlow) : EventAware, ShutdownAware {
+class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAware {
+
+    private var audioBackend: AudioBackend? = null
 
     private var timer = Timer()
 
     override fun consume(event: Event) {
         when (event) {
-            is StartPlaybackEvent -> {
-                start(event.track)
-            }
+            is SelectAudioBackendEvent -> init(event.audioBackend)
+            is StartPlaybackEvent -> start(event.track)
             is PausePlaybackEvent -> {
                 if (GravifonContext.playbackStatusState.value != PlaybackStatus.STOPPED) {
                     pause()
                 }
             }
-            is StopPlaybackEvent -> {
-                stop()
-            }
-            is RepositionPlaybackPointAbsoluteEvent -> {
-                seek(event.position)
-            }
-            is RepositionPlaybackPointRelativeEvent -> {
-                seek(DurationUtil.max(Duration.ZERO, audioBackend.queryPosition() + event.positionDelta))
-            }
+            is StopPlaybackEvent -> stop()
+            is RepositionPlaybackPointAbsoluteEvent -> seek(event.position)
+            is RepositionPlaybackPointRelativeEvent -> seek(event.positionDelta, false)
         }
     }
 
-    init {
-        audioBackend.registerCallback(
-            aboutToFinishCallback = {
-                audioFlow.next()?.let {
-                    start(it, false)
-                }
-            },
-            audioStreamChangedCallback = { playedTrack, nextTrack, duration ->
-                logger.debug { "Enter audio stream changed callback: playedTrack=$playedTrack, playtime=$duration, next=$nextTrack" }
+    fun init(audioBackend: AudioBackend) {
+        logger.info { "Activate audio backend: ${audioBackend.id}" }
 
-                playedTrack?.let {
-                    if (duration > Duration.ZERO) {
-                        publish(TrackFinishedEvent(it, duration))
+        this.audioBackend = audioBackend.apply {
+            registerCallback(
+                aboutToFinishCallback = {
+                    audioFlow.next()?.let {
+                        start(it, false)
                     }
-                }
+                },
+                audioStreamChangedCallback = { playedTrack, nextTrack, duration ->
+                    logger.debug { "Enter audio stream changed callback: playedTrack=$playedTrack, playtime=$duration, next=$nextTrack" }
 
-                nextTrack?.let {
-                    logger.debug { "Switch over to next track: $it" }
-                    GravifonContext.setActiveTrack(it)
-                    publish(TrackStartedEvent(it))
-                } // if there's no next track, endOfStreamCallback will handle post-playback state clean-up
-            },
-            audioStreamBufferingCallback = {
-                publish(
-                    PushInnerNotificationEvent(
-                        Notification(
-                            message = "Buffering audio stream, $it%...",
-                            type = NotificationType.MINOR,
-                            lifespan = NotificationLifespan.SHORT
-                        )
-                    )
-                )
-            },
-            endOfStreamCallback = {
-                publish(StopPlaybackEvent())
-            },
-            playbackFailureCallback = { playedTrack, nextTrack, duration ->
-                // report playback failure for either already active or next (failed to start) track
-                (playedTrack ?: nextTrack)?.let {
-                    val message = "Playback failure: ${it.uri()}"
-                    logger.error { message }
+                    playedTrack?.let {
+                        if (duration > Duration.ZERO) {
+                            publish(TrackFinishedEvent(it, duration))
+                        }
+                    }
+
+                    nextTrack?.let {
+                        logger.debug { "Switch over to next track: $it" }
+                        GravifonContext.setActiveTrack(it)
+                        publish(TrackStartedEvent(it))
+                    } // if there's no next track, endOfStreamCallback will handle post-playback state clean-up
+                },
+                audioStreamBufferingCallback = {
                     publish(
                         PushInnerNotificationEvent(
                             Notification(
-                                message = message,
-                                type = NotificationType.ERROR,
-                                lifespan = NotificationLifespan.LONG
+                                message = "Buffering audio stream, $it%...",
+                                type = NotificationType.MINOR,
+                                lifespan = NotificationLifespan.SHORT
                             )
                         )
                     )
+                },
+                endOfStreamCallback = {
+                    publish(StopPlaybackEvent())
+                },
+                playbackFailureCallback = { playedTrack, nextTrack, duration ->
+                    // report playback failure for either already active or next (failed to start) track
+                    (playedTrack ?: nextTrack)?.let {
+                        val message = "Playback failure: ${it.uri()}"
+                        logger.error { message }
+                        publish(
+                            PushInnerNotificationEvent(
+                                Notification(
+                                    message = message,
+                                    type = NotificationType.ERROR,
+                                    lifespan = NotificationLifespan.LONG
+                                )
+                            )
+                        )
 
-                    it.failing = true
+                        it.failing = true
 
-                    if (duration > Duration.ZERO) {
-                        publish(TrackFinishedEvent(it, duration))
+                        if (duration > Duration.ZERO) {
+                            publish(TrackFinishedEvent(it, duration))
+                        }
+                    }
+
+                    stop()
+
+                    GravifonContext.activePlaylist.value?.let {
+                        publish(PlayNextFromPlaylistEvent(it))
                     }
                 }
-
-                stop()
-
-                GravifonContext.activePlaylist.value?.let {
-                    publish(PlayNextFromPlaylistEvent(it))
-                }
-            }
-        )
+            )
+        }
     }
 
     override fun beforeShutdown() {
@@ -128,10 +127,10 @@ class PlaybackManager(private val audioBackend: AudioBackend, private val audioF
             stop()
         }
 
-        audioBackend.prepareNext(track)
+        audioBackend!!.prepareNext(track)
 
         if (forcePlay) {
-            audioBackend.play().also {
+            audioBackend!!.play().also {
                 GravifonContext.playbackStatusState.value = it
             }
 
@@ -143,7 +142,7 @@ class PlaybackManager(private val audioBackend: AudioBackend, private val audioF
     }
 
     private fun pause() {
-        audioBackend.pause().also {
+        audioBackend!!.pause().also {
             GravifonContext.playbackStatusState.value = it
         }
     }
@@ -151,7 +150,7 @@ class PlaybackManager(private val audioBackend: AudioBackend, private val audioF
     private fun stop() {
         timer.cancel()
 
-        audioBackend.stop().also {
+        audioBackend!!.stop().also {
             GravifonContext.playbackStatusState.value = it
         }
 
@@ -159,8 +158,13 @@ class PlaybackManager(private val audioBackend: AudioBackend, private val audioF
         updatePlaybackPositionState(Duration.ZERO, Duration.ZERO)
     }
 
-    private fun seek(position: Duration) {
-        audioBackend.adjustPosition(position)
+    private fun seek(position: Duration, isAbsolute: Boolean = true) {
+        val pos = if (isAbsolute) {
+            position
+        } else {
+            DurationUtil.max(Duration.ZERO, audioBackend!!.queryPosition() + position)
+        }
+        audioBackend!!.adjustPosition(pos)
 
         updatePlaybackPositionState(runningPositionOverride = position)
     }
@@ -170,8 +174,8 @@ class PlaybackManager(private val audioBackend: AudioBackend, private val audioF
         endingPositionOverride: Duration? = null
     ) {
         GravifonContext.playbackPositionState.value = PlaybackPositionState(
-            runningPosition = runningPositionOverride ?: audioBackend.queryPosition(),
-            endingPosition = endingPositionOverride ?: audioBackend.queryLength()
+            runningPosition = runningPositionOverride ?: audioBackend!!.queryPosition(),
+            endingPosition = endingPositionOverride ?: audioBackend!!.queryLength()
         )
     }
 
