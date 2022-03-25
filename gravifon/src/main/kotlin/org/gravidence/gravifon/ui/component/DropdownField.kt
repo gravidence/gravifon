@@ -2,12 +2,10 @@ package org.gravidence.gravifon.ui.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
@@ -70,20 +68,7 @@ fun DropdownField(dropdownFieldState: DropdownFieldState) {
                         dropdownFieldState.expanded.value = false
                     }
                 ) {
-                    Row {
-                        Text(
-                            text = label,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                        )
-                        if (dropdownFieldState.selectedItemIndex.value == index) {
-                            Icon(
-                                imageVector = Icons.Filled.CheckCircle,
-                                contentDescription = "Selected item"
-                            )
-                        }
-                    }
+                    Text(label)
                 }
             }
         }
