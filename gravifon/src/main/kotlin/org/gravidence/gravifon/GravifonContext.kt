@@ -24,6 +24,8 @@ object GravifonContext {
     val activeTrackExtraInfo: MutableState<List<String>> = mutableStateOf(listOf())
     val activeInnerNotification: MutableState<Notification?> = mutableStateOf(null, referentialEqualityPolicy())
 
+    val applicationSettingsDialogVisible: MutableState<Boolean> = mutableStateOf(false)
+
     val pluginSettingsDialogVisible: MutableState<Boolean> = mutableStateOf(false)
 
     val trackMetadataDialogVisible: MutableState<Boolean> = mutableStateOf(false)

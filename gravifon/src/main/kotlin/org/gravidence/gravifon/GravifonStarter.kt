@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.orchestration.Orchestrator
 import org.gravidence.gravifon.orchestration.marker.Viewable
+import org.gravidence.gravifon.playback.backend.AudioBackend
 import org.gravidence.gravifon.plugin.Plugin
 import org.slf4j.bridge.SLF4JBridgeHandler
 import org.springframework.beans.factory.getBean
@@ -22,6 +23,7 @@ object GravifonStarter {
 
     val views: Collection<Viewable>
     val plugins: Collection<Plugin>
+    val audioBackends: Collection<AudioBackend>
 
     init {
         logger.debug { "Initialize SLF4J bridge handler" }
@@ -39,6 +41,7 @@ object GravifonStarter {
         views = ctx.getBeansOfType<Viewable>().values
         plugins = ctx.getBeansOfType<Plugin>().values
             .sortedBy { it.pluginDisplayName }
+        audioBackends = ctx.getBeansOfType<AudioBackend>().values
     }
 
 }

@@ -16,6 +16,7 @@ import org.gravidence.gravifon.event.application.WindowStateChangedEvent
 import org.gravidence.gravifon.event.playback.PausePlaybackEvent
 import org.gravidence.gravifon.event.playback.RepositionPlaybackPointRelativeEvent
 import org.gravidence.gravifon.ui.AppBody
+import org.gravidence.gravifon.ui.dialog.ApplicationSettingsDialog
 import org.gravidence.gravifon.ui.dialog.PluginSettingsDialog
 import org.gravidence.gravifon.ui.dialog.TrackMetadataDialog
 import kotlin.time.Duration.Companion.seconds
@@ -85,7 +86,7 @@ fun main() = application {
                 Item(text = "Stop after current", onClick = {})
             }
             Menu(text = "Settings") {
-                Item(text = "Application...", onClick = {})
+                Item(text = "Application...", onClick = { GravifonContext.applicationSettingsDialogVisible.value = true })
                 Item(text = "Plugin...", onClick = { GravifonContext.pluginSettingsDialogVisible.value = true })
             }
             Menu(text = "View") {
@@ -105,6 +106,7 @@ fun main() = application {
 
         AppBody()
 
+        ApplicationSettingsDialog()
         PluginSettingsDialog()
         TrackMetadataDialog()
     }
