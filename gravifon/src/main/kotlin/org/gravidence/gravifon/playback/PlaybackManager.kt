@@ -47,9 +47,15 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
     }
 
     fun init(audioBackend: AudioBackend) {
+        this.audioBackend?.run {
+            logger.info { "Shut down active audio backend operations: $id" }
+            stop()
+        }
+
         logger.info { "Activate audio backend: ${audioBackend.id}" }
 
         this.audioBackend = audioBackend.apply {
+            init()
             registerCallback(
                 aboutToFinishCallback = {
                     audioFlow.next()?.let {

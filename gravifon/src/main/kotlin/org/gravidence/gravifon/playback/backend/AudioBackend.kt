@@ -9,6 +9,7 @@ interface AudioBackend : Configurable {
 
     val id: String
 
+    fun init()
     fun registerCallback(
         aboutToFinishCallback: () -> Unit,
         audioStreamChangedCallback: (played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) -> Unit,

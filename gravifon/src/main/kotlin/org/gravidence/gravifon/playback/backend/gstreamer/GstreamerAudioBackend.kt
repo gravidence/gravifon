@@ -40,7 +40,7 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
 
     override val id: String = "Gstreamer"
 
-    private val playbin: PlayBin
+    private lateinit var playbin: PlayBin
 
     private var stopwatch: Stopwatch = Stopwatch()
 
@@ -48,7 +48,7 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
     private var activeTrack: VirtualTrack? = null
     private var nextTrack: VirtualTrack? = null
 
-    init {
+    override fun init() {
         Gst.init(Version.BASELINE)
         playbin = PlayBin("Gravifon")
 
