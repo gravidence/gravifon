@@ -1,10 +1,16 @@
 package org.gravidence.gravifon.plugin.autosaveus
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.IconButton
+import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,7 +27,6 @@ import org.gravidence.gravifon.event.application.PersistConfigurationEvent
 import org.gravidence.gravifon.event.application.PushInnerNotificationEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.plugin.Plugin
-import org.gravidence.gravifon.ui.image.AppIcon
 import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
@@ -138,15 +143,18 @@ class AutosaveUs(
                         label = {
                             Text("Interval in seconds")
                         },
+                        trailingIcon = {
+                            if (dialogState.intervalSeconds.value != componentConfiguration.value.intervalSeconds) {
+                                Icon(
+                                    imageVector = Icons.Filled.Check,
+                                    contentDescription = "Apply change",
+                                    modifier = Modifier
+                                        .clickable { dialogState.commitIntervalSeconds() }
+                                )
+                            }
+                        },
                         onValueChange = { dialogState.updateIntervalSeconds(it) }
                     )
-                    if (dialogState.intervalSeconds.value != componentConfiguration.value.intervalSeconds) {
-                        IconButton(
-                            onClick = { dialogState.commitIntervalSeconds() }
-                        ) {
-                            AppIcon("icons8-done-24.png")
-                        }
-                    }
                 }
             }
         }
