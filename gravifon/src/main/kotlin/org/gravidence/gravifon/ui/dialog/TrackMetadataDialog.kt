@@ -88,7 +88,7 @@ class TrackMetadataState(
 }
 
 class TrackMetadataListState(
-    private val trackMetadataState: TrackMetadataState
+    trackMetadataState: TrackMetadataState
 ) : TableState<VirtualTrack>(
     layout = layout(),
     grid = grid(trackMetadataState),
@@ -321,7 +321,7 @@ private fun List<VirtualTrack>.toTagMap(): Map<String, FieldValue?> {
     val tagMap = mutableMapOf<String, FieldValue?>()
 
     this.forEach { track ->
-        track.getAllFields().forEach { fieldKey, fieldValues ->
+        track.getAllFields().forEach { (fieldKey, fieldValues) ->
             fieldValues.values.forEach { fieldValue ->
                 if (tagMap.containsKey(fieldKey)) {
                     val prevFieldValue = tagMap[fieldKey]
