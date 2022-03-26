@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import org.gravidence.gravifon.playlist.behavior.PlaybackOrder
 import org.gravidence.gravifon.playlist.behavior.PlaylistStructure
 import org.gravidence.gravifon.playlist.item.PlaylistItem
+import org.gravidence.gravifon.playlist.layout.PlaylistLayout
 import java.util.*
 
 @Serializable
@@ -16,5 +17,6 @@ class DynamicPlaylist(
     override val items: MutableList<PlaylistItem> = ArrayList(),
     override var position: Int = DEFAULT_POSITION,
     override var playbackOrder: PlaybackOrder = PlaybackOrder.SEQUENTIAL,
-    override var playlistStructure: PlaylistStructure = PlaylistStructure.TRACK
+    override var playlistStructure: PlaylistStructure = PlaylistStructure.TRACK,
+    override var layout: PlaylistLayout = PlaylistLayout(),
 ) : Playlist()

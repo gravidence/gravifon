@@ -4,6 +4,7 @@ package org.gravidence.gravifon.ui.component
 
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -15,9 +16,13 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -30,6 +35,8 @@ import org.gravidence.gravifon.ui.theme.gListItemColor
 import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
 import java.awt.event.MouseEvent
+import kotlin.math.max
+import kotlin.math.min
 
 open class TableState<T>(
     val layout: MutableState<TableLayout> = mutableStateOf(TableLayout()),
@@ -42,17 +49,45 @@ open class TableState<T>(
 //    val horizontalScrollState: LazyListState = LazyListState(),
 ) {
 
+    /**
+     * @return true when event is handled
+     */
+    open fun onKeyEvent(keyEvent: KeyEvent): Boolean {
+        return if (keyEvent.type == KeyEventType.KeyUp) {
+            when (keyEvent.key) {
+                Key.A -> {
+                    if (keyEvent.isCtrlPressed) {
+                        grid.value?.rows?.value?.let { rows ->
+                            selectedRows.value = List(rows.size) { i -> i }.toSet()
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                }
+                else -> false
+            }
+        } else {
+            false
+        }
+    }
+
     open fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
         (pointerEvent.nativeEvent as? MouseEvent)?.let {
             if (multiSelection.value) {
-                if (it.button == 1 && it.clickCount == 1 && !it.isControlDown) {
-                    selectedRows.value = setOf(rowIndex)
-                } else if (it.button == 1 && it.clickCount == 1 && it.isControlDown) {
+                if (it.button == 1 && it.clickCount == 1 && it.isControlDown) {
                     if (selectedRows.value.contains(rowIndex)) {
                         selectedRows.value -= rowIndex
                     } else {
                         selectedRows.value += rowIndex
                     }
+                } else if (it.button == 1 && it.clickCount == 1 && it.isShiftDown && selectedRows.value.isNotEmpty()) {
+                    val indexOfFirstSelected = selectedRows.value.minOf { indexOfSelected -> indexOfSelected }
+                    for (i in min(rowIndex, indexOfFirstSelected)..max(rowIndex, indexOfFirstSelected)) {
+                        selectedRows.value += i
+                    }
+                } else if (it.button == 1 && it.clickCount == 1 && !it.isControlDown) {
+                    selectedRows.value = setOf(rowIndex)
                 }
             } else {
                 if (it.button == 1 && it.clickCount == 1) {
@@ -82,12 +117,36 @@ open class TableState<T>(
 
 @Composable
 fun <T> Table(tableState: TableState<T>) {
+    val baseModifier = if (!tableState.enabled.value) {
+        // make static (non-enabled) table focusable, in order to handle keyboard events
+        val focusRequester = remember { FocusRequester() }
+        Modifier
+            .focusable()
+            .focusRequester(focusRequester)
+            .onPreviewKeyEvent {
+                tableState.onKeyEvent(it)
+            }
+            .onPointerEvent(
+                eventType = PointerEventType.Press
+            ) {
+                focusRequester.requestFocus()
+            }
+            .onPointerEvent(
+                eventType = PointerEventType.Scroll
+            ) {
+                focusRequester.requestFocus()
+            }
+    } else {
+        Modifier
+    }
+
     Box(
-        modifier = Modifier
+        modifier = baseModifier
             .padding(10.dp)
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(5.dp)
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+            modifier = Modifier.focusable()
         ) {
             TableHeader(tableState.layout.value)
             TableContent(tableState)
@@ -178,6 +237,7 @@ fun <T> LazyListScope.tableContent(tableState: TableState<T>) {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(5.dp),
                         modifier = columnModifier
+//                            .fillMaxHeight()
                     ) {
                         row.cells[columnIndex].value.content(rowIndex, columnIndex, tableState)
                     }

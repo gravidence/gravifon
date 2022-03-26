@@ -4,9 +4,6 @@ package org.gravidence.gravifon.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -15,18 +12,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEvent
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.StreamVirtualTrack
 import org.gravidence.gravifon.domain.track.VirtualTrack
+import org.gravidence.gravifon.domain.track.format.format
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.PlayCurrentFromPlaylistEvent
 import org.gravidence.gravifon.event.playlist.RemoveFromPlaylistEvent
@@ -35,56 +28,64 @@ import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
+import org.gravidence.gravifon.ui.component.*
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.gListItemColor
-import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.ui.util.ListHolder
-import org.gravidence.gravifon.util.*
+import org.gravidence.gravifon.util.DesktopUtil
+import org.gravidence.gravifon.util.firstNotEmptyOrNull
 import java.awt.event.MouseEvent
-import kotlin.math.max
-import kotlin.math.min
 
 class PlaylistState(
-    val activeTrack: MutableState<VirtualTrack?>,
     val playlistItems: MutableState<ListHolder<PlaylistItem>>,
-    val selectedPlaylistItems: MutableState<Map<Int, PlaylistItem>>,
-    val preselectedPlaylistItem: MutableState<PlaylistItem?>,
     val playlist: Playlist
 ) {
+
+    val playlistTableState = PlaylistTableState(this)
+
+    fun selectedPlaylistItems(): List<PlaylistItem> {
+        return playlistTableState.selectedRows.value.map { playlistItems.value.list[it] }
+    }
 
     fun render(playlistItem: PlaylistItem): List<String> {
         return when (playlistItem) {
             is TrackPlaylistItem -> {
-                val artist = playlistItem.track.getArtist()
-                val title = playlistItem.track.getTitle()
-                val length = DurationUtil.formatShortHours(playlistItem.track.getLength())
-                listOf("$artist - $title ($length)")
+                playlist.layout.columns.map { playlistItem.track.format(it.format) }
             }
             is AlbumPlaylistItem -> TODO()
         }
     }
 
-    /**
-     * @return true when event is handled
-     */
-    fun onKeyEvent(keyEvent: KeyEvent): Boolean {
-        return if (keyEvent.type == KeyEventType.KeyUp) {
+}
+
+// TODO a bit too much to refresh _whole_ playlist state on active track change
+@Composable
+fun rememberPlaylistState(
+    activeTrack: VirtualTrack? = GravifonContext.activeTrack.value,
+    playlistItems: ListHolder<PlaylistItem> = ListHolder(listOf()),
+    playlist: Playlist
+) = remember(activeTrack, playlistItems) {
+    PlaylistState(
+        playlistItems = mutableStateOf(playlistItems),
+        playlist = playlist
+    )
+}
+
+class PlaylistTableState(
+    private val playlistState: PlaylistState
+) : TableState<PlaylistItem>(
+    layout = layout(playlistState),
+    grid = grid(playlistState)
+) {
+
+    override fun onKeyEvent(keyEvent: KeyEvent): Boolean {
+        return super.onKeyEvent(keyEvent) || if (keyEvent.type == KeyEventType.KeyUp) {
             when (keyEvent.key) {
                 Key.Delete -> {
-                    EventBus.publish(RemoveFromPlaylistEvent(playlist, selectedPlaylistItems.value.keys))
-                    selectedPlaylistItems.value = mapOf()
+                    EventBus.publish(RemoveFromPlaylistEvent(playlistState.playlist, selectedRows.value))
+                    selectedRows.value = setOf()
                     true
-                }
-                Key.A -> {
-                    if (keyEvent.isCtrlPressed) {
-                        selectedPlaylistItems.value = playlistItems.value.list
-                            .mapIndexed { index, playlistItem -> Pair(index, playlistItem) }
-                            .toMap()
-                        true
-                    } else {
-                        false
-                    }
                 }
                 else -> false
             }
@@ -93,56 +94,90 @@ class PlaylistState(
         }
     }
 
-    fun onPointerEvent(pointerEvent: PointerEvent, index: Int, playlistItem: PlaylistItem) {
+    override fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
+        super.onRowClick(rowIndex, pointerEvent)
         (pointerEvent.nativeEvent as? MouseEvent)?.let {
             if (it.button == 1 && it.clickCount == 2) {
-                EventBus.publish(PlayCurrentFromPlaylistEvent(playlist, playlistItem))
-            } else if (it.button == 1 && it.clickCount == 1 && it.isControlDown) {
-                if (selectedPlaylistItems.value.contains(index)) {
-                    selectedPlaylistItems.value -= index
-                } else {
-                    selectedPlaylistItems.value += Pair(index, playlistItem)
-                }
-            } else if (it.button == 1 && it.clickCount == 1 && it.isShiftDown && selectedPlaylistItems.value.isNotEmpty()) {
-                val indexOfFirstSelected = selectedPlaylistItems.value.keys.minOf { indexOfSelected -> indexOfSelected }
-                for (i in min(index, indexOfFirstSelected)..max(index, indexOfFirstSelected)) {
-                    selectedPlaylistItems.value += Pair(i, playlistItems.value.list[i])
-                }
-            } else if (it.button == 1 && it.clickCount == 1 && !it.isControlDown) {
-                selectedPlaylistItems.value = mapOf(Pair(index, playlistItem))
+                EventBus.publish(PlayCurrentFromPlaylistEvent(playlistState.playlist, playlistState.playlistItems.value.list[rowIndex]))
             }
         }
     }
 
-}
+    companion object {
 
-@Composable
-fun rememberPlaylistState(
-    activeTrack: VirtualTrack? = GravifonContext.activeTrack.value,
-    playlistItems: ListHolder<PlaylistItem> = ListHolder(listOf()),
-    selectedPlaylistItems: Map<Int, PlaylistItem> = mapOf(),
-    preselectedPlaylistItem: PlaylistItem? = null,
-    playlist: Playlist
-) = remember(activeTrack, playlistItems, selectedPlaylistItems, preselectedPlaylistItem) {
-    PlaylistState(
-        activeTrack = mutableStateOf(activeTrack),
-        playlistItems = mutableStateOf(playlistItems),
-        selectedPlaylistItems = mutableStateOf(selectedPlaylistItems),
-        preselectedPlaylistItem = mutableStateOf(preselectedPlaylistItem),
-        playlist = playlist
-    )
+        fun layout(playlistState: PlaylistState): MutableState<TableLayout> {
+            val columns = mutableListOf(
+                TableColumn(header = "", width = 30.dp),
+            )
+            playlistState.playlist.layout.columns.forEach {
+                columns += TableColumn(header = it.header, width = it.width.dp)
+            }
+            return mutableStateOf(
+                TableLayout(
+                    displayHeaders = true,
+                    columns = columns
+                )
+            )
+        }
+
+        fun grid(playlistState: PlaylistState): MutableState<TableGrid<PlaylistItem>?> {
+            return mutableStateOf(
+                TableGrid(
+                    rows = mutableStateOf(
+                        playlistState.playlistItems.value.list.mapIndexed { index, playlistItem ->
+                            val cells: MutableList<MutableState<TableCell<PlaylistItem>>> = mutableListOf(
+                                mutableStateOf(
+                                    TableCell(
+                                        value = GravifonContext.playbackStatusState.value.toString(),
+                                        content = { _, _, _ -> // this cell is recomposed because active track is part of rememberPlaylistState
+                                            Box(
+                                                modifier = Modifier
+                                                    .width(30.dp)
+                                                    .fillMaxHeight()
+                                                    .background(color = gListItemColor, shape = gShape)
+                                                    .padding(5.dp)
+                                            ) {
+                                                Text("") // workaround to align cell's height with other cells
+                                                if (playlistState.playlist.position() == index + 1) {
+                                                    AppIcon(
+                                                        path = when (GravifonContext.playbackStatusState.value) {
+                                                            // TODO consider icons8-musical-notes-24.png
+                                                            PlaybackStatus.PLAYING -> "icons8-play-24.png"
+                                                            PlaybackStatus.PAUSED -> "icons8-pause-24.png"
+                                                            PlaybackStatus.STOPPED -> "icons8-stop-24.png"
+                                                        },
+                                                        modifier = Modifier
+                                                            .align(Alignment.Center)
+                                                            .size(16.dp)
+                                                    )
+                                                }
+                                            }
+                                        },
+                                    )
+                                )
+                            )
+                            playlistState.render(playlistItem).map {
+                                cells += mutableStateOf(TableCell(value = it))
+                            }
+                            TableRow(cells)
+                        }.toMutableList()
+                    )
+                )
+            )
+        }
+
+    }
+
 }
 
 fun buildContextMenu(playlistState: PlaylistState): List<ContextMenuItem> {
     val contextMenuItems: MutableList<ContextMenuItem> = mutableListOf()
 
-    val preselectedItem = playlistState.preselectedPlaylistItem.value
-    val selectedItems = playlistState.selectedPlaylistItems.value
+    val selectedItems = playlistState.selectedPlaylistItems()
     val allItems = playlistState.playlistItems.value.list
 
     val candidateSelectedItems: Collection<PlaylistItem>? = firstNotEmptyOrNull(
-        nullableListOf(preselectedItem),
-        selectedItems.values
+        selectedItems
     )
     if (candidateSelectedItems != null) {
         val streamTracks = candidateSelectedItems
@@ -179,120 +214,15 @@ fun buildContextMenu(playlistState: PlaylistState): List<ContextMenuItem> {
 
 @Composable
 fun PlaylistComposable(playlistState: PlaylistState) {
-    val scrollState = rememberLazyListState()
-    val focusRequester = remember { FocusRequester() }
-
     Box(
         modifier = Modifier
-            .focusable()
-            .focusRequester(focusRequester)
             .fillMaxHeight()
             .border(width = 1.dp, color = Color.Black, shape = gShape)
-            .onPreviewKeyEvent {
-                playlistState.onKeyEvent(it)
-            }
-            .onPointerEvent(
-                eventType = PointerEventType.Press
-            ) {
-                focusRequester.requestFocus()
-            }
-            .onPointerEvent(
-                eventType = PointerEventType.Scroll
-            ) {
-                focusRequester.requestFocus()
-            }
     ) {
         ContextMenuArea(
             items = { buildContextMenu(playlistState) }
         ) {
-            LazyColumn(
-                state = scrollState,
-                modifier = Modifier
-                    .focusable()
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                itemsIndexed(items = playlistState.playlistItems.value.list) { index, playlistItem ->
-                    PlaylistItemComposable(index, playlistItem, playlistState)
-                }
-            }
-            VerticalScrollbar(
-                adapter = rememberScrollbarAdapter(scrollState),
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(top = 5.dp, bottom = 5.dp, end = 2.dp)
-            )
-        }
-    }
-}
-
-val normalPlaylistItemModifier = Modifier
-    .fillMaxWidth()
-    .padding(5.dp)
-    .background(color = gListItemColor, shape = gShape)
-    .clickable { }
-val selectedPlaylistItemModifier = Modifier
-    .fillMaxWidth()
-    .padding(5.dp)
-    .background(color = gSelectedListItemColor, shape = gShape)
-    .border(width = 1.dp, color = Color.Black, shape = gShape)
-    .clickable { }
-
-@Composable
-fun PlaylistItemComposable(index: Int, playlistItem: PlaylistItem, playlistState: PlaylistState) {
-    val thisPlaylist = playlistState.playlist === GravifonContext.activePlaylist
-    val thisTrack = (playlistItem as? TrackPlaylistItem)?.track === playlistState.activeTrack.value
-    val fontWeight = if (thisPlaylist && thisTrack) {
-        FontWeight.Bold
-    } else {
-        FontWeight.Normal
-    }
-
-    val playlistItemModifier = if (playlistState.selectedPlaylistItems.value.contains(index)) {
-        selectedPlaylistItemModifier
-    } else {
-        normalPlaylistItemModifier
-    }
-
-    Row(
-        modifier = playlistItemModifier
-            .onPointerEvent(
-                eventType = PointerEventType.Release
-            ) {
-                playlistState.onPointerEvent(it, index, playlistItem)
-            }
-    ) {
-        Column {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(20.dp)
-                        .padding(2.dp)
-                ) {
-                    if (playlistState.playlist.position() == index + 1) {
-                        AppIcon(
-                            path = when (GravifonContext.playbackStatusState.value) {
-                                // TODO consider icons8-musical-notes-24.png
-                                PlaybackStatus.PLAYING -> "icons8-play-24.png"
-                                PlaybackStatus.PAUSED -> "icons8-pause-24.png"
-                                PlaybackStatus.STOPPED -> "icons8-stop-24.png"
-                            },
-                            modifier = Modifier
-                                .size(16.dp)
-                        )
-                    }
-                }
-                playlistState.render(playlistItem).forEach {
-                    Text(
-                        text = it,
-                        fontWeight = fontWeight,
-                        modifier = Modifier
-                            .padding(5.dp)
-                    )
-                }
-            }
+            Table(playlistState.playlistTableState)
         }
     }
 }

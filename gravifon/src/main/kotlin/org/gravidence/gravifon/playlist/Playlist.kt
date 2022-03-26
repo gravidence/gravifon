@@ -7,6 +7,7 @@ import org.gravidence.gravifon.playlist.behavior.PlaylistStructure
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
+import org.gravidence.gravifon.playlist.layout.PlaylistLayout
 import kotlin.math.max
 
 // TODO make concurrency safe
@@ -29,6 +30,7 @@ sealed class Playlist {
     protected abstract var position: Int
     protected abstract var playbackOrder: PlaybackOrder
     protected abstract var playlistStructure: PlaylistStructure
+    abstract var layout: PlaylistLayout
 
     open fun id(): String {
         return id
