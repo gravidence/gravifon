@@ -4,6 +4,7 @@ package org.gravidence.gravifon.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -15,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.StreamVirtualTrack
@@ -134,42 +137,71 @@ class PlaylistTableState(
                         playlistState.playlistItems.value.list.mapIndexed { index, playlistItem ->
                             val cells: MutableList<MutableState<TableCell<PlaylistItem>>> = mutableListOf(
                                 mutableStateOf(
-                                    TableCell(
-                                        value = GravifonContext.playbackStatusState.value.toString(),
-                                        content = { _, _, _ -> // this cell is recomposed because active track is part of rememberPlaylistState
-                                            Box(
-                                                modifier = Modifier
-                                                    .width(30.dp)
-                                                    .fillMaxHeight()
-                                                    .background(color = gListItemColor, shape = gShape)
-                                                    .padding(5.dp)
-                                            ) {
-                                                Text("") // workaround to align cell's height with other cells
-                                                if (playlistState.playlist.position() == index + 1) {
-                                                    AppIcon(
-                                                        path = when (GravifonContext.playbackStatusState.value) {
-                                                            // TODO consider icons8-musical-notes-24.png
-                                                            PlaybackStatus.PLAYING -> "icons8-play-24.png"
-                                                            PlaybackStatus.PAUSED -> "icons8-pause-24.png"
-                                                            PlaybackStatus.STOPPED -> "icons8-stop-24.png"
-                                                        },
-                                                        modifier = Modifier
-                                                            .align(Alignment.Center)
-                                                            .size(16.dp)
-                                                    )
-                                                }
-                                            }
-                                        },
-                                    )
+                                    controlCell(playlistState)
                                 )
                             )
                             playlistState.render(playlistItem).map {
-                                cells += mutableStateOf(TableCell(value = it))
+                                cells += mutableStateOf(
+                                    contentCell(playlistItem, it)
+                                )
                             }
                             TableRow(cells)
                         }.toMutableList()
                     )
                 )
+            )
+        }
+
+        private fun controlCell(playlistState: PlaylistState): TableCell<PlaylistItem> {
+            return TableCell(
+                value = GravifonContext.playbackStatusState.value.toString(),
+                content = { rowIndex, _, _ -> // this cell is recomposed because active track is part of rememberPlaylistState
+                    Box(
+                        modifier = Modifier
+                            .width(30.dp)
+                            .fillMaxHeight()
+                            .background(color = gListItemColor, shape = gShape)
+                            .padding(5.dp)
+                    ) {
+                        Text("") // workaround to align cell's height with other cells
+                        if (playlistState.playlist.position() == rowIndex + 1) {
+                            AppIcon(
+                                path = when (GravifonContext.playbackStatusState.value) {
+                                    // TODO consider icons8-musical-notes-24.png
+                                    PlaybackStatus.PLAYING -> "icons8-play-24.png"
+                                    PlaybackStatus.PAUSED -> "icons8-pause-24.png"
+                                    PlaybackStatus.STOPPED -> "icons8-stop-24.png"
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(16.dp)
+                            )
+                        }
+                    }
+                }
+            )
+        }
+
+        private fun contentCell(playlistItem: PlaylistItem, renderText: String): TableCell<PlaylistItem> {
+            return TableCell(
+                value = renderText,
+                content = { _, _, _ ->
+                    val textStyle = if ((playlistItem as? TrackPlaylistItem)?.track?.failing == true) {
+                        LocalTextStyle.current.copy(fontStyle = FontStyle.Italic, color = LocalTextStyle.current.color.copy(alpha = 0.5f))
+                    } else {
+                        LocalTextStyle.current
+                    }
+                    Text(
+                        text = renderText,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = textStyle,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(color = gListItemColor, shape = gShape)
+                            .padding(5.dp)
+                    )
+                }
             )
         }
 
