@@ -6,17 +6,11 @@ import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -30,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.gravidence.gravifon.playlist.layout.ScrollPosition
 import org.gravidence.gravifon.ui.theme.gListHeaderColor
 import org.gravidence.gravifon.ui.theme.gListItemColor
 import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
@@ -45,8 +40,8 @@ open class TableState<T>(
     val multiSelection: MutableState<Boolean> = mutableStateOf(true),
     val grid: MutableState<TableGrid<T>?> = mutableStateOf(null),
     val selectedRows: MutableState<Set<Int>> = mutableStateOf(setOf()),
-    val verticalScrollState: LazyListState = LazyListState(),
-//    val horizontalScrollState: LazyListState = LazyListState(),
+    val initialVerticalScrollPosition: ScrollPosition = ScrollPosition(),
+//    val initialHorizontalScrollPosition: ScrollPosition = ScrollPosition(),
 ) {
 
     /**
@@ -101,6 +96,10 @@ open class TableState<T>(
         cellState(this, rowIndex, columnIndex)?.let {
             it.value = it.value.copy(value = newValue)
         }
+    }
+
+    open fun onVerticalScroll(scrollPosition: ScrollPosition) {
+        // do nothing by default
     }
 
     companion object {
@@ -186,16 +185,27 @@ fun TableHeader(layout: TableLayout) {
 
 @Composable
 fun <T> TableContent(tableState: TableState<T>) {
+    val verticalScrollState = rememberLazyListState(
+        initialFirstVisibleItemIndex = tableState.initialVerticalScrollPosition.index,
+        initialFirstVisibleItemScrollOffset = tableState.initialVerticalScrollPosition.scrollOffset
+    )
+
+    remember(verticalScrollState.firstVisibleItemIndex, verticalScrollState.firstVisibleItemScrollOffset) {
+        tableState.onVerticalScroll(
+            ScrollPosition(index = verticalScrollState.firstVisibleItemIndex, scrollOffset = verticalScrollState.firstVisibleItemScrollOffset)
+        )
+    }
+
     Box {
         LazyColumn(
-            state = tableState.verticalScrollState,
+            state = verticalScrollState,
             modifier = Modifier
                 .fillMaxSize()
         ) {
             tableContent(tableState)
         }
         VerticalScrollbar(
-            adapter = rememberScrollbarAdapter(tableState.verticalScrollState),
+            adapter = rememberScrollbarAdapter(verticalScrollState),
             modifier = Modifier
                 .align(Alignment.TopEnd)
         )

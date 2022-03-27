@@ -7,6 +7,7 @@ import org.gravidence.gravifon.playlist.behavior.PlaylistStructure
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.playlist.layout.PlaylistLayout
+import org.gravidence.gravifon.playlist.layout.ScrollPosition
 import java.util.*
 import kotlin.collections.ArrayDeque
 
@@ -21,6 +22,7 @@ class Queue(
     override var playbackOrder: PlaybackOrder = PlaybackOrder.SEQUENTIAL,
     override var playlistStructure: PlaylistStructure = PlaylistStructure.TRACK,
     override var layout: PlaylistLayout = PlaylistLayout(),
+    override var verticalScrollPosition: ScrollPosition = ScrollPosition(),
 ) : Playlist() {
 
     override fun playbackOrder(playbackOrder: PlaybackOrder) {

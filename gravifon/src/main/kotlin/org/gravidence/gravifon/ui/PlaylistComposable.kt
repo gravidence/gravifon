@@ -28,6 +28,7 @@ import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
+import org.gravidence.gravifon.playlist.layout.ScrollPosition
 import org.gravidence.gravifon.ui.component.*
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.gListItemColor
@@ -76,7 +77,8 @@ class PlaylistTableState(
     private val playlistState: PlaylistState
 ) : TableState<PlaylistItem>(
     layout = layout(playlistState),
-    grid = grid(playlistState)
+    grid = grid(playlistState),
+    initialVerticalScrollPosition = playlistState.playlist.verticalScrollPosition,
 ) {
 
     override fun onKeyEvent(keyEvent: KeyEvent): Boolean {
@@ -101,6 +103,11 @@ class PlaylistTableState(
                 EventBus.publish(PlayCurrentFromPlaylistEvent(playlistState.playlist, playlistState.playlistItems.value.list[rowIndex]))
             }
         }
+    }
+
+    override fun onVerticalScroll(scrollPosition: ScrollPosition) {
+        super.onVerticalScroll(scrollPosition)
+        playlistState.playlist.verticalScrollPosition = scrollPosition
     }
 
     companion object {

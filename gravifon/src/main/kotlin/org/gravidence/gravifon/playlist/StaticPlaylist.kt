@@ -6,6 +6,7 @@ import org.gravidence.gravifon.playlist.behavior.PlaybackOrder
 import org.gravidence.gravifon.playlist.behavior.PlaylistStructure
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.layout.PlaylistLayout
+import org.gravidence.gravifon.playlist.layout.ScrollPosition
 import java.util.*
 
 @Serializable
@@ -19,4 +20,5 @@ class StaticPlaylist(
     override var playbackOrder: PlaybackOrder = PlaybackOrder.SEQUENTIAL,
     override var playlistStructure: PlaylistStructure = PlaylistStructure.TRACK,
     override var layout: PlaylistLayout = PlaylistLayout(),
+    override var verticalScrollPosition: ScrollPosition = ScrollPosition(),
 ) : Playlist()
