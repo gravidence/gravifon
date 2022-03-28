@@ -99,8 +99,8 @@ class PlaylistTableState(
         }
     }
 
-    override fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
-        super.onRowClick(rowIndex, pointerEvent)
+    override fun onRowRelease(rowIndex: Int, pointerEvent: PointerEvent) {
+        super.onRowRelease(rowIndex, pointerEvent)
         (pointerEvent.nativeEvent as? MouseEvent)?.let {
             if (it.button == 1 && it.clickCount == 2) {
                 EventBus.publish(PlayCurrentFromPlaylistEvent(playlistState.playlist, playlistState.playlistItems.value.list[rowIndex]))

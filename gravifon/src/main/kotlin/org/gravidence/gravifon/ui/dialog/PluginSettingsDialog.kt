@@ -33,8 +33,8 @@ class PluginListState(
     selectedRows = selectedPlugin(pluginSettingsState)
 ) {
 
-    override fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
-        super.onRowClick(rowIndex, pointerEvent)
+    override fun onRowRelease(rowIndex: Int, pointerEvent: PointerEvent) {
+        super.onRowRelease(rowIndex, pointerEvent)
         pluginSettingsState.selectedPlugin.value = selectedRows.value.firstOrNull()?.let { pluginSettingsState.plugins[it] }
     }
 

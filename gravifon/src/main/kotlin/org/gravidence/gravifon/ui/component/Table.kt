@@ -19,6 +19,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -67,7 +68,7 @@ open class TableState<T>(
         }
     }
 
-    open fun onRowClick(rowIndex: Int, pointerEvent: PointerEvent) {
+    open fun onRowRelease(rowIndex: Int, pointerEvent: PointerEvent) {
         (pointerEvent.nativeEvent as? MouseEvent)?.let {
             if (multiSelection.value) {
                 if (it.button == 1 && it.clickCount == 1 && it.isControlDown) {
@@ -88,6 +89,14 @@ open class TableState<T>(
                 if (it.button == 1 && it.clickCount == 1) {
                     selectedRows.value = setOf(rowIndex)
                 }
+            }
+        }
+    }
+
+    open fun onRowPress(rowIndex: Int, pointerEvent: PointerEvent) {
+        if (pointerEvent.buttons.isSecondaryPressed) {
+            if (!selectedRows.value.contains(rowIndex)) {
+                selectedRows.value = setOf(rowIndex)
             }
         }
     }
@@ -232,7 +241,11 @@ fun <T> LazyListScope.tableContent(tableState: TableState<T>) {
                 modifier = rowModifier
                     .onPointerEvent(
                         eventType = PointerEventType.Release,
-                        onEvent = { tableState.onRowClick(rowIndex, it) }
+                        onEvent = { tableState.onRowRelease(rowIndex, it) }
+                    )
+                    .onPointerEvent(
+                        eventType = PointerEventType.Press,
+                        onEvent = { tableState.onRowPress(rowIndex, it) }
                     )
             ) {
                 tableState.layout.value.columns.forEachIndexed { columnIndex, column ->
@@ -247,7 +260,6 @@ fun <T> LazyListScope.tableContent(tableState: TableState<T>) {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(5.dp),
                         modifier = columnModifier
-//                            .fillMaxHeight()
                     ) {
                         row.cells[columnIndex].value.content(rowIndex, columnIndex, tableState)
                     }
