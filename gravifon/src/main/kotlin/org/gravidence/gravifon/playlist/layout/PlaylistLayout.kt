@@ -5,14 +5,28 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PlaylistLayout(
     val columns: List<PlaylistColumn> = listOf(
-        PlaylistColumn(width = 600, header = "Artist - Track", format = "%artist% - %title%"),
-        PlaylistColumn(width = 150, header = "Duration", format = "%duration_short%"),
+        StatusColumn(width = 30, header = "Status"),
+        TrackInfoColumn(width = 600, header = "Artist - Track", format = "%artist% - %title%"),
+        TrackInfoColumn(width = 110, header = "Duration", format = "%duration_short%"),
     ),
 )
 
 @Serializable
-data class PlaylistColumn(
-    val width: Int,
-    val header: String,
+sealed class PlaylistColumn {
+    abstract val width: Int
+    abstract val header: String
+}
+
+@Serializable
+data class TrackInfoColumn(
+    override val width: Int,
+    override val header: String,
     val format: String,
-)
+) : PlaylistColumn()
+
+@Serializable
+data class StatusColumn(
+    override val width: Int,
+    override val header: String,
+    val showPlaybackStatus: Boolean = true,
+) : PlaylistColumn()

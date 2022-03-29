@@ -18,6 +18,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.StreamVirtualTrack
@@ -32,6 +33,8 @@ import org.gravidence.gravifon.playlist.item.AlbumPlaylistItem
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.playlist.layout.ScrollPosition
+import org.gravidence.gravifon.playlist.layout.StatusColumn
+import org.gravidence.gravifon.playlist.layout.TrackInfoColumn
 import org.gravidence.gravifon.ui.component.*
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.gListItemColor
@@ -50,15 +53,6 @@ class PlaylistState(
 
     fun selectedPlaylistItems(): List<PlaylistItem> {
         return playlistTableState.selectedRows.value.map { playlistItems.value.list[it] }
-    }
-
-    fun render(playlistItem: PlaylistItem): List<String> {
-        return when (playlistItem) {
-            is TrackPlaylistItem -> {
-                playlist.layout.columns.map { playlistItem.track.format(it.format) }
-            }
-            is AlbumPlaylistItem -> TODO()
-        }
     }
 
 }
@@ -113,14 +107,28 @@ class PlaylistTableState(
         playlistState.playlist.verticalScrollPosition = scrollPosition
     }
 
+    override fun onTableColumnWidthChange(index: Int, delta: Dp) {
+        super.onTableColumnWidthChange(index, delta)
+
+        val playlistColumnsUpdated = playlistState.playlist.layout.columns.mapIndexed { i, c ->
+            if (i == index) {
+                val updatedWidth = layout.value.columns[i].width!! + delta
+                when (c) {
+                    is StatusColumn -> c.copy(width = updatedWidth.value.toInt())
+                    is TrackInfoColumn -> c.copy(width = updatedWidth.value.toInt())
+                }
+            } else {
+                c
+            }
+        }
+        playlistState.playlist.layout = playlistState.playlist.layout.copy(columns = playlistColumnsUpdated)
+    }
+
     companion object {
 
         fun layout(playlistState: PlaylistState): MutableState<TableLayout> {
-            val columns = mutableListOf(
-                TableColumn(header = "", width = 30.dp),
-            )
-            playlistState.playlist.layout.columns.forEach {
-                columns += TableColumn(header = it.header, width = it.width.dp)
+            val columns = playlistState.playlist.layout.columns.map {
+                TableColumn(header = it.header, width = it.width.dp)
             }
             return mutableStateOf(
                 TableLayout(
@@ -134,37 +142,42 @@ class PlaylistTableState(
             return mutableStateOf(
                 TableGrid(
                     rows = mutableStateOf(
-                        playlistState.playlistItems.value.list.mapIndexed { index, playlistItem ->
-                            val cells: MutableList<MutableState<TableCell<PlaylistItem>>> = mutableListOf(
-                                mutableStateOf(
-                                    controlCell(playlistState)
-                                )
-                            )
-                            playlistState.render(playlistItem).map {
-                                cells += mutableStateOf(
-                                    contentCell(playlistItem, it)
-                                )
-                            }
-                            TableRow(cells)
-                        }.toMutableList()
+                        playlistState.playlistItems.value.list.map { playlistRow(it, playlistState) }.toMutableList()
                     )
                 )
             )
         }
 
-        private fun controlCell(playlistState: PlaylistState): TableCell<PlaylistItem> {
+        private fun playlistRow(playlistItem: PlaylistItem, playlistState: PlaylistState): TableRow<PlaylistItem> {
+            return TableRow(
+                when (playlistItem) {
+                    is TrackPlaylistItem -> {
+                        playlistState.playlist.layout.columns.map {
+                            when (it) {
+                                is StatusColumn -> mutableStateOf(controlCell(playlistState, it))
+                                is TrackInfoColumn -> mutableStateOf(contentCell(playlistItem, it))
+                            }
+                        }.toMutableList()
+                    }
+                    is AlbumPlaylistItem -> {
+                        TODO("Not yet implemented")
+                    }
+                }
+            )
+        }
+
+        private fun controlCell(playlistState: PlaylistState, column: StatusColumn): TableCell<PlaylistItem> {
             return TableCell(
                 value = GravifonContext.playbackStatusState.value.toString(),
                 content = { rowIndex, _, _ -> // this cell is recomposed because active track is part of rememberPlaylistState
                     Box(
                         modifier = Modifier
-                            .width(30.dp)
-                            .fillMaxHeight()
+                            .fillMaxSize()
                             .background(color = gListItemColor, shape = gShape)
                             .padding(5.dp)
                     ) {
                         Text("") // workaround to align cell's height with other cells
-                        if (playlistState.playlist.position() == rowIndex + 1) {
+                        if (column.showPlaybackStatus && playlistState.playlist.position() == rowIndex + 1) {
                             AppIcon(
                                 path = when (GravifonContext.playbackStatusState.value) {
                                     // TODO consider icons8-musical-notes-24.png
@@ -182,11 +195,12 @@ class PlaylistTableState(
             )
         }
 
-        private fun contentCell(playlistItem: PlaylistItem, renderText: String): TableCell<PlaylistItem> {
+        private fun contentCell(playlistItem: TrackPlaylistItem, column: TrackInfoColumn): TableCell<PlaylistItem> {
+            val renderText = playlistItem.track.format(column.format)
             return TableCell(
                 value = renderText,
                 content = { _, _, _ ->
-                    val textStyle = if ((playlistItem as? TrackPlaylistItem)?.track?.failing == true) {
+                    val textStyle = if (playlistItem.track.failing) {
                         LocalTextStyle.current.copy(fontStyle = FontStyle.Italic, color = LocalTextStyle.current.color.copy(alpha = 0.5f))
                     } else {
                         LocalTextStyle.current

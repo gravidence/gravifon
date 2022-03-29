@@ -5,6 +5,9 @@ package org.gravidence.gravifon.ui.component
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.rememberScrollbarAdapter
@@ -17,10 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerEvent
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.isSecondaryPressed
-import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -30,6 +30,7 @@ import org.gravidence.gravifon.ui.theme.gListHeaderColor
 import org.gravidence.gravifon.ui.theme.gListItemColor
 import org.gravidence.gravifon.ui.theme.gSelectedListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
+import java.awt.Cursor
 import java.awt.event.MouseEvent
 import kotlin.math.max
 import kotlin.math.min
@@ -111,6 +112,13 @@ open class TableState<T>(
         // do nothing by default
     }
 
+    open fun onTableColumnWidthChange(index: Int, delta: Dp) {
+        val columnsUpdated = layout.value.columns.toMutableList().apply {
+            set(index, this[index].copy(width = this[index].width!! + delta))
+        }
+        layout.value = layout.value.copy(columns = columnsUpdated)
+    }
+
     companion object {
 
         fun <T> cellState(tableState: TableState<T>, rowIndex: Int, columnIndex: Int): MutableState<TableCell<T>>? {
@@ -156,36 +164,51 @@ fun <T> Table(tableState: TableState<T>) {
             verticalArrangement = Arrangement.spacedBy(5.dp),
             modifier = Modifier.focusable()
         ) {
-            TableHeader(tableState.layout.value)
+            TableHeader(tableState)
             TableContent(tableState)
         }
     }
 }
 
 @Composable
-fun TableHeader(layout: TableLayout) {
-    if (layout.displayHeaders) {
+fun <T> TableHeader(tableState: TableState<T>) {
+    if (tableState.layout.value.displayHeaders) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            layout.columns.forEach {
-                val columnModifier = if (it.fraction != null) {
-                    Modifier.fillMaxWidth(it.fraction)
-                } else if (it.width != null) {
-                    Modifier.width(it.width)
+            tableState.layout.value.columns.forEachIndexed { index, column ->
+                val columnModifier = if (column.fraction != null) {
+                    Modifier.fillMaxWidth(column.fraction)
+                } else if (column.width != null) {
+                    Modifier.width(column.width)
                 } else {
                     Modifier
                 }
-
                 Text(
-                    text = it.header ?: "",
+                    text = column.header ?: "",
                     maxLines = 1,
                     overflow = TextOverflow.Clip,
                     fontWeight = FontWeight.Bold,
                     modifier = columnModifier
                         .background(color = gListHeaderColor, shape = gShape)
                         .padding(5.dp)
+                )
+
+                val spacerModifier = if (column.width != null) {
+                    Modifier
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR)))
+                        .draggable(
+                            state = rememberDraggableState { tableState.onTableColumnWidthChange(index, it.dp) },
+                            orientation = Orientation.Horizontal,
+                            startDragImmediately = true
+                        )
+                } else {
+                    Modifier
+                }
+                Spacer(
+                    modifier = spacerModifier
+                        .width(5.dp)
+                        .height(10.dp)
                 )
             }
         }
