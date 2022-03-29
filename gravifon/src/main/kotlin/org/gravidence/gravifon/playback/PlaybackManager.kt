@@ -59,7 +59,7 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
             registerCallback(
                 aboutToFinishCallback = {
                     audioFlow.next()?.let {
-                        start(it, false)
+                        this@PlaybackManager.start(it, false)
                     }
                 },
                 audioStreamChangedCallback = { playedTrack, nextTrack, duration ->
@@ -113,7 +113,7 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
                         }
                     }
 
-                    stop()
+                    this@PlaybackManager.stop()
 
                     GravifonContext.activePlaylist.value?.let {
                         publish(PlayNextFromPlaylistEvent(it))
