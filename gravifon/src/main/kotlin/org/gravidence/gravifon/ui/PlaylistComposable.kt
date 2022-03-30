@@ -4,25 +4,27 @@ package org.gravidence.gravifon.ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.LocalTextStyle
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.PauseCircle
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEvent
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.StreamVirtualTrack
-import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.domain.track.format.format
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.PlayCurrentFromPlaylistEvent
@@ -36,7 +38,6 @@ import org.gravidence.gravifon.playlist.layout.ScrollPosition
 import org.gravidence.gravifon.playlist.layout.StatusColumn
 import org.gravidence.gravifon.playlist.layout.TrackInfoColumn
 import org.gravidence.gravifon.ui.component.*
-import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.gListItemColor
 import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.ui.util.ListHolder
@@ -57,13 +58,11 @@ class PlaylistState(
 
 }
 
-// TODO a bit too much to refresh _whole_ playlist state on active track change
 @Composable
 fun rememberPlaylistState(
-    activeTrack: VirtualTrack? = GravifonContext.activeTrack.value,
     playlistItems: ListHolder<PlaylistItem> = ListHolder(listOf()),
     playlist: Playlist
-) = remember(activeTrack, playlistItems) {
+) = remember(playlistItems) {
     PlaylistState(
         playlistItems = mutableStateOf(playlistItems),
         playlist = playlist
@@ -154,8 +153,8 @@ class PlaylistTableState(
                     is TrackPlaylistItem -> {
                         playlistState.playlist.layout.columns.map {
                             when (it) {
-                                is StatusColumn -> mutableStateOf(controlCell(playlistState, it))
-                                is TrackInfoColumn -> mutableStateOf(contentCell(playlistItem, it))
+                                is StatusColumn -> mutableStateOf(statusCell(playlistItem, playlistState, it))
+                                is TrackInfoColumn -> mutableStateOf(trackInfoCell(playlistItem, it))
                             }
                         }.toMutableList()
                     }
@@ -166,50 +165,68 @@ class PlaylistTableState(
             )
         }
 
-        private fun controlCell(playlistState: PlaylistState, column: StatusColumn): TableCell<PlaylistItem> {
+        private val statusIconModifier = Modifier.size(20.dp)
+
+        private fun statusCell(trackPlaylistItem: TrackPlaylistItem, playlistState: PlaylistState, column: StatusColumn): TableCell<PlaylistItem> {
             return TableCell(
                 value = GravifonContext.playbackStatusState.value.toString(),
-                content = { rowIndex, _, _ -> // this cell is recomposed because active track is part of rememberPlaylistState
+                content = { rowIndex, _, _ ->
+                    run {
+                        // force cell refresh on active track change
+                        GravifonContext.activeTrack.value === trackPlaylistItem.track
+                    }
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(color = gListItemColor, shape = gShape)
                             .padding(5.dp)
                     ) {
-                        Text("") // workaround to align cell's height with other cells
-                        if (column.showPlaybackStatus && playlistState.playlist.position() == rowIndex + 1) {
-                            AppIcon(
-                                path = when (GravifonContext.playbackStatusState.value) {
-                                    // TODO consider icons8-musical-notes-24.png
-                                    PlaybackStatus.PLAYING -> "icons8-play-24.png"
-                                    PlaybackStatus.PAUSED -> "icons8-pause-24.png"
-                                    PlaybackStatus.STOPPED -> "icons8-stop-24.png"
-                                },
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(16.dp)
-                            )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("") // workaround to align cell's height with other cells
+                            if (column.showFailureStatus && trackPlaylistItem.track.failing) {
+                                TextTooltip(
+                                    tooltip = "Last attempt to play the track has failed"
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Error,
+                                        contentDescription = "Failure Status",
+                                        modifier = statusIconModifier
+                                    )
+                                }
+                            }
+                            if (column.showPlaybackStatus && playlistState.playlist.position() == rowIndex + 1) {
+                                TextTooltip(
+                                    tooltip = "Playback status of playlist's current track"
+                                ) {
+                                    Icon(
+                                        imageVector = when (GravifonContext.playbackStatusState.value) {
+                                            PlaybackStatus.PLAYING -> Icons.Filled.PlayCircle
+                                            PlaybackStatus.PAUSED -> Icons.Filled.PauseCircle
+                                            PlaybackStatus.STOPPED -> Icons.Filled.StopCircle
+                                        },
+                                        contentDescription = "Playback Status",
+                                        modifier = statusIconModifier
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             )
         }
 
-        private fun contentCell(playlistItem: TrackPlaylistItem, column: TrackInfoColumn): TableCell<PlaylistItem> {
-            val renderText = playlistItem.track.format(column.format)
+        private fun trackInfoCell(trackPlaylistItem: TrackPlaylistItem, column: TrackInfoColumn): TableCell<PlaylistItem> {
             return TableCell(
-                value = renderText,
+                value = trackPlaylistItem.track.format(column.format),
                 content = { _, _, _ ->
-                    val textStyle = if (playlistItem.track.failing) {
-                        LocalTextStyle.current.copy(fontStyle = FontStyle.Italic, color = LocalTextStyle.current.color.copy(alpha = 0.5f))
-                    } else {
-                        LocalTextStyle.current
-                    }
                     Text(
-                        text = renderText,
+                        text = trackPlaylistItem.track.format(column.format),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = textStyle,
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(color = gListItemColor, shape = gShape)
