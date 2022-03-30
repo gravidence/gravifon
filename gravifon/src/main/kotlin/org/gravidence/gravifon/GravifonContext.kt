@@ -2,6 +2,7 @@ package org.gravidence.gravifon
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.referentialEqualityPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +21,8 @@ object GravifonContext {
 
     val activeView: MutableState<Viewable?> = mutableStateOf(null)
     val activePlaylist: MutableState<Playlist?> = mutableStateOf(null)
-    val activeTrack: MutableState<VirtualTrack?> = mutableStateOf(null)
+    // force state update handling, as active track is set to null on failing that may repeat
+    val activeTrack: MutableState<VirtualTrack?> = mutableStateOf(null, neverEqualPolicy())
     val activeTrackExtraInfo: MutableState<List<String>> = mutableStateOf(listOf())
     val activeInnerNotification: MutableState<Notification?> = mutableStateOf(null, referentialEqualityPolicy())
 
