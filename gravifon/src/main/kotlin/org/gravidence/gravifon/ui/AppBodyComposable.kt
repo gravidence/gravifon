@@ -3,7 +3,6 @@
 package org.gravidence.gravifon.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -13,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.ui.theme.gShape
+import org.gravidence.gravifon.util.firstNotEmptyOrNull
 
 @Composable
 fun AppBody() {
@@ -39,14 +39,9 @@ fun AppBody() {
                                     .fillMaxWidth()
                                     .border(width = 1.dp, color = Color.Black, shape = gShape)
                             ) {
-                                TooltipArea(
-                                    delayMillis = 1000,
-                                    tooltip = {
-                                        GravifonContext.activeTrackExtraInfo.value.apply {
-                                            if (isNotEmpty()) {
-                                                tooltip(joinToString(System.lineSeparator()))
-                                            }
-                                        }
+                                TextTooltip(
+                                    tooltip = GravifonContext.activeTrackExtraInfo.value.let {
+                                        firstNotEmptyOrNull(it)?.joinToString(System.lineSeparator())
                                     }
                                 ) {
                                     PlaybackInformationComposable(rememberPlaybackInformationState())

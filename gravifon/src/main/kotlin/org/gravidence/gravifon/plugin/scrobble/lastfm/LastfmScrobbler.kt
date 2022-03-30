@@ -1,9 +1,5 @@
-@file:OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
-
 package org.gravidence.gravifon.plugin.scrobble.lastfm
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
@@ -33,9 +29,9 @@ import org.gravidence.gravifon.event.track.TrackStartedEvent
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
+import org.gravidence.gravifon.ui.TextTooltip
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.gShape
-import org.gravidence.gravifon.ui.tooltip
 import org.gravidence.gravifon.util.DesktopUtil
 import org.gravidence.lastfm4k.LastfmClient
 import org.gravidence.lastfm4k.api.auth.Session
@@ -112,8 +108,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
 
             val playcountExtraInfo = "${response.trackInfo.userPlaycount} scrobbles"
             val lovedExtraInfo = if (response.trackInfo.userLoved) "♥" else null
-            GravifonContext.activeTrackExtraInfo.value += listOf(playcountExtraInfo, lovedExtraInfo)
-                .filterNotNull()
+            GravifonContext.activeTrackExtraInfo.value += listOfNotNull(playcountExtraInfo, lovedExtraInfo)
                 .joinToString(separator = ",", prefix = "Last.fm: ")
 
             publish(
@@ -348,6 +343,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
         LastfmScrobblerSettingsState()
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     override fun composeSettings() {
         val state = rememberLastfmScrobblerSettingsState()
@@ -365,9 +361,8 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    TooltipArea(
-                        delayMillis = 600,
-                        tooltip = { tooltip("Session key used by Gravifon to access your Last.fm account") }
+                    TextTooltip(
+                        tooltip = "Session key used by Gravifon to access your Last.fm account"
                     ) {
                         Text("Session Key:")
                     }
@@ -419,9 +414,8 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        TooltipArea(
-                            delayMillis = 600,
-                            tooltip = { tooltip("Please this URL to authorize Gravifon to access your Last.fm account") }
+                        TextTooltip(
+                            tooltip = "Please this URL to authorize Gravifon to access your Last.fm account"
                         ) {
                             Text("Authorization URL:")
                         }
