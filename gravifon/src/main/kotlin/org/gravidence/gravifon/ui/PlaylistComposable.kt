@@ -7,10 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.PauseCircle
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +20,7 @@ import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.datetime.Clock
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.StreamVirtualTrack
 import org.gravidence.gravifon.domain.track.format.format
@@ -187,6 +185,24 @@ class PlaylistTableState(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("") // workaround to align cell's height with other cells
+                            if (column.showExpirationStatus) {
+                                (trackPlaylistItem.track as? StreamVirtualTrack)?.expiresAfter?.let {
+                                    val delta = it.minus(Clock.System.now())
+                                    if (delta < column.expirationThreshold) {
+                                        val text = if (delta.isNegative()) "Stream expired" else "Stream expires in ${delta.inWholeMinutes} minutes"
+                                        val icon = if (delta.isNegative()) Icons.Filled.HourglassEmpty else Icons.Filled.HourglassBottom
+                                        TextTooltip(
+                                            tooltip = text
+                                        ) {
+                                            Icon(
+                                                imageVector = icon,
+                                                contentDescription = "Expiration Status",
+                                                modifier = statusIconModifier
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                             if (column.showFailureStatus && trackPlaylistItem.track.failing) {
                                 TextTooltip(
                                     tooltip = "Last attempt to play the track has failed"
@@ -200,7 +216,7 @@ class PlaylistTableState(
                             }
                             if (column.showPlaybackStatus && playlistState.playlist.position() == rowIndex + 1) {
                                 TextTooltip(
-                                    tooltip = "Playback status of playlist's current track"
+                                    tooltip = "Track playback status"
                                 ) {
                                     Icon(
                                         imageVector = when (GravifonContext.playbackStatusState.value) {

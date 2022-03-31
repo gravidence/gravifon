@@ -1,6 +1,10 @@
 package org.gravidence.gravifon.playlist.layout
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @Serializable
 data class PlaylistLayout(
@@ -30,4 +34,7 @@ data class StatusColumn(
     override val header: String,
     val showPlaybackStatus: Boolean = true,
     val showFailureStatus: Boolean = true,
+    val showExpirationStatus: Boolean = true,
+    @Contextual
+    val expirationThreshold: Duration = 2.toDuration(DurationUnit.HOURS),
 ) : PlaylistColumn()
