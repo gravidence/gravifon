@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.datetime.Clock
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.track.StreamVirtualTrack
+import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.domain.track.format.format
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.PlayCurrentFromPlaylistEvent
@@ -50,8 +51,29 @@ class PlaylistState(
 
     val playlistTableState = PlaylistTableState(this)
 
-    fun selectedPlaylistItems(): List<PlaylistItem> {
+    private fun selectedPlaylistItems(): List<PlaylistItem> {
         return playlistTableState.selectedRows.value.map { playlistItems.value.list[it] }
+    }
+
+    fun selectedTracks(): List<VirtualTrack> {
+        return selectedPlaylistItems()
+            .filterIsInstance<TrackPlaylistItem>()
+            .map { it.track }
+    }
+
+    fun effectivelySelectedTracks(): List<VirtualTrack> {
+        return firstNotEmptyOrNull(selectedPlaylistItems(), playlistItems.value.list)
+            .orEmpty()
+            .filterIsInstance<TrackPlaylistItem>()
+            .map { it.track }
+    }
+
+    fun prepareMetadataDialog(tracks: List<VirtualTrack>) {
+        GravifonContext.trackMetadataDialogState.prepare(
+            playlist = playlist,
+            tracks = tracks,
+        )
+        GravifonContext.trackMetadataDialogVisible.value = true
     }
 
 }
@@ -82,6 +104,12 @@ class PlaylistTableState(
                     EventBus.publish(RemoveFromPlaylistEvent(playlistState.playlist, selectedRows.value))
                     selectedRows.value = setOf()
                     true
+                }
+                Key.Enter -> if (keyEvent.isAltPressed) {
+                    playlistState.prepareMetadataDialog(playlistState.effectivelySelectedTracks())
+                    true
+                } else {
+                    false
                 }
                 else -> false
             }
@@ -259,41 +287,24 @@ class PlaylistTableState(
 fun buildContextMenu(playlistState: PlaylistState): List<ContextMenuItem> {
     val contextMenuItems: MutableList<ContextMenuItem> = mutableListOf()
 
-    val selectedItems = playlistState.selectedPlaylistItems()
-    val allItems = playlistState.playlistItems.value.list
-
-    val candidateSelectedItems: Collection<PlaylistItem>? = firstNotEmptyOrNull(
-        selectedItems
-    )
-    if (candidateSelectedItems != null) {
-        val streamTracks = candidateSelectedItems
-            .filterIsInstance<TrackPlaylistItem>()
-            .map { it.track }
-            .filterIsInstance<StreamVirtualTrack>()
-        if (streamTracks.isNotEmpty()) {
+    playlistState.selectedTracks()
+        .filterIsInstance<StreamVirtualTrack>()
+        .takeIf { it.isNotEmpty() }
+        ?.let { streams ->
             contextMenuItems += ContextMenuItem("Open stream source page") {
-                streamTracks.forEach {
-                    DesktopUtil.openInBrowser(it.sourceUrl)
+                streams.forEach { stream ->
+                    DesktopUtil.openInBrowser(stream.sourceUrl)
                 }
             }
         }
-    }
 
-    val candidateItems: Collection<PlaylistItem>? = firstNotEmptyOrNull(
-        candidateSelectedItems,
-        allItems
-    )
-    if (candidateItems != null) {
-        contextMenuItems += ContextMenuItem("Edit metadata") {
-            GravifonContext.trackMetadataDialogState.prepare(
-                playlist = playlistState.playlist,
-                tracks = candidateItems
-                    .filterIsInstance<TrackPlaylistItem>()
-                    .map { it.track }
-            )
-            GravifonContext.trackMetadataDialogVisible.value = true
+    playlistState.effectivelySelectedTracks()
+        .takeIf { it.isNotEmpty() }
+        ?.let { tracks ->
+            contextMenuItems += ContextMenuItem("Edit metadata") {
+                playlistState.prepareMetadataDialog(tracks)
+            }
         }
-    }
 
     return contextMenuItems
 }
