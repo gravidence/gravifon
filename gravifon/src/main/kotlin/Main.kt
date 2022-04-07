@@ -21,10 +21,12 @@ import org.gravidence.gravifon.ui.dialog.PluginSettingsDialog
 import org.gravidence.gravifon.ui.dialog.TrackMetadataDialog
 import kotlin.time.Duration.Companion.seconds
 
+val windowState = readWindowState().also {
+    GravifonStarter.orchestrator.startup()
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() = application {
-    val windowState = remember { readWindowState() }
-
     Window(
         title = "Gravifon",
         state = windowState,
@@ -110,8 +112,6 @@ fun main() = application {
         PluginSettingsDialog()
         TrackMetadataDialog()
     }
-
-    remember { GravifonStarter.orchestrator.startup() }
 }
 
 fun readWindowState(): WindowState = runBlocking {
