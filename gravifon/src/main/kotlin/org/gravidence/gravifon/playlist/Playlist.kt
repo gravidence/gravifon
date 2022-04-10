@@ -149,34 +149,24 @@ sealed class Playlist {
     }
 
     open fun moveToSpecific(playlistItem: PlaylistItem): Int? {
-        val position = items.indexOf(playlistItem) + 1
-
-        return if (position > 0) {
-            this.position = position
-            this.position
-        } else {
-            null
-        }
+        return items
+            .indexOfFirst { it === playlistItem }
+            .takeIf { it >= 0 }?.let {
+                position = it + 1
+                position
+            }
     }
 
     open fun moveToSpecific(position: Int): PlaylistItem? {
-        val playlistItem = peekSpecific(position)
-
-        if (playlistItem != null) {
+        return peekSpecific(position)?.also {
             this.position = position
         }
-
-        return playlistItem
     }
 
     open fun moveToSpecificTrack(position: Int, lookupDirection: LookupDirection): TrackPlaylistItem? {
-        val playlistItem = peekSpecificTrack(position, lookupDirection)
-
-        if (playlistItem != null) {
-            this.position = items.indexOf(playlistItem) + 1
+        return peekSpecificTrack(position, lookupDirection)?.also { specificTrackItem ->
+            this.position = items.indexOfFirst { it === specificTrackItem } + 1
         }
-
-        return playlistItem
     }
 
     open fun view(): List<PlaylistItem> {

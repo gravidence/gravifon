@@ -1147,6 +1147,24 @@ internal class StaticPlaylistTest {
     }
 
     @Test
+    fun moveToSpecific_TrackPlaylistWithDuplicates() {
+        val tr1 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "tr1"))
+        val tr2 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "tr2"))
+        val tr3 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "tr2"))
+        val playlist = StaticPlaylist(
+            items = mutableListOf(
+                tr1,
+                tr2,
+                tr3,
+            ),
+        )
+
+        val actualPosition = playlist.moveToSpecific(tr3)
+        assertNotNull(actualPosition)
+        assertEquals(3, actualPosition)
+    }
+
+    @Test
     fun moveToSpecific_AlbumPlaylist() {
         val playlist = StaticPlaylist(
             items = mutableListOf(
@@ -1222,6 +1240,26 @@ internal class StaticPlaylistTest {
         val actualPlaylistItem = playlist.moveToSpecificTrack(3, LookupDirection.BACKWARD)
         assertNotNull(actualPlaylistItem)
         assertEquals(album2track3, actualPlaylistItem)
+
+        assertEquals(3, playlist.position())
+    }
+
+    @Test
+    fun moveToSpecificTrack_TrackPlaylistWithDuplicates() {
+        val tr1 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "tr1"))
+        val tr2 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "tr2"))
+        val tr3 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "tr2"))
+        val playlist = StaticPlaylist(
+            items = mutableListOf(
+                tr1,
+                tr2,
+                tr3,
+            ),
+        )
+
+        val actualPlaylistItem = playlist.moveToSpecificTrack(3, LookupDirection.FORWARD)
+        assertNotNull(actualPlaylistItem)
+        assertSame(tr3, actualPlaylistItem)
 
         assertEquals(3, playlist.position())
     }
