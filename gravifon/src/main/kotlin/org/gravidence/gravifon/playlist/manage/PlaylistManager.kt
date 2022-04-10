@@ -9,6 +9,7 @@ import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.playback.StartPlaybackEvent
 import org.gravidence.gravifon.event.playback.StopPlaybackAfterEvent
+import org.gravidence.gravifon.event.playback.StopPlaybackEvent
 import org.gravidence.gravifon.event.playlist.*
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Stateful
@@ -57,10 +58,16 @@ class PlaylistManager : EventAware, Stateful {
     }
 
     private fun play(playlist: Playlist, trackPlaylistItem: TrackPlaylistItem?): TrackPlaylistItem? {
-        return trackPlaylistItem?.apply {
+        if (trackPlaylistItem == null) {
+            // forcing a playback action when there's no element to play,
+            // that effectively means stopping current activity (if any) and do nothing further
+            publish(StopPlaybackEvent())
+        } else {
             GravifonContext.activePlaylist.value = playlist
-            publish(StartPlaybackEvent(track))
+            publish(StartPlaybackEvent(trackPlaylistItem.track))
         }
+
+        return trackPlaylistItem
     }
 
     private fun applyStopAfter(trackPlaylistItem: TrackPlaylistItem?): TrackPlaylistItem? {
