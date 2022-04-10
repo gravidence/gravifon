@@ -8,6 +8,7 @@ import org.gravidence.gravifon.configuration.ConfigUtil.configHomeDir
 import org.gravidence.gravifon.configuration.FileStorage
 import org.gravidence.gravifon.event.Event
 import org.gravidence.gravifon.event.playback.StartPlaybackEvent
+import org.gravidence.gravifon.event.playback.StopPlaybackAfterEvent
 import org.gravidence.gravifon.event.playlist.*
 import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.orchestration.marker.Stateful
@@ -33,6 +34,8 @@ class PlaylistManager : EventAware, Stateful {
 
     override val fileStorage: FileStorage = PlaylistManagerFileStorage()
 
+    private var stopAfter: Int = Int.MAX_VALUE
+
     init {
         fileStorage.read()
     }
@@ -49,25 +52,35 @@ class PlaylistManager : EventAware, Stateful {
                     publish(PlaylistUpdatedEvent(playlist))
                 }
             }
+            is StopPlaybackAfterEvent -> stopAfter(event.n)
         }
     }
 
     private fun play(playlist: Playlist, trackPlaylistItem: TrackPlaylistItem?): TrackPlaylistItem? {
-        if (trackPlaylistItem != null) {
+        return trackPlaylistItem?.apply {
             GravifonContext.activePlaylist.value = playlist
-            publish(StartPlaybackEvent(trackPlaylistItem.track))
+            publish(StartPlaybackEvent(track))
         }
+    }
 
-        return trackPlaylistItem
+    private fun applyStopAfter(trackPlaylistItem: TrackPlaylistItem?): TrackPlaylistItem? {
+        return trackPlaylistItem?.let {
+            return (if (stopAfter > 0) {
+                it
+            } else {
+                null
+            }).also {
+                if (stopAfter <= 0) {
+                    stopAfter = Int.MAX_VALUE
+                } else {
+                    stopAfter--
+                }
+            }
+        }
     }
 
     @Synchronized
-    fun resolveNext(playlist: Playlist): TrackPlaylistItem? {
-        return priorityPlaylist?.moveToNextTrack() ?: playlist.moveToNextTrack()
-    }
-
-    @Synchronized
-    fun playCurrent(playlist: Playlist, playlistItem: PlaylistItem?): TrackPlaylistItem? {
+    fun resolveCurrent(playlist: Playlist, playlistItem: PlaylistItem? = null): TrackPlaylistItem? {
         val currentTrack = if (playlistItem != null) {
             playlist.moveToSpecific(playlistItem)
             playlist.peekCurrentTrack()
@@ -75,7 +88,17 @@ class PlaylistManager : EventAware, Stateful {
             priorityPlaylist?.moveToCurrentTrack() ?: playlist.moveToCurrentTrack()
         }
 
-        return play(playlist, currentTrack)
+        return applyStopAfter(currentTrack)
+    }
+
+    @Synchronized
+    fun playCurrent(playlist: Playlist, playlistItem: PlaylistItem? = null): TrackPlaylistItem? {
+        return play(playlist, resolveCurrent(playlist, playlistItem))
+    }
+
+    @Synchronized
+    fun resolveNext(playlist: Playlist): TrackPlaylistItem? {
+        return applyStopAfter(priorityPlaylist?.moveToNextTrack() ?: playlist.moveToNextTrack())
     }
 
     @Synchronized
@@ -84,8 +107,13 @@ class PlaylistManager : EventAware, Stateful {
     }
 
     @Synchronized
+    fun resolvePrev(playlist: Playlist): TrackPlaylistItem? {
+        return applyStopAfter(priorityPlaylist?.moveToPrevTrack() ?: playlist.moveToPrevTrack())
+    }
+
+    @Synchronized
     fun playPrev(playlist: Playlist): TrackPlaylistItem? {
-        return play(playlist, priorityPlaylist?.moveToPrevTrack() ?: playlist.moveToPrevTrack())
+        return play(playlist, resolvePrev(playlist))
     }
 
     @Synchronized
@@ -111,6 +139,10 @@ class PlaylistManager : EventAware, Stateful {
         if (getPlaylist(playlist.id(), holder) == null) {
             holder += playlist
         }
+    }
+
+    fun stopAfter(n: Int) {
+        stopAfter = n.coerceAtLeast(0)
     }
 
     inner class PlaylistManagerFileStorage : FileStorage(storageDir = configHomeDir.resolve("playlist")) {

@@ -19,6 +19,8 @@ import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.application.WindowStateChangedEvent
 import org.gravidence.gravifon.event.playback.PausePlaybackEvent
 import org.gravidence.gravifon.event.playback.RepositionPlaybackPointRelativeEvent
+import org.gravidence.gravifon.event.playback.StopPlaybackAfterEvent
+import org.gravidence.gravifon.playback.PlaybackStatus
 import org.gravidence.gravifon.ui.AppBody
 import org.gravidence.gravifon.ui.dialog.ApplicationSettingsDialog
 import org.gravidence.gravifon.ui.dialog.PluginSettingsDialog
@@ -86,7 +88,17 @@ fun ApplicationScope.ApplicationWindow(windowState: WindowState) {
                     onClick = { EventBus.publish(RepositionPlaybackPointRelativeEvent((-10).seconds)) }
                 )
                 Separator()
-                Item(text = "Stop after current", onClick = {})
+                // TODO display somehow that this option is active
+                Item(
+                    text = "Stop after current",
+                    onClick = {
+                        val n = when (GravifonContext.playbackStatusState.value) {
+                            PlaybackStatus.STOPPED -> 1
+                            else -> 0
+                        }
+                        EventBus.publish(StopPlaybackAfterEvent(n))
+                    }
+                )
             }
             Menu(text = "Settings") {
                 Item(text = "Application...", onClick = { GravifonContext.applicationSettingsDialogVisible.value = true })

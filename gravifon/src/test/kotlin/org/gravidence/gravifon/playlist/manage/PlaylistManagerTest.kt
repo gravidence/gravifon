@@ -5,6 +5,7 @@ import org.gravidence.gravifon.playlist.Queue
 import org.gravidence.gravifon.playlist.StaticPlaylist
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -196,6 +197,99 @@ internal class PlaylistManagerTest {
 
     @Test
     fun addPlaylist() {
+    }
+
+    @Test
+    fun stopAfterCurrent() {
+        val rt1 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt1"))
+        val rt2 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt2"))
+        val regularPlaylist = StaticPlaylist(items = mutableListOf(rt1, rt2))
+
+        playlistManager.addPlaylist(regularPlaylist)
+
+        playlistManager.stopAfter(0)
+        // this playback request isn't allowed
+        assertNull(playlistManager.playCurrent(regularPlaylist))
+        assertEquals(1, regularPlaylist.position())
+        // but next try is allowed (since stopAfter is reset once occurs)
+        assertEquals(rt1, playlistManager.playCurrent(regularPlaylist))
+        assertEquals(1, regularPlaylist.position())
+    }
+
+    @Test
+    fun stopAfterNext() {
+        val rt1 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt1"))
+        val rt2 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt2"))
+        val regularPlaylist = StaticPlaylist(items = mutableListOf(rt1, rt2))
+
+        playlistManager.addPlaylist(regularPlaylist)
+
+        playlistManager.stopAfter(1)
+        // this playback request succeeds
+        assertEquals(rt1, playlistManager.playCurrent(regularPlaylist))
+        assertEquals(1, regularPlaylist.position())
+        // but next one isn't allowed
+        assertNull(playlistManager.playNext(regularPlaylist))
+        assertEquals(2, regularPlaylist.position())
+    }
+
+    @Test
+    fun stopAfterNextTwo() {
+        val rt1 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt1"))
+        val rt2 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt2"))
+        val rt3 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt3"))
+        val regularPlaylist = StaticPlaylist(items = mutableListOf(rt1, rt2, rt3))
+
+        playlistManager.addPlaylist(regularPlaylist)
+
+        playlistManager.stopAfter(2)
+        // this playback request succeeds
+        assertEquals(rt1, playlistManager.playCurrent(regularPlaylist))
+        assertEquals(1, regularPlaylist.position())
+        // and this one
+        assertEquals(rt2, playlistManager.playNext(regularPlaylist))
+        assertEquals(2, regularPlaylist.position())
+        // but next one isn't allowed
+        assertNull(playlistManager.playNext(regularPlaylist))
+        assertEquals(3, regularPlaylist.position())
+    }
+
+    @Test
+    fun stopAfterPrev() {
+        val rt1 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt1"))
+        val rt2 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt2"))
+        val regularPlaylist = StaticPlaylist(items = mutableListOf(rt1, rt2), position = 2)
+
+        playlistManager.addPlaylist(regularPlaylist)
+
+        playlistManager.stopAfter(1)
+        // this playback request succeeds
+        assertEquals(rt2, playlistManager.playCurrent(regularPlaylist))
+        assertEquals(2, regularPlaylist.position())
+        // but next one isn't allowed
+        assertNull(playlistManager.playPrev(regularPlaylist))
+        assertEquals(1, regularPlaylist.position())
+    }
+
+    @Test
+    fun stopAfterPrevTwo() {
+        val rt1 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt1"))
+        val rt2 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt2"))
+        val rt3 = TrackPlaylistItem(TestUtil.fixedFileVirtualTrack(path = "rt3"))
+        val regularPlaylist = StaticPlaylist(items = mutableListOf(rt1, rt2, rt3), position = 3)
+
+        playlistManager.addPlaylist(regularPlaylist)
+
+        playlistManager.stopAfter(2)
+        // this playback request succeeds
+        assertEquals(rt3, playlistManager.playCurrent(regularPlaylist))
+        assertEquals(3, regularPlaylist.position())
+        // and this one
+        assertEquals(rt2, playlistManager.playPrev(regularPlaylist))
+        assertEquals(2, regularPlaylist.position())
+        // but next one isn't allowed
+        assertNull(playlistManager.playPrev(regularPlaylist))
+        assertEquals(1, regularPlaylist.position())
     }
 
 }
