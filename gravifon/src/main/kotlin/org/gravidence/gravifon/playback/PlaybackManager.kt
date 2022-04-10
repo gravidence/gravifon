@@ -172,7 +172,7 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
         }
         audioBackend!!.adjustPosition(pos)
 
-        updatePlaybackPositionState(runningPositionOverride = position)
+        updatePlaybackPositionState(runningPositionOverride = pos)
     }
 
     private fun updatePlaybackPositionState(
