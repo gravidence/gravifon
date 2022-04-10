@@ -25,6 +25,8 @@ import org.gravidence.gravifon.playlist.DynamicPlaylist
 import org.gravidence.gravifon.playlist.Playlist
 import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
+import org.gravidence.gravifon.playlist.layout.PlaylistLayout
+import org.gravidence.gravifon.playlist.layout.TrackInfoColumn
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
 import org.gravidence.gravifon.plugin.scrobble.lastfm.event.LastfmScrobbleCacheUpdatedEvent
 import org.gravidence.gravifon.ui.PlaylistComposable
@@ -45,7 +47,8 @@ class LastfmScrobblerView(val lastfmScrobbler: LastfmScrobbler) : Viewable, Even
     private val playlist: Playlist = DynamicPlaylist(
         ownerName = "Last.fm Scrobbler",
         displayName = "Scrobble Cache",
-        items = scrobbleCacheToPlaylistItems(lastfmScrobbler.lastfmScrobblerStorage.scrobbleCache())
+        items = scrobbleCacheToPlaylistItems(lastfmScrobbler.lastfmScrobblerStorage.scrobbleCache()),
+        layout = PlaylistLayout(columns = PlaylistLayout().columns.filterIsInstance<TrackInfoColumn>()),
     )
     private val playlistItems: MutableState<ListHolder<PlaylistItem>> = mutableStateOf(ListHolder(playlist.items()))
 
