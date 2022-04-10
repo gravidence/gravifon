@@ -1,9 +1,12 @@
 package org.gravidence.gravifon.ui.window
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.MenuBar
@@ -73,17 +76,20 @@ fun ApplicationScope.ApplicationWindow(windowState: WindowState) {
             Menu(text = "Playback") {
                 Item(
                     text = "Play/Pause",
+                    icon = rememberVectorPainter(Icons.Filled.PlayArrow),
                     shortcut = KeyShortcut(key = Key.Spacebar, shift = true),
                     onClick = { EventBus.publish(PausePlaybackEvent()) }
                 )
                 Separator()
                 Item(
                     text = "Jump forward",
+                    icon = rememberVectorPainter(Icons.Filled.FastForward),
                     shortcut = KeyShortcut(key = Key.DirectionRight),
                     onClick = { EventBus.publish(RepositionPlaybackPointRelativeEvent(10.seconds)) }
                 )
                 Item(
                     text = "Jump backward",
+                    icon = rememberVectorPainter(Icons.Filled.FastRewind),
                     shortcut = KeyShortcut(key = Key.DirectionLeft),
                     onClick = { EventBus.publish(RepositionPlaybackPointRelativeEvent((-10).seconds)) }
                 )
@@ -101,8 +107,16 @@ fun ApplicationScope.ApplicationWindow(windowState: WindowState) {
                 )
             }
             Menu(text = "Settings") {
-                Item(text = "Application...", onClick = { GravifonContext.applicationSettingsDialogVisible.value = true })
-                Item(text = "Plugin...", onClick = { GravifonContext.pluginSettingsDialogVisible.value = true })
+                Item(
+                    text = "Application...",
+                    icon = rememberVectorPainter(Icons.Filled.Settings),
+                    onClick = { GravifonContext.applicationSettingsDialogVisible.value = true }
+                )
+                Item(
+                    text = "Plugin...",
+                    icon = rememberVectorPainter(Icons.Filled.Extension),
+                    onClick = { GravifonContext.pluginSettingsDialogVisible.value = true }
+                )
             }
             Menu(text = "View") {
                 GravifonStarter.views
