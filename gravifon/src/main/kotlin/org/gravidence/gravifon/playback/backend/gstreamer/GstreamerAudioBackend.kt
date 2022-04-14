@@ -145,9 +145,9 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
     }
 
     override fun stop(): PlaybackStatus {
-        // clear active & next track holders, so these won't affect AUDIO_CHANGED event logic
-        activeTrack = null
+        // clear next track, so it won't affect AUDIO_CHANGED event logic
         nextTrack = null
+        // active track will be processed as part of AUDIO_CHANGED event
 
         playbin.stop()
 
