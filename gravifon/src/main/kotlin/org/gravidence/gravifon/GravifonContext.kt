@@ -11,6 +11,7 @@ import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.orchestration.marker.Viewable
 import org.gravidence.gravifon.playback.PlaybackStatus
 import org.gravidence.gravifon.playlist.Playlist
+import org.gravidence.gravifon.playlist.manage.StopAfter
 import org.gravidence.gravifon.ui.dialog.TrackMetadataState
 import org.gravidence.gravifon.ui.state.PlaybackPositionState
 
@@ -38,6 +39,7 @@ object GravifonContext {
 
     val playbackStatusState: MutableState<PlaybackStatus> = mutableStateOf(PlaybackStatus.STOPPED)
     val playbackPositionState: MutableState<PlaybackPositionState> = mutableStateOf(PlaybackPositionState(), referentialEqualityPolicy())
+    val stopAfterState: MutableState<StopAfter> = mutableStateOf(StopAfter())
 
     fun setActiveTrack(track: VirtualTrack?) {
         activeTrack.value = track

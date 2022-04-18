@@ -94,9 +94,9 @@ fun ApplicationScope.ApplicationWindow(windowState: WindowState) {
                     onClick = { EventBus.publish(RepositionPlaybackPointRelativeEvent((-10).seconds)) }
                 )
                 Separator()
-                // TODO display somehow that this option is active
                 Item(
                     text = "Stop after current",
+                    icon = if (GravifonContext.stopAfterState.value.activated) rememberVectorPainter(Icons.Filled.Check) else null,
                     onClick = {
                         val n = when (GravifonContext.playbackStatusState.value) {
                             PlaybackStatus.STOPPED -> 1

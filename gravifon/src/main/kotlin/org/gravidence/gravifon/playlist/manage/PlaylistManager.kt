@@ -35,8 +35,6 @@ class PlaylistManager : EventAware, Stateful {
 
     override val fileStorage: FileStorage = PlaylistManagerFileStorage()
 
-    private var stopAfter: Int = Int.MAX_VALUE
-
     init {
         fileStorage.read()
     }
@@ -72,16 +70,12 @@ class PlaylistManager : EventAware, Stateful {
 
     private fun applyStopAfter(trackPlaylistItem: TrackPlaylistItem?): TrackPlaylistItem? {
         return trackPlaylistItem?.let {
-            return (if (stopAfter > 0) {
-                it
-            } else {
+            return (if (GravifonContext.stopAfterState.value.stop) {
                 null
+            } else {
+                it
             }).also {
-                if (stopAfter <= 0) {
-                    stopAfter = Int.MAX_VALUE
-                } else {
-                    stopAfter--
-                }
+                GravifonContext.stopAfterState.value = GravifonContext.stopAfterState.value.decreaseAndGet()
             }
         }
     }
@@ -149,7 +143,7 @@ class PlaylistManager : EventAware, Stateful {
     }
 
     fun stopAfter(n: Int) {
-        stopAfter = n.coerceAtLeast(0)
+        GravifonContext.stopAfterState.value = GravifonContext.stopAfterState.value.setAndGet(n.coerceAtLeast(0))
     }
 
     inner class PlaylistManagerFileStorage : FileStorage(storageDir = configHomeDir.resolve("playlist")) {
