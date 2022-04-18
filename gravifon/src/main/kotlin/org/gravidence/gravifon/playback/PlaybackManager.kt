@@ -134,22 +134,24 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
             stop()
         }
 
-        audioBackend!!.prepareNext(track)
+        audioBackend?.prepareNext(track)
 
         if (forcePlay) {
-            audioBackend!!.play().also {
+            audioBackend?.play()?.also {
                 GravifonContext.playbackStatusState.value = it
-            }
 
-            timer = fixedRateTimer(initialDelay = 1000, period = 200) {
-                logger.trace { "Ask components to update playback status" }
-                updatePlaybackPositionState()
+                if (it == PlaybackStatus.PLAYING) {
+                    timer = fixedRateTimer(initialDelay = 0, period = 200) {
+                        logger.trace { "Ask components to update playback status" }
+                        updatePlaybackPositionState()
+                    }
+                }
             }
         }
     }
 
     private fun pause() {
-        audioBackend!!.pause().also {
+        audioBackend?.pause()?.also {
             GravifonContext.playbackStatusState.value = it
         }
     }
@@ -157,7 +159,7 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
     private fun stop() {
         timer.cancel()
 
-        audioBackend!!.stop().also {
+        audioBackend?.stop()?.also {
             GravifonContext.playbackStatusState.value = it
         }
 
