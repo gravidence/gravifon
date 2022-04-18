@@ -1,11 +1,12 @@
 package org.gravidence.gravifon.playlist.manage
 
+/**
+ * StopAfter state holder. Defaults to deactivated state.
+ */
 data class StopAfter(private val n: Int = -1) {
 
-    val activated: Boolean
-        get() = n > -1
-    val stop: Boolean
-        get() = n == 0
+    val activated: Boolean = n >= 0
+    val stopHere: Boolean = n == 0
 
     fun setAndGet(n: Int): StopAfter {
         return copy(n = n)

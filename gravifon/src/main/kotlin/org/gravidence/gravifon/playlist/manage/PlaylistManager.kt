@@ -70,7 +70,7 @@ class PlaylistManager : EventAware, Stateful {
 
     private fun applyStopAfter(trackPlaylistItem: TrackPlaylistItem?): TrackPlaylistItem? {
         return trackPlaylistItem?.let {
-            return (if (GravifonContext.stopAfterState.value.stop) {
+            return (if (GravifonContext.stopAfterState.value.stopHere) {
                 null
             } else {
                 it

@@ -24,6 +24,7 @@ import org.gravidence.gravifon.event.playback.PausePlaybackEvent
 import org.gravidence.gravifon.event.playback.RepositionPlaybackPointRelativeEvent
 import org.gravidence.gravifon.event.playback.StopPlaybackAfterEvent
 import org.gravidence.gravifon.playback.PlaybackStatus
+import org.gravidence.gravifon.playlist.manage.StopAfter
 import org.gravidence.gravifon.ui.AppBody
 import org.gravidence.gravifon.ui.dialog.ApplicationSettingsDialog
 import org.gravidence.gravifon.ui.dialog.PluginSettingsDialog
@@ -98,11 +99,15 @@ fun ApplicationScope.ApplicationWindow(windowState: WindowState) {
                     text = "Stop after current",
                     icon = if (GravifonContext.stopAfterState.value.activated) rememberVectorPainter(Icons.Filled.Check) else null,
                     onClick = {
-                        val n = when (GravifonContext.playbackStatusState.value) {
-                            PlaybackStatus.STOPPED -> 1
-                            else -> 0
+                        if (GravifonContext.stopAfterState.value.activated) {
+                            GravifonContext.stopAfterState.value = StopAfter()
+                        } else {
+                            val n = when (GravifonContext.playbackStatusState.value) {
+                                PlaybackStatus.STOPPED -> 1
+                                else -> 0
+                            }
+                            EventBus.publish(StopPlaybackAfterEvent(n))
                         }
-                        EventBus.publish(StopPlaybackAfterEvent(n))
                     }
                 )
             }
