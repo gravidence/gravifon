@@ -21,10 +21,12 @@ import org.gravidence.gravifon.configuration.ConfigurationManager
 import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.playback.PlaybackStatus
 import org.gravidence.gravifon.playback.backend.AudioBackend
+import org.gravidence.gravifon.playback.backend.exception.AudioBackendInitializationException
 import org.gravidence.gravifon.playback.backend.gstreamer.configuration.ElementConfiguration
 import org.gravidence.gravifon.util.Stopwatch
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -49,10 +51,24 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
     private var nextTrack: VirtualTrack? = null
 
     override fun init() {
-        Gst.init(Version.BASELINE)
-        playbin = PlayBin("Gravifon")
-
-        logger.info { "Audio backend initialized" }
+        try {
+            logger.info { "Audio backend initialization, started" }
+            // TODO whole thread thing below is a workaround:
+            //  Gst.init, for some reason, spins infinitely (no exception thrown) when no gstreamer libraries found on classpath
+            val thread = thread {
+                Gst.init(Version.BASELINE)
+                playbin = PlayBin("Gravifon")
+            }
+            thread.join(1000)
+            if (Gst.isInitialized()) {
+                logger.info { "Audio backend initialization, completed" }
+            } else {
+                throw GstException("Gstreamer initialization failed")
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Audio backend initialization, failed" }
+            throw AudioBackendInitializationException(e.message, e)
+        }
     }
 
     override fun registerCallback(

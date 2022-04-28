@@ -54,72 +54,28 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
 
         logger.info { "Activate audio backend: ${audioBackend.id}" }
 
-        this.audioBackend = audioBackend.apply {
-            init()
-            registerCallback(
-                aboutToFinishCallback = {
-                    audioFlow.next()?.let {
-                        this@PlaybackManager.start(it, false)
-                    }
-                },
-                audioStreamChangedCallback = { playedTrack, nextTrack, duration ->
-                    logger.debug { "Enter audio stream changed callback: playedTrack=$playedTrack, playtime=$duration, next=$nextTrack" }
+        try {
+            audioBackend.init()
+            audioBackend.registerCallback(
+                aboutToFinishCallback = ::aboutToFinishCallback,
+                audioStreamChangedCallback = ::audioStreamChangedCallback,
+                audioStreamBufferingCallback = ::audioStreamBufferingCallback,
+                endOfStreamCallback = ::endOfStreamCallback,
+                playbackFailureCallback = ::playbackFailureCallback
+            )
 
-                    playedTrack?.let {
-                        if (duration > Duration.ZERO) {
-                            publish(TrackFinishedEvent(it, duration))
-                        }
-                    }
+            this.audioBackend = audioBackend
+        } catch (e: Exception) {
+            this.audioBackend = null
 
-                    nextTrack?.let {
-                        logger.debug { "Switch over to next track: $it" }
-                        GravifonContext.setActiveTrack(it)
-                        publish(TrackStartedEvent(it))
-                    } // if there's no next track, endOfStreamCallback will handle post-playback state clean-up
-                },
-                audioStreamBufferingCallback = {
-                    publish(
-                        PushInnerNotificationEvent(
-                            Notification(
-                                message = "Buffering audio stream, $it%...",
-                                type = NotificationType.MINOR,
-                                lifespan = NotificationLifespan.SHORT
-                            )
-                        )
+            publish(
+                PushInnerNotificationEvent(
+                    Notification(
+                        message = "Failed to initialize audio backend",
+                        type = NotificationType.ERROR,
+                        lifespan = NotificationLifespan.INFINITE
                     )
-                },
-                endOfStreamCallback = {
-                    publish(StopPlaybackEvent())
-                },
-                playbackFailureCallback = { playedTrack, nextTrack, duration ->
-                    // report playback failure for either already next (failed to start) or active track
-                    // n.b. next track is not null only at the moment of AUDIO_CHANGE event, so it's likely a culprit if present
-                    (nextTrack ?: playedTrack)?.let { track ->
-                        val message = "Playback failure: ${track.uri()}"
-                        logger.error { message }
-                        publish(
-                            PushInnerNotificationEvent(
-                                Notification(
-                                    message = message,
-                                    type = NotificationType.ERROR,
-                                    lifespan = NotificationLifespan.LONG
-                                )
-                            )
-                        )
-
-                        track.failing = true
-
-                        if (duration > Duration.ZERO) {
-                            publish(TrackFinishedEvent(track, duration))
-                        }
-
-                        this@PlaybackManager.stop()
-
-                        GravifonContext.activePlaylist.value?.let { playlist ->
-                            publish(PlayNextFromPlaylistEvent(playlist))
-                        }
-                    }
-                }
+                )
             )
         }
     }
@@ -186,6 +142,74 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
             runningPosition = runningPositionOverride ?: audioBackend!!.queryPosition(),
             endingPosition = endingPositionOverride ?: audioBackend!!.queryLength()
         )
+    }
+
+    private fun aboutToFinishCallback() {
+        audioFlow.next()?.let {
+            start(it, false)
+        }
+    }
+
+    private fun audioStreamChangedCallback(played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) {
+        logger.debug { "Enter audio stream changed callback: playedTrack=$played, playtime=$playtime, nextTrack=$next" }
+
+        played?.let {
+            if (playtime > Duration.ZERO) {
+                publish(TrackFinishedEvent(it, playtime))
+            }
+        }
+
+        next?.let {
+            logger.debug { "Switch over to next track: $it" }
+            GravifonContext.setActiveTrack(it)
+            publish(TrackStartedEvent(it))
+        } // if there's no next track, endOfStreamCallback will handle post-playback state clean-up
+    }
+
+    private fun audioStreamBufferingCallback(percent: Int) {
+        publish(
+            PushInnerNotificationEvent(
+                Notification(
+                    message = "Buffering audio stream, $percent%...",
+                    type = NotificationType.MINOR,
+                    lifespan = NotificationLifespan.SHORT
+                )
+            )
+        )
+    }
+
+    private fun endOfStreamCallback() {
+        publish(StopPlaybackEvent())
+    }
+
+    private fun playbackFailureCallback(played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) {
+        // report playback failure for either already next (failed to start) or active track
+        // n.b. next track is not null only at the moment of AUDIO_CHANGE event, so it's likely a culprit if present
+        (next ?: played)?.let { track ->
+            val message = "Playback failure: ${track.uri()}"
+            logger.error { message }
+            publish(
+                PushInnerNotificationEvent(
+                    Notification(
+                        message = message,
+                        type = NotificationType.ERROR,
+                        lifespan = NotificationLifespan.LONG
+                    )
+                )
+            )
+
+            track.failing = true
+
+            if (playtime > Duration.ZERO) {
+                publish(TrackFinishedEvent(track, playtime))
+            }
+
+            stop()
+
+            GravifonContext.activePlaylist.value?.let { playlist ->
+                publish(PlayNextFromPlaylistEvent(playlist))
+            }
+        }
     }
 
 }
