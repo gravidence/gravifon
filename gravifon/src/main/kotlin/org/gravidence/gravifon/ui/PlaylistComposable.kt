@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.text.style.TextOverflow
@@ -247,11 +248,11 @@ class PlaylistTableState(
                                     tooltip = "Track playback status"
                                 ) {
                                     Icon(
-                                        imageVector = when (GravifonContext.playbackStatusState.value) {
-                                            PlaybackStatus.PLAYING -> Icons.Filled.PlayCircle
-                                            PlaybackStatus.PAUSED -> Icons.Filled.PauseCircle
-                                            PlaybackStatus.STOPPED -> Icons.Filled.StopCircle
-                                        },
+                                        imageVector = resolvePlaybackStatusIcon(
+                                            GravifonContext.playbackStatusState.value,
+                                            playlistState.playlist,
+                                            GravifonContext.activePlaylist.value
+                                        ),
                                         contentDescription = "Playback Status",
                                         modifier = statusIconModifier
                                     )
@@ -278,6 +279,18 @@ class PlaylistTableState(
                     )
                 }
             )
+        }
+
+        private fun resolvePlaybackStatusIcon(playbackStatus: PlaybackStatus, thisPlaylist: Playlist, activePlaylist: Playlist?): ImageVector {
+            return if (thisPlaylist === activePlaylist) {
+                when (playbackStatus) {
+                    PlaybackStatus.PLAYING -> Icons.Filled.PlayCircle
+                    PlaybackStatus.PAUSED -> Icons.Filled.PauseCircle
+                    PlaybackStatus.STOPPED -> Icons.Filled.StopCircle
+                }
+            } else {
+                Icons.Filled.StopCircle
+            }
         }
 
     }
