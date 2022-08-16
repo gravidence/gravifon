@@ -78,7 +78,7 @@ fun ApplicationScope.ApplicationWindow(windowState: WindowState) {
                 Item(
                     text = "Play/Pause",
                     icon = rememberVectorPainter(Icons.Filled.PlayArrow),
-                    shortcut = KeyShortcut(key = Key.Spacebar, shift = true),
+                    shortcut = KeyShortcut(key = Key.Spacebar, ctrl = true),
                     onClick = { EventBus.publish(PausePlaybackEvent()) }
                 )
                 Separator()
@@ -98,6 +98,7 @@ fun ApplicationScope.ApplicationWindow(windowState: WindowState) {
                 Item(
                     text = "Stop after current",
                     icon = if (GravifonContext.stopAfterState.value.activated) rememberVectorPainter(Icons.Filled.Check) else null,
+                    shortcut = KeyShortcut(key = Key.Spacebar, shift = true),
                     onClick = {
                         if (GravifonContext.stopAfterState.value.activated) {
                             GravifonContext.stopAfterState.value = StopAfter()
