@@ -26,7 +26,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "windowsJava" do |windowsJava|
     windowsJava.vm.box = "gusztavvargadr/windows-10"
     windowsJava.vm.provision "shell", inline: <<-SHELL
-      choco install Temurin -y --params="/ADDLOCAL=FeatureMain,FeatureEnvironment,FeatureJarFileRunWith,FeatureJavaHome"
+      choco install openjdk11 -y
     SHELL
     windowsJava.vm.provision "shell", inline: <<-SHELL
       cd c:\\vagrant
