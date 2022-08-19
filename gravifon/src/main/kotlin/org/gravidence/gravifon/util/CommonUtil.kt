@@ -11,3 +11,10 @@ fun <T> nullableListOf(element: T?): List<T>? {
 fun <T> firstNotEmptyOrNull(vararg collection: Collection<T>?): Collection<T>? {
     return collection.firstOrNull { it?.isNotEmpty() ?: false }
 }
+
+fun String.removePrefix(prefix: CharSequence, ignoreCase: Boolean): String {
+    if (startsWith(prefix, ignoreCase)) {
+        return substring(prefix.length)
+    }
+    return this
+}

@@ -9,6 +9,7 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import org.gravidence.gravifon.util.removePrefix
 import org.http4k.core.Uri
 import org.http4k.core.queries
 
@@ -195,7 +196,7 @@ private fun enhanceTrackArtist(title: String, isMultiArtist: Boolean): String? {
     }
 }
 private fun enhanceTitle(title: String, artist: String): String {
-    return title.removePrefix(artist + BC_SEPARATOR)
+    return title.removePrefix(artist + BC_SEPARATOR, true)
 }
 
 private fun String.normalizeWhitespaces(): String {
