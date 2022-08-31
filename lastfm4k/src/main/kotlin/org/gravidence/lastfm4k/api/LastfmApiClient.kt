@@ -63,7 +63,7 @@ class LastfmApiClient(
             .lfmQueryParams(queries)
             .lfmQuerySignature(queries, apiSecret)
             .query("format", "json").also {
-                logger.debug { "Request: $it" }
+                logger.debug { "Request: ${it.toString().trim()}" }
             }
 
         return call(request)
