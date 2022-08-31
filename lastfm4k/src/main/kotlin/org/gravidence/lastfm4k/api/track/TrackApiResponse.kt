@@ -157,10 +157,10 @@ class TrackInfo(
     @SerialName("playcount")
     val playcount: Long,
     @SerialName("userplaycount")
-    val userPlaycount: Long?,
+    val userPlaycount: Long? = null,
     @SerialName("userloved")
     @Serializable(with = BooleanAsIntSerializer::class)
-    val userLoved: Boolean,
+    val userLoved: Boolean? = null,
 )
 
 fun ScrobbleResponse.toBatchScrobbleResponse(): BatchScrobbleResponse {

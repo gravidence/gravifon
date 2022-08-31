@@ -38,6 +38,7 @@ import org.gravidence.lastfm4k.api.auth.Session
 import org.gravidence.lastfm4k.api.auth.Token
 import org.gravidence.lastfm4k.api.track.IgnoreStatus
 import org.gravidence.lastfm4k.api.track.Track
+import org.gravidence.lastfm4k.api.track.TrackInfoResponse
 import org.gravidence.lastfm4k.api.track.comply
 import org.gravidence.lastfm4k.exception.LastfmApiException
 import org.gravidence.lastfm4k.exception.LastfmException
@@ -106,21 +107,29 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
         handleLastfmException {
             val response = lastfmClient.trackApi.getInfo(track)
 
-            val playcountExtraInfo = "${response.trackInfo.userPlaycount} scrobbles"
-            val lovedExtraInfo = if (response.trackInfo.userLoved) "♥" else null
-            GravifonContext.activeTrackExtraInfo.value += listOfNotNull(playcountExtraInfo, lovedExtraInfo)
-                .joinToString(separator = ",", prefix = "Last.fm: ")
-
-            publish(
-                PushInnerNotificationEvent(
-                    Notification(
-                        message = "You got ${response.trackInfo.userPlaycount} scrobbles for \"${track.artist} - ${track.track}\"",
-                        type = NotificationType.REGULAR,
-                        lifespan = NotificationLifespan.LONG
+            val playcountExtraInfo = resolveUserPlaycount(track, response)?.let {
+                publish(
+                    PushInnerNotificationEvent(
+                        Notification(
+                            message = "You got $it scrobbles for \"${track.artist} - ${track.track}\"",
+                            type = NotificationType.REGULAR,
+                            lifespan = NotificationLifespan.LONG
+                        )
                     )
                 )
-            )
+
+                "$it scrobbles"
+            }
+
+            val lovedExtraInfo = if (response.trackInfo.userLoved == true) "♥" else null
+
+            GravifonContext.activeTrackExtraInfo.value += listOfNotNull(playcountExtraInfo, lovedExtraInfo)
+                .joinToString(separator = ",", prefix = "Last.fm: ")
         }
+    }
+
+    private fun resolveUserPlaycount(track: Track, response: TrackInfoResponse): Long? {
+        return response.trackInfo.userPlaycount
     }
 
     private fun handle(event: TrackFinishedEvent) {
