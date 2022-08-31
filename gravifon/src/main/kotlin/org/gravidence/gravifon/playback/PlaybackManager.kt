@@ -66,6 +66,7 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
 
             this.audioBackend = audioBackend
         } catch (e: Exception) {
+            logger.error(e) { "Playback manager initialization failed" }
             this.audioBackend = null
 
             publish(
