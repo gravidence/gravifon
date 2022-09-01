@@ -59,8 +59,8 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
                 Gst.init(Version.BASELINE)
                 playbin = PlayBin("Gravifon")
             }
-            thread.join(1000)
-            if (Gst.isInitialized()) {
+            thread.join(2000)
+            if (Gst.isInitialized() && this::playbin.isInitialized) {
                 logger.info { "Audio backend initialization, completed" }
             } else {
                 throw GstException("Gstreamer initialization failed")
