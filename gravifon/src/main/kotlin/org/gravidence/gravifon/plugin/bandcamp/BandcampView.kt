@@ -27,6 +27,7 @@ import org.gravidence.gravifon.playlist.item.PlaylistItem
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
 import org.gravidence.gravifon.ui.PlaylistComposable
+import org.gravidence.gravifon.ui.PlaylistState
 import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.gravidence.gravifon.ui.theme.gShape
@@ -81,6 +82,7 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
         val isRefreshing: MutableState<Boolean>,
         val processed: MutableState<Int>,
         val toProcess: MutableState<Int>,
+        val playlistState: PlaylistState,
     ) {
 
         val isProcessing: Boolean
@@ -119,9 +121,7 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
 
                 isRefreshing.value = true
 
-                val tracks = playlist.items()
-                    .filterIsInstance<TrackPlaylistItem>()
-                    .map { it.track }
+                val tracks = playlistState.effectivelySelectedTracks()
                 bandcamp.selectExpiredTracks(tracks).also {
                     toProcess.value = it.size + 1
                     processed.value = 1
@@ -144,23 +144,25 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
         isRefreshing: Boolean = false,
         processed: Int = 0,
         toProcess: Int = 0,
-    ) = remember(url, isAdding, isRefreshing) {
+        playlistState: PlaylistState,
+    ) = remember(url, isAdding, isRefreshing, playlistState) {
         BandcampViewState(
             url = mutableStateOf(url),
             isAdding = mutableStateOf(isAdding),
             isRefreshing = mutableStateOf(isRefreshing),
             processed = mutableStateOf(processed),
             toProcess = mutableStateOf(toProcess),
+            playlistState = playlistState,
         )
     }
 
     @Composable
     override fun composeView() {
-        val bandcampViewState = rememberBandcampViewState()
         val playlistState = rememberPlaylistState(
             playlistItems = playlistItems.value,
             playlist = playlist
         )
+        val bandcampViewState = rememberBandcampViewState(playlistState = playlistState)
 
         Box(
             modifier = Modifier
