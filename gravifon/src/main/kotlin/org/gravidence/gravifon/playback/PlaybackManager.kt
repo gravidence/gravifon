@@ -91,6 +91,12 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
             stop()
         }
 
+        if (track.failing) {
+            // reset failure status as we're going to play the track one more time
+            // it could be again set to failing further on at actual playback attempt
+            track.failing = false
+        }
+
         audioBackend?.prepareNext(track)
 
         if (forcePlay) {
