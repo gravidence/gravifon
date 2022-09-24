@@ -1,9 +1,6 @@
 package org.gravidence.gravifon.configuration
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.LoggerContext
-import ch.qos.logback.classic.PatternLayout
+import ch.qos.logback.classic.*
 import ch.qos.logback.classic.jul.LevelChangePropagator
 import ch.qos.logback.classic.spi.Configurator
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -11,12 +8,11 @@ import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder
 import ch.qos.logback.core.rolling.RollingFileAppender
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy
-import ch.qos.logback.core.spi.ContextAwareBase
 import ch.qos.logback.core.util.FileSize
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 
-class LogbackConfigurator : ContextAwareBase(), Configurator {
+class LogbackConfigurator : BasicConfigurator() {
 
     private val logDir: Path = ConfigUtil.configHomeDir.resolve("log")
     private val logFile: Path = logDir.resolve("gravifon.log")
@@ -30,7 +26,7 @@ class LogbackConfigurator : ContextAwareBase(), Configurator {
         logDir.createDirectories()
     }
 
-    override fun configure(lc: LoggerContext?) {
+    override fun configure(lc: LoggerContext?): Configurator.ExecutionStatus {
         addInfo("Setting up default configuration.")
 
         if (lc != null) {
@@ -44,6 +40,8 @@ class LogbackConfigurator : ContextAwareBase(), Configurator {
             rootLogger.addAppender(consoleAppender(lc))
             rootLogger.addAppender(fileAppender(lc))
         }
+
+        return Configurator.ExecutionStatus.DO_NOT_INVOKE_NEXT_IF_ANY
     }
 
     /**

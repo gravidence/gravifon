@@ -29,23 +29,23 @@ dependencies {
     // TODO think about extracting actually used icon subset only
     implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.1.1")
 
-    implementation("ch.qos.logback:logback-classic:1.2.11")
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
-    implementation("org.http4k:http4k-core:4.27.3.0")
-    implementation("org.jsoup:jsoup:1.15.2")
-    implementation("org.slf4j:jcl-over-slf4j:1.7.36")
-    implementation("org.slf4j:jul-to-slf4j:1.7.36")
-    implementation("org.slf4j:log4j-over-slf4j:1.7.36")
+    implementation("ch.qos.logback:logback-classic:1.4.1")
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.0")
+    implementation("org.http4k:http4k-core:4.30.8.0")
+    implementation("org.jsoup:jsoup:1.15.3")
+    implementation("org.slf4j:jcl-over-slf4j:2.0.1")
+    implementation("org.slf4j:jul-to-slf4j:2.0.1")
+    implementation("org.slf4j:log4j-over-slf4j:2.0.1")
 
-    implementation("org.springframework:spring-context:5.3.22")
-    implementation("org.springframework:spring-expression:5.3.22")
+    implementation("org.springframework:spring-context:5.3.23")
+    implementation("org.springframework:spring-expression:5.3.23")
 
     implementation("net.jthink:jaudiotagger:3.0.1")
     implementation("org.freedesktop.gstreamer:gst1-java-core:1.4.0")
 
     testImplementation(kotlin("test"))
     testImplementation("org.hamcrest:hamcrest:2.2")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
 }
 
 tasks.withType<Test> {
