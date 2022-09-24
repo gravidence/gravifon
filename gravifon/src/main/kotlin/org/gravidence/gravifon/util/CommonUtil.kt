@@ -18,3 +18,7 @@ fun String.removePrefix(prefix: CharSequence, ignoreCase: Boolean): String {
     }
     return this
 }
+
+fun <T> Iterable<T>.joinViaSpace(): String {
+    return joinToString(separator = " ")
+}
