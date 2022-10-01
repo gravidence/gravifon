@@ -27,6 +27,7 @@ interface Configurable : ConfigurationManagerAware {
     /**
      * Reads component configuration (a bean) from application settings.
      */
+    @Suppress("UNCHECKED_CAST")
     fun <T : ComponentConfiguration> readComponentConfiguration(defaultConfig: () -> T): T {
         return ((configurationManager.componentConfig(this.javaClass.name) as? T) ?: defaultConfig()).also {
             logger.debug { "Use component configuration: $it" }

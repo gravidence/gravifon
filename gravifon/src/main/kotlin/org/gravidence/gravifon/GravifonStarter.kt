@@ -61,6 +61,7 @@ object GravifonStarter {
 
 }
 
+@Suppress("unused")
 @Serializable
 class SystemInfo {
 
