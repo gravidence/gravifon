@@ -70,7 +70,9 @@ class Bandcamp(
     private fun extractAlbumOrTrackJson(document: Document): String? {
         return document.select("script[data-band-follow-info]")
             .map { it.attr("data-tralbum") }
-            .firstOrNull()
+            .firstOrNull()?.also {
+                logger.debug { "Raw JSON: $it" }
+            }
     }
 
     private fun extractAlbumUrls(document: Document, discographyAbsoluteUrl: String): List<String>? {
