@@ -9,7 +9,6 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import org.gravidence.gravifon.util.removePrefix
 import org.http4k.core.Uri
 import org.http4k.core.queries
 
@@ -126,7 +125,6 @@ fun BandcampTrackFileInfo.expiresAfter(): Instant? {
         }
 }
 
-private const val BC_SEPARATOR = " - "
 private val duplicateWhitespaceRegex = """\s+""".toRegex()
 
 fun BandcampItem.enhanced(): BandcampItem {
@@ -136,20 +134,24 @@ fun BandcampItem.enhanced(): BandcampItem {
 
         when (type) {
             BandcampItemType.ALBUM -> {
-                val isMultiArtist = tracks.all { it.artist == null && it.title.contains(BC_SEPARATOR) }
+                val isMultiArtist = tracks.all { it.artist == null && DirtyTitle.regex.matches(it.title) }
 
                 copy(
                     albumReleaseDate = enhancedAlbumReleaseDate,
                     details = details.copy(
                         artist = enhancedAlbumArtist,
-                        title = enhanceTitle(details.title!!, enhancedAlbumArtist),
+                        title = DirtyTitle(details.title!!).getEnhancedTitle(enhancedAlbumArtist),
                         date = enhancedAlbumReleaseDate
                     ),
-                    tracks = tracks.map {
-                        val enhancedArtist = it.artist ?: enhanceTrackArtist(it.title, isMultiArtist) ?: enhancedAlbumArtist
-                        val enhancedTitle = enhanceTitle(it.title, enhancedArtist)
+                    tracks = tracks.map { track ->
+                        val dirtyTitle = DirtyTitle(track.title)
 
-                        it.copy(artist = enhancedArtist, title = enhancedTitle)
+                        val enhancedArtist = track.artist
+                            ?: dirtyTitle.getEnhancedArtist()?.takeIf { isMultiArtist }
+                            ?: enhancedAlbumArtist
+                        val enhancedTitle = dirtyTitle.getEnhancedTitle(enhancedArtist)
+
+                        track.copy(artist = enhancedArtist, title = enhancedTitle)
                     }
                 )
             }
@@ -188,15 +190,35 @@ fun BandcampItem.normalizeWhitespaces(): BandcampItem {
     )
 }
 
-private fun enhanceTrackArtist(title: String, isMultiArtist: Boolean): String? {
-    return if (isMultiArtist) {
-        title.substringBefore(BC_SEPARATOR)
-    } else {
-        null
+private class DirtyTitle(
+    val originalTitle: String,
+) {
+
+    private val enhancedArtist: String?
+    private val separator: String?
+    private val enhancedTitle: String?
+
+    init {
+        val groups = regex.matchEntire(originalTitle)?.groups
+
+        enhancedArtist = groups?.get(1)?.value
+        separator = groups?.get(2)?.value
+        enhancedTitle = groups?.get(3)?.value
     }
-}
-private fun enhanceTitle(title: String, artist: String): String {
-    return title.removePrefix(artist + BC_SEPARATOR, true)
+
+    fun getEnhancedArtist(): String? {
+        return enhancedArtist
+    }
+
+    fun getEnhancedTitle(artist: String): String {
+        return enhancedTitle?.takeIf { artist.equals(enhancedArtist, true) }
+            ?: originalTitle
+    }
+
+    companion object {
+        val regex = """(.+)(\s[-_:.]\s)(.+)""".toRegex()
+    }
+
 }
 
 private fun String.normalizeWhitespaces(): String {

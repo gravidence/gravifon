@@ -21,6 +21,7 @@ internal class BandcampItemTest {
             "/bandcamp/album-single-artist_track-has-no-artist.json",
             "/bandcamp/album-single-artist_root-has-no-album-release-date.json",
             "/bandcamp/album-single-artist_album-has-no-release-date.json",
+            "/bandcamp/album-single-artist_album-title-has-non-default-separator.json",
         ]
     )
     fun enhanceAlbumSingleArtist(path: String) {
@@ -75,10 +76,66 @@ internal class BandcampItemTest {
     @ParameterizedTest
     @ValueSource(
         strings = [
+            "/bandcamp/album-single-artist_some-track-title-has-known-separator.json",
+        ]
+    )
+    fun enhanceAlbumSingleArtistCornerCases(path: String) {
+        val data = Files.readString(Path.of(ClassPathResource(path).uri))
+        val actual = bandcampSerializer.decodeFromString<BandcampItem>(data)
+            .enhanced()
+
+        val expected = BandcampItem(
+            url = "https://gravifon.org/album/qwe",
+            type = BandcampItemType.ALBUM,
+            details = BandcampItemDetails(
+                artist = "QWE",
+                title = "0101",
+                date = Instant.parse("2020-02-20T00:00:00Z")
+            ),
+
+            albumArtist = "QWE",
+            albumReleaseDate = Instant.parse("2020-02-20T00:00:00Z"),
+            albumUrl = null,
+
+            tracks = listOf(
+                BandcampTrackDetails(
+                    artist = "QWE",
+                    title = "AAA CCC",
+                    tracknum = 1,
+                    duration = 100.1,
+                    file = BandcampTrackFileInfo(
+                        mp3128 = "https://gravifon.org/stream/aaa"
+                    )
+                ),
+                BandcampTrackDetails(
+                    artist = "QWE",
+                    title = "BBB . DDD",
+                    tracknum = 2,
+                    duration = 200.2,
+                    file = BandcampTrackFileInfo(
+                        mp3128 = "https://gravifon.org/stream/bbb"
+                    )
+                ),
+            )
+        )
+
+        assertThat(actual.url, equalTo(expected.url))
+        assertThat(actual.type, equalTo(expected.type))
+        assertThat(actual.details, equalTo(expected.details))
+        assertThat(actual.albumArtist, equalTo(expected.albumArtist))
+        assertThat(actual.albumReleaseDate, equalTo(expected.albumReleaseDate))
+        assertThat(actual.albumUrl, equalTo(expected.albumUrl))
+        assertThat(actual.tracks, equalTo(expected.tracks))
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
             "/bandcamp/album-multi-artist.json",
             "/bandcamp/album-multi-artist_track-title-has-artist.json",
             "/bandcamp/album-multi-artist_track-title-has-different-artists.json",
             "/bandcamp/album-multi-artist_unnecessary-spaces.json",
+            "/bandcamp/album-multi-artist_track-title-has-non-default-separator.json",
         ]
     )
     fun enhanceAlbumMultiArtist(path: String) {

@@ -1,0 +1,31 @@
+{
+  "url": "https://gravifon.org/album/qwe",
+  "item_type": "album",
+  "artist": "QWE QWE",
+  "album_release_date": "20 Feb 2020 00:00:00 GMT",
+  "current": {
+    "release_date": "20 Feb 2020 00:00:00 GMT",
+    "artist": null,
+    "title": "01 01"
+  },
+  "trackinfo": [
+    {
+      "artist": "ASD ASD",
+      "file": {
+        "mp3-128": "https://gravifon.org/stream/aaa"
+      },
+      "track_num": 1,
+      "title": "ASD ASD _ AAA AAA",
+      "duration": 100.1
+    },
+    {
+      "artist": "ZXC ZXC",
+      "file": {
+        "mp3-128": "https://gravifon.org/stream/bbb"
+      },
+      "track_num": 2,
+      "title": "ZXC ZXC : BBB BBB",
+      "duration": 200.2
+    }
+  ]
+}
