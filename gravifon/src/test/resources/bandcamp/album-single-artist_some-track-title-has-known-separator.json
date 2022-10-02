@@ -26,6 +26,24 @@
       "track_num": 2,
       "title": "BBB . DDD",
       "duration": 200.2
+    },
+    {
+      "artist": null,
+      "file": {
+        "mp3-128": "https://gravifon.org/stream/eee"
+      },
+      "track_num": 2,
+      "title": "EEE",
+      "duration": 300.3
+    },
+    {
+      "artist": null,
+      "file": {
+        "mp3-128": "https://gravifon.org/stream/fff"
+      },
+      "track_num": 3,
+      "title": "FFF",
+      "duration": 400.4
     }
   ]
 }

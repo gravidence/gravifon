@@ -116,6 +116,24 @@ internal class BandcampItemTest {
                         mp3128 = "https://gravifon.org/stream/bbb"
                     )
                 ),
+                BandcampTrackDetails(
+                    artist = "QWE",
+                    title = "EEE",
+                    tracknum = 3,
+                    duration = 300.3,
+                    file = BandcampTrackFileInfo(
+                        mp3128 = "https://gravifon.org/stream/eee"
+                    )
+                ),
+                BandcampTrackDetails(
+                    artist = "QWE",
+                    title = "FFF",
+                    tracknum = 4,
+                    duration = 400.4,
+                    file = BandcampTrackFileInfo(
+                        mp3128 = "https://gravifon.org/stream/fff"
+                    )
+                ),
             )
         )
 

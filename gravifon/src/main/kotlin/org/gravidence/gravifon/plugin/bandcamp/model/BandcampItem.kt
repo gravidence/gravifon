@@ -134,7 +134,8 @@ fun BandcampItem.enhanced(): BandcampItem {
 
         when (type) {
             BandcampItemType.ALBUM -> {
-                val isMultiArtist = tracks.all { it.artist == null && DirtyTitle.regex.matches(it.title) }
+                val titlesAreDirty = tracks.all { it.artist == null && DirtyTitle.regex.matches(it.title) }
+                val tracknumsAreCorrect = tracks.distinctBy { it.tracknum }.size == tracks.size
 
                 copy(
                     albumReleaseDate = enhancedAlbumReleaseDate,
@@ -143,15 +144,17 @@ fun BandcampItem.enhanced(): BandcampItem {
                         title = DirtyTitle(details.title!!).getEnhancedTitle(enhancedAlbumArtist),
                         date = enhancedAlbumReleaseDate
                     ),
-                    tracks = tracks.map { track ->
+                    tracks = tracks.mapIndexed { index, track ->
                         val dirtyTitle = DirtyTitle(track.title)
 
                         val enhancedArtist = track.artist
-                            ?: dirtyTitle.getEnhancedArtist()?.takeIf { isMultiArtist }
+                            ?: dirtyTitle.getEnhancedArtist()?.takeIf { titlesAreDirty }
                             ?: enhancedAlbumArtist
                         val enhancedTitle = dirtyTitle.getEnhancedTitle(enhancedArtist)
+                        val enhancedTracknum = track.tracknum.takeIf { tracknumsAreCorrect }
+                            ?: index.inc() // potentially more intelligent solution needed
 
-                        track.copy(artist = enhancedArtist, title = enhancedTitle)
+                        track.copy(artist = enhancedArtist, title = enhancedTitle, tracknum = enhancedTracknum)
                     }
                 )
             }
