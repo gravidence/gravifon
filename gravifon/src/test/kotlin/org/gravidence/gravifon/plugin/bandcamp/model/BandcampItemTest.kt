@@ -24,7 +24,7 @@ internal class BandcampItemTest {
             "/bandcamp/album-single-artist_album-title-has-non-default-separator.json",
         ]
     )
-    fun enhanceAlbumSingleArtist(path: String) {
+    fun `Enhance single artist album details`(path: String) {
         val data = Files.readString(Path.of(ClassPathResource(path).uri))
         val actual = bandcampSerializer.decodeFromString<BandcampItem>(data)
             .enhanced()
@@ -77,9 +77,10 @@ internal class BandcampItemTest {
     @ValueSource(
         strings = [
             "/bandcamp/album-single-artist_some-track-title-has-known-separator.json",
+            "/bandcamp/album-single-artist_some-tracknums-are-invalid.json",
         ]
     )
-    fun enhanceAlbumSingleArtistCornerCases(path: String) {
+    fun `Enhance album corner cases`(path: String) {
         val data = Files.readString(Path.of(ClassPathResource(path).uri))
         val actual = bandcampSerializer.decodeFromString<BandcampItem>(data)
             .enhanced()
@@ -156,7 +157,7 @@ internal class BandcampItemTest {
             "/bandcamp/album-multi-artist_track-title-has-non-default-separator.json",
         ]
     )
-    fun enhanceAlbumMultiArtist(path: String) {
+    fun `Enhance multi artist album details`(path: String) {
         val data = Files.readString(Path.of(ClassPathResource(path).uri))
         val actual = bandcampSerializer.decodeFromString<BandcampItem>(data)
             .enhanced()
@@ -213,7 +214,7 @@ internal class BandcampItemTest {
             "/bandcamp/track-single-artist_track-title-has-artist.json",
         ]
     )
-    fun enhanceTrackSingleArtist(path: String) {
+    fun `Enhance single artist track details`(path: String) {
         val data = Files.readString(Path.of(ClassPathResource(path).uri))
         val actual = bandcampSerializer.decodeFromString<BandcampItem>(data)
             .enhanced()
@@ -260,7 +261,7 @@ internal class BandcampItemTest {
             "/bandcamp/track-multi-artist_track-title-has-artist.json",
         ]
     )
-    fun enhanceTrackMultiArtist(path: String) {
+    fun `Enhance multi artist track details`(path: String) {
         val data = Files.readString(Path.of(ClassPathResource(path).uri))
         val actual = bandcampSerializer.decodeFromString<BandcampItem>(data)
             .enhanced()
@@ -301,7 +302,7 @@ internal class BandcampItemTest {
     }
 
     @Test
-    fun streamExpiresAfter() {
+    fun `Determine stream expiration timestamp`() {
         val fileInfo = BandcampTrackFileInfo(
             mp3128 = "https://gravifon.org/stream/1234567890?p=0&ts=1646427552&t=1e6feffdaf15c0039b25d2eb99ab18c50d1c2b63&token=1646427552_5119aec272539e7d3809dd2d8e0e4756512e988d"
         )

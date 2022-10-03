@@ -134,7 +134,7 @@ fun BandcampItem.enhanced(): BandcampItem {
 
         when (type) {
             BandcampItemType.ALBUM -> {
-                val titlesAreDirty = tracks.all { it.artist == null && DirtyTitle.regex.matches(it.title) }
+                val allTitlesAreDirty = tracks.all { it.artist == null && DirtyTitle.regex.matches(it.title) } // a good sign that actual artist is part of track title
                 val tracknumsAreCorrect = tracks.distinctBy { it.tracknum }.size == tracks.size
 
                 copy(
@@ -148,7 +148,7 @@ fun BandcampItem.enhanced(): BandcampItem {
                         val dirtyTitle = DirtyTitle(track.title)
 
                         val enhancedArtist = track.artist
-                            ?: dirtyTitle.getEnhancedArtist()?.takeIf { titlesAreDirty }
+                            ?: dirtyTitle.getEnhancedArtist()?.takeIf { allTitlesAreDirty }
                             ?: enhancedAlbumArtist
                         val enhancedTitle = dirtyTitle.getEnhancedTitle(enhancedArtist)
                         val enhancedTracknum = track.tracknum.takeIf { tracknumsAreCorrect }
