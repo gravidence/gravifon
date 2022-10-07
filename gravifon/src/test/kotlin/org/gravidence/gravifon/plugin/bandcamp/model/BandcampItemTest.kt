@@ -110,7 +110,7 @@ internal class BandcampItemTest {
                 ),
                 BandcampTrackDetails(
                     artist = "QWE",
-                    title = "BBB . DDD",
+                    title = "BBB - DDD",
                     tracknum = 2,
                     duration = 200.2,
                     file = BandcampTrackFileInfo(

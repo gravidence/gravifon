@@ -219,7 +219,7 @@ private class DirtyTitle(
     }
 
     companion object {
-        val regex = """(.+)(\s[-_:.]\s)(.+)""".toRegex()
+        val regex = """(.+?)(\s[-_:.]\s)(.+)""".toRegex()
     }
 
 }
