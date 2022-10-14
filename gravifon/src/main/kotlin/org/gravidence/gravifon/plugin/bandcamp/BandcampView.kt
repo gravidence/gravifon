@@ -1,11 +1,22 @@
 package org.gravidence.gravifon.plugin.bandcamp
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
+import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +39,6 @@ import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
 import org.gravidence.gravifon.playlist.manage.PlaylistManager
 import org.gravidence.gravifon.ui.PlaylistComposable
 import org.gravidence.gravifon.ui.PlaylistState
-import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.rememberPlaylistState
 import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.ui.theme.gTextFieldStyle
@@ -215,7 +225,10 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
                     )
                 }
             } else {
-                AppIcon("icons8-plus-+-24.png")
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Add"
+                )
             }
         }
         IconButton(
@@ -237,7 +250,10 @@ class BandcampView(override val playlistManager: PlaylistManager, val bandcamp: 
                     )
                 }
             } else {
-                AppIcon("icons8-synchronize-24.png")
+                Icon(
+                    imageVector = Icons.Filled.Sync,
+                    contentDescription = "Synchronize"
+                )
             }
         }
     }

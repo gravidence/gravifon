@@ -1,10 +1,28 @@
 package org.gravidence.gravifon.plugin.scrobble.lastfm
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.Button
+import androidx.compose.material.Checkbox
+import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.OpenInBrowser
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -30,7 +48,6 @@ import org.gravidence.gravifon.orchestration.marker.EventAware
 import org.gravidence.gravifon.plugin.Plugin
 import org.gravidence.gravifon.plugin.scrobble.Scrobble
 import org.gravidence.gravifon.ui.TextTooltip
-import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.util.DesktopUtil
 import org.gravidence.lastfm4k.LastfmClient
@@ -447,7 +464,10 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
                             modifier = Modifier
                                 .size(30.dp)
                         ) {
-                            AppIcon(path = "icons8-upload-24.png", modifier = Modifier.size(16.dp))
+                            Icon(
+                                imageVector = Icons.Filled.OpenInBrowser,
+                                contentDescription = "Open in Browser"
+                            )
                         }
                     }
                 }

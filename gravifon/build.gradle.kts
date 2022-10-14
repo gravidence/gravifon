@@ -18,6 +18,7 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":gravicons"))
     implementation(project(":lastfm4k"))
 
     implementation(compose.desktop.currentOs)
@@ -25,9 +26,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
-
-    // TODO think about extracting actually used icon subset only
-    implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.1.1")
 
     implementation("ch.qos.logback:logback-classic:1.4.1")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.0")

@@ -7,4 +7,4 @@ pluginManagement {
 }
 rootProject.name = "gravifon"
 
-include("lastfm4k", "gravifon")
+include("lastfm4k", "gravicons", "gravifon")

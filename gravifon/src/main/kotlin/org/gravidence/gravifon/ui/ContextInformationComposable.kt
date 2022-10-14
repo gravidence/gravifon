@@ -1,7 +1,18 @@
 package org.gravidence.gravifon.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -17,8 +28,8 @@ import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.domain.notification.NotificationType
 import org.gravidence.gravifon.playback.PlaybackStatus
 import org.gravidence.gravifon.playlist.item.TrackPlaylistItem
-import org.gravidence.gravifon.ui.image.AppIcon
 import org.gravidence.gravifon.ui.theme.smallFont
+import org.gravidence.gravifon.util.DualStateObject
 import org.gravidence.gravifon.util.DurationUtil
 import kotlin.concurrent.fixedRateTimer
 
@@ -76,14 +87,21 @@ fun ContextInformationComposable() {
 
 @Composable
 fun PlaybackSourcePanel() {
+    val playbackStatusIcon = remember {
+        DualStateObject(
+            Icons.Filled.MusicOff,
+            Icons.Filled.MusicNote
+        )
+    }
+    val playbackStatusIconModifier = remember {
+        DualStateObject(
+            Color.LightGray,
+            Color.Unspecified
+        )
+    }
+
     val playbackStatus = GravifonContext.playbackStatusState.value
     val activePlaylist = GravifonContext.activePlaylist.value
-
-    val playbackSourceIconColor = if (playbackStatus == PlaybackStatus.STOPPED) {
-        Color.LightGray
-    } else {
-        null
-    }
 
     val playlistOwnerName = activePlaylist?.ownerName ?: ""
     val totalDuration = activePlaylist?.run {
@@ -105,7 +123,11 @@ fun PlaybackSourcePanel() {
         "$playlistOwnerName ($totalDuration)"
     }
 
-    AppIcon(path = "icons8-audio-wave-24.png", tint = playbackSourceIconColor)
+    Icon(
+        imageVector = playbackStatusIcon.state(playbackStatus == PlaybackStatus.STOPPED),
+        contentDescription = "Playback Status",
+        tint = playbackStatusIconModifier.state(playbackStatus == PlaybackStatus.STOPPED)
+    )
     Spacer(Modifier.width(4.dp))
     Text(text = infoBlockText, fontSize = smallFont, fontWeight = FontWeight.ExtraLight)
 }

@@ -39,4 +39,4 @@ Gravifon uses [Gstreamer](https://gstreamer.freedesktop.org/) as it's audio back
 
 ## Licenses
 
-* Ice Cream icon set by https://icons8.com
+~~* Ice Cream icon set by https://icons8.com~~
