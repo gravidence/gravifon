@@ -246,7 +246,11 @@ fun <T> TableContent(tableState: TableState<T>) {
 
 fun <T> LazyListScope.tableContent(tableState: TableState<T>) {
     tableState.grid.value?.rows?.value?.let { rows ->
-        itemsIndexed(items = rows) { rowIndex, row ->
+        itemsIndexed(
+            items = rows,
+            // without the key, lazy list does nothing else but re-uses items by index (ignoring actual backing list content changes)
+            key = { rowIndex, row -> rowIndex.toString() + row.toString() }
+        ) { rowIndex, row ->
             if (rowIndex > 0) {
                 Spacer(Modifier.height(5.dp).fillMaxWidth())
             }
