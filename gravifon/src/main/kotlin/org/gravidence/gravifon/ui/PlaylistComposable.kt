@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
-
 package org.gravidence.gravifon.ui
 
 import androidx.compose.foundation.*
@@ -98,6 +96,7 @@ class PlaylistTableState(
     initialVerticalScrollPosition = playlistState.playlist.verticalScrollPosition,
 ) {
 
+    @OptIn(ExperimentalComposeUiApi::class)
     override fun onKeyEvent(keyEvent: KeyEvent): Boolean {
         return super.onKeyEvent(keyEvent) || if (keyEvent.type == KeyEventType.KeyUp) {
             when (keyEvent.key) {

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package org.gravidence.gravifon.ui.dialog
 
 import androidx.compose.foundation.border
@@ -168,6 +166,7 @@ private fun closeDialog() {
     GravifonContext.trackMetadataDialogVisible.value = false
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TrackMetadataDialog() {
     if (GravifonContext.trackMetadataDialogVisible.value) {

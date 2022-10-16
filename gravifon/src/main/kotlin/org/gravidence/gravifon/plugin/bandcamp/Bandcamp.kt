@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package org.gravidence.gravifon.plugin.bandcamp
 
 import androidx.compose.foundation.layout.*
@@ -261,6 +259,7 @@ class Bandcamp(
         BandcampSettingsState()
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     override fun composeSettings() {
         val state = rememberBandcampSettingsState()
