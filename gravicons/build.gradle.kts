@@ -1,5 +1,4 @@
 import org.jetbrains.compose.jetbrainsCompose
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
@@ -25,6 +24,8 @@ dependencies {
     implementation("org.springframework:spring-core:5.3.23")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "11"
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
 }
