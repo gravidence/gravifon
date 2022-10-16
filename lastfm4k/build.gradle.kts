@@ -7,7 +7,6 @@ group = "org.gravidence"
 version = "0.1"
 
 repositories {
-    google()
     mavenCentral()
 }
 
@@ -28,12 +27,12 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
     }
 }

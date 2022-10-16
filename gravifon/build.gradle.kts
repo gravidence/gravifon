@@ -11,7 +11,6 @@ group = "org.gravidence"
 version = "1.0.0"
 
 repositories {
-    google()
     mavenCentral()
     jetbrainsCompose()
 }
@@ -45,24 +44,26 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
 kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
     }
-}
 
-compose.desktop {
-    application {
-        mainClass = "MainKt"
-        nativeDistributions {
-            packageName = "gravifon"
-            packageVersion = project.version.toString()
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
 
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+    compose {
+        desktop {
+            application {
+                mainClass = "MainKt"
+                nativeDistributions {
+                    packageName = "gravifon"
+                    packageVersion = project.version.toString()
+
+                    targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+                }
+            }
         }
     }
 }

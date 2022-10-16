@@ -9,7 +9,6 @@ group = "org.gravidence"
 version = "0.1"
 
 repositories {
-    google()
     mavenCentral()
     jetbrainsCompose()
 }
