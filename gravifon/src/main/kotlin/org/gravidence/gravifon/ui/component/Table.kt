@@ -309,6 +309,9 @@ data class TableColumn(
 
 data class TableCell<T>(
     val value: String?,
+    var enabled: Boolean? = null,
+    var readOnly: Boolean? = null,
+    val source: T? = null,
     val content: @Composable ((rowIndex: Int, columnIndex: Int, tableState: TableState<T>) -> Unit) = { rowIndex, columnIndex, tableState ->
         if (enabled ?: tableState.enabled.value) {
             BasicTextField(
@@ -337,9 +340,6 @@ data class TableCell<T>(
             )
         }
     },
-    var enabled: Boolean? = null,
-    var readOnly: Boolean? = null,
-    val source: T? = null,
 )
 
 class TableRow<T>(
