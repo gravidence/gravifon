@@ -85,7 +85,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
     private val absoluteMinScrobbleDuration = 30.seconds
     private val absoluteEnoughScrobbleDuration = 4.minutes
 
-    private var pendingScrobble: Scrobble? = null
+    private val pendingScrobbles = mutableListOf<Scrobble>() // TODO make sure this is concurrency ready
 
     override fun consume(event: Event) {
         if (pluginEnabled) {
@@ -98,7 +98,7 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
 
     private fun handle(event: TrackStartedEvent) {
         event.track.toLastfmTrack()?.let {
-            pendingScrobble = Scrobble(track = event.track, startedAt = event.timestamp)
+            pendingScrobbles += Scrobble(track = event.track, startedAt = event.timestamp)
 
             if (componentConfiguration.value.autoScrobble && componentConfiguration.value.sendNowPlaying) {
                 sendNowPlaying(it)
@@ -151,15 +151,15 @@ class LastfmScrobbler(override val configurationManager: ConfigurationManager, v
 
     private fun handle(event: TrackFinishedEvent) {
         event.track.toLastfmTrack()?.let {
-            val pendingScrobbleFixed = pendingScrobble
+            val pendingScrobble = pendingScrobbles.removeFirstOrNull()
 
-            validateScrobbleEvent(pendingScrobbleFixed, event.track)
+            validateScrobbleEvent(pendingScrobble, event.track)
 
-            if (pendingScrobbleFixed != null) {
+            if (pendingScrobble != null) {
                 if (!scrobbleDurationMeetsRequirements(event)) {
                     logger.info { "Last.fm scrobbling criteria not met: trackLength=${event.track.getLength()}, scrobbleDuration=${event.duration}" }
                 } else {
-                    completePendingScrobble(pendingScrobbleFixed, event).also {
+                    completePendingScrobble(pendingScrobble, event).also {
                         publish(
                             PushInnerNotificationEvent(
                                 Notification(

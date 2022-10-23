@@ -206,16 +206,20 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
             )
 
             track.failing = true
+        }
 
-            if (playtime > Duration.ZERO) {
-                publish(TrackFinishedEvent(track, playtime))
+        if (playtime > Duration.ZERO) {
+            if (played == null) {
+                logger.error { "Playtime duration is > 0, but there's no played track" }
+            } else {
+                publish(TrackFinishedEvent(played, playtime))
             }
+        }
 
-            stop()
+        stop()
 
-            GravifonContext.activePlaylist.value?.let { playlist ->
-                publish(PlayNextFromPlaylistEvent(playlist))
-            }
+        GravifonContext.activePlaylist.value?.let { playlist ->
+            publish(PlayNextFromPlaylistEvent(playlist))
         }
     }
 

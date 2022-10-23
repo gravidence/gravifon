@@ -46,9 +46,7 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
 
     private var stopwatch: Stopwatch = Stopwatch()
 
-    // internal state
-    private var activeTrack: VirtualTrack? = null
-    private var nextTrack: VirtualTrack? = null
+    private val trackQueue = TrackQueue()
 
     override fun init() {
         try {
@@ -90,14 +88,14 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
 
         playbin.connect(PlayBin.AUDIO_CHANGED {
             // print message only when there's actual next track, otherwise AUDIO_CHANGE event means playback is being stopped
-            if (nextTrack != null) {
+            if (trackQueue.peekNext() != null) {
                 logger.debug { "Audio stream changed. Now points to ${it.get("current-uri")}" }
             }
 
-            audioStreamChangedCallback(activeTrack, nextTrack, stopwatch.stop()).also {
-                activeTrack = nextTrack
-                nextTrack = null
+            with(trackQueue.pollActive()) {
+                audioStreamChangedCallback(first, second, stopwatch.stop())
             }
+
             stopwatch.count()
         })
         logger.debug { "Callback 'audio-changed' registered" }
@@ -122,7 +120,9 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
 
             // stream doesn't contain enough data
             if (code == 4) {
-                playbackFailureCallback(activeTrack, nextTrack, stopwatch.stop())
+                with(trackQueue.pollActive()) {
+                    playbackFailureCallback(first, second, stopwatch.stop())
+                }
             }
         })
         logger.debug { "Callback 'playback-failure' registered" }
@@ -162,7 +162,7 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
 
     override fun stop(): PlaybackStatus {
         // clear next track, so it won't affect AUDIO_CHANGED event logic
-        nextTrack = null
+        trackQueue.pollNext()
         // active track will be processed as part of AUDIO_CHANGED event
 
         playbin.stop()
@@ -202,7 +202,7 @@ class GstreamerAudioBackend(override val configurationManager: ConfigurationMana
     override fun prepareNext(track: VirtualTrack) {
         playbin.setURI(track.uri())
 
-        nextTrack = track
+        trackQueue.pushNext(track)
 
         logger.debug { "Next track to play: $track" }
     }
