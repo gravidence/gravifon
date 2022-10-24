@@ -288,7 +288,9 @@ fun <T> LazyListScope.tableContent(tableState: TableState<T>) {
                         verticalArrangement = Arrangement.spacedBy(5.dp),
                         modifier = columnModifier
                     ) {
-                        row.cells[columnIndex].value.content(rowIndex, columnIndex, tableState)
+                        with(row.cells[columnIndex]) {
+                            value.content(this, rowIndex, columnIndex, tableState)
+                        }
                     }
                 }
             }
@@ -312,10 +314,11 @@ data class TableCell<T>(
     var enabled: Boolean? = null,
     var readOnly: Boolean? = null,
     val source: T? = null,
-    val content: @Composable ((rowIndex: Int, columnIndex: Int, tableState: TableState<T>) -> Unit) = { rowIndex, columnIndex, tableState ->
+    // TODO pass mutable state of self to re-render cell on state change, but in fact whole shebang should be rewritten
+    val content: @Composable ((cell: MutableState<TableCell<T>>, rowIndex: Int, columnIndex: Int, tableState: TableState<T>) -> Unit) = { cell, rowIndex, columnIndex, tableState ->
         if (enabled ?: tableState.enabled.value) {
             BasicTextField(
-                value = value ?: "<varies>",
+                value = cell.value.value ?: "<varies>",
                 singleLine = true,
                 readOnly = readOnly ?: tableState.readOnly.value,
                 modifier = Modifier
@@ -323,14 +326,12 @@ data class TableCell<T>(
                     .padding(5.dp)
                     .fillMaxWidth(),
                 onValueChange = { newValue ->
-                    TableState.cellState(tableState, rowIndex, columnIndex)?.value?.let { cell ->
-                        tableState.onCellChange(cell, rowIndex, columnIndex, newValue)
-                    }
+                    tableState.onCellChange(cell.value, rowIndex, columnIndex, newValue)
                 }
             )
         } else {
             Text(
-                text = value ?: "<varies>",
+                text = cell.value.value ?: "<varies>",
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier

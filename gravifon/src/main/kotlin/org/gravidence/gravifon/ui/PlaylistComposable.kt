@@ -196,7 +196,7 @@ class PlaylistTableState(
         private fun statusCell(trackPlaylistItem: TrackPlaylistItem, playlistState: PlaylistState, column: StatusColumn): TableCell<PlaylistItem> {
             return TableCell(
                 value = GravifonContext.playbackStatusState.value.toString(),
-                content = { rowIndex, _, _ ->
+                content = { _, rowIndex, _, _ ->
                     run {
                         // force cell refresh on active track change
                         GravifonContext.activeTrack.value === trackPlaylistItem.track
@@ -266,7 +266,7 @@ class PlaylistTableState(
         private fun trackInfoCell(trackPlaylistItem: TrackPlaylistItem, column: TrackInfoColumn): TableCell<PlaylistItem> {
             return TableCell(
                 value = trackPlaylistItem.track.format(column.format),
-                content = { _, _, _ ->
+                content = { _, _, _, _ ->
                     Text(
                         text = trackPlaylistItem.track.format(column.format),
                         maxLines = 1,

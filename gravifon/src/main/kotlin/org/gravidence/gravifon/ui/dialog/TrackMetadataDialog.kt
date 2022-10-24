@@ -133,7 +133,6 @@ class TrackMetadataTableState(
                 track.setFieldValues(table.rows.value[rowIndex].cells[0].value.value!!, newValue)
             }
         }
-        trackMetadataState.tracksSnapshot.value = ListHolder(trackMetadataState.tracksSnapshot.value.list) // propagate changes to upper level
         trackMetadataState.changed.value = true
     }
 
@@ -226,27 +225,7 @@ fun TrackMetadataDialog() {
                                     .fillMaxWidth()
                                     .padding(horizontal = 15.dp, vertical = 10.dp)
                             ) {
-                                Button(
-                                    enabled = GravifonContext.trackMetadataDialogState.changed.value,
-                                    onClick = {
-                                        GravifonContext.trackMetadataDialogState.apply()
-                                        closeDialog()
-                                    }
-                                ) {
-                                    Text("Apply & Close")
-                                }
-                                Button(
-                                    enabled = GravifonContext.trackMetadataDialogState.changed.value,
-                                    onClick = { GravifonContext.trackMetadataDialogState.apply() }
-                                ) {
-                                    Text("Apply")
-                                }
-                                Button(
-                                    enabled = GravifonContext.trackMetadataDialogState.changed.value,
-                                    onClick = { GravifonContext.trackMetadataDialogState.revert() }
-                                ) {
-                                    Text("Revert")
-                                }
+                                DialogControls(GravifonContext.trackMetadataDialogState)
                             }
                         }
                     }
@@ -264,6 +243,31 @@ fun TrackList(trackMetadataState: TrackMetadataState) {
 @Composable
 fun TrackContent(trackMetadataState: TrackMetadataState) {
     Table(TrackMetadataTableState(trackMetadataState))
+}
+
+@Composable
+fun DialogControls(trackMetadataState: TrackMetadataState) {
+    Button(
+        enabled = trackMetadataState.changed.value,
+        onClick = {
+            trackMetadataState.apply()
+            closeDialog()
+        }
+    ) {
+        Text("Apply & Close")
+    }
+    Button(
+        enabled = trackMetadataState.changed.value,
+        onClick = { trackMetadataState.apply() }
+    ) {
+        Text("Apply")
+    }
+    Button(
+        enabled = trackMetadataState.changed.value,
+        onClick = { trackMetadataState.revert() }
+    ) {
+        Text("Revert")
+    }
 }
 
 private fun buildTableGrid(tracks: List<VirtualTrack>): TableGrid<List<VirtualTrack>>? {

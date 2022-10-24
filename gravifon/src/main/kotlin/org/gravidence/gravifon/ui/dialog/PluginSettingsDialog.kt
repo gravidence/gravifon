@@ -62,7 +62,7 @@ class PluginListState(
                                     mutableStateOf(
                                         TableCell(
                                             value = plugin.pluginEnabled.toString(),
-                                            content = { _, _, _ ->
+                                            content = { _, _, _, _ ->
                                                 Checkbox(
                                                     checked = plugin.pluginEnabled,
                                                     onCheckedChange = { plugin.pluginEnabled = it }
