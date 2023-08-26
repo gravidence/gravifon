@@ -304,7 +304,7 @@ fun buildContextMenu(playlistState: PlaylistState): List<ContextMenuItem> {
         .takeIf { it.isNotEmpty() }
         ?.let { streams ->
             contextMenuItems += ContextMenuItem("Open stream source page") {
-                streams.forEach { stream ->
+                streams.distinct().forEach { stream ->
                     DesktopUtil.openInBrowser(stream.sourceUrl)
                 }
             }
