@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 import kotlin.time.Duration
+import kotlin.time.DurationUnit
 
 private val logger = KotlinLogging.logger {}
 
@@ -158,7 +159,7 @@ class PlaybackManager(private val audioFlow: AudioFlow) : EventAware, ShutdownAw
     }
 
     private fun audioStreamChangedCallback(played: VirtualTrack?, next: VirtualTrack?, playtime: Duration) {
-        logger.debug { "Enter audio stream changed callback: playedTrack=$played, playtime=$playtime, nextTrack=$next" }
+        logger.debug { "Enter audio stream changed callback: playedTrack=$played, playtime=${playtime.toString(unit = DurationUnit.SECONDS, decimals = 3)}, nextTrack=$next" }
 
         played?.let {
             if (playtime > Duration.ZERO) {
