@@ -10,11 +10,11 @@ import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.orchestration.marker.Stateful
 import org.gravidence.gravifon.util.serialization.gravifonSerializer
 import org.springframework.stereotype.Component
-import org.springframework.util.Base64Utils
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import kotlin.streams.toList
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 private val logger = KotlinLogging.logger {}
 
@@ -105,8 +105,9 @@ class LibraryStorage : Stateful {
             }
         }
 
+        @OptIn(ExperimentalEncodingApi::class)
         private fun encode(originalPath: String): String {
-            return Base64Utils.encodeToUrlSafeString(originalPath.encodeToByteArray())
+            return Base64.UrlSafe.encode(originalPath.encodeToByteArray())
         }
 
     }

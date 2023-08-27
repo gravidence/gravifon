@@ -20,11 +20,9 @@ dependencies {
     // handy lookup page: https://fonts.google.com/icons?selected=Material+Icons&icon.style=Filled&icon.platform=android
 //    api(compose.materialIconsExtended)
 
-    implementation("org.springframework:spring-core:5.3.23")
+    implementation("org.springframework:spring-core:6.0.6")
 }
 
 kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    }
+    jvmToolchain(17)
 }
