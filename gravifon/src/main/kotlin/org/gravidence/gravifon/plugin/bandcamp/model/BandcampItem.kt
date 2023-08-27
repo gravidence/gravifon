@@ -52,7 +52,7 @@ enum class BandcampItemType(val code: String) {
 
     companion object {
         fun valueOfCode(code: String): BandcampItemType {
-            return values().first { it.code == code }
+            return entries.first { it.code == code }
         }
     }
 

@@ -32,7 +32,7 @@ class PhysicalTrack(val file: AudioFile) {
     fun toVirtualTrack(): VirtualTrack {
         val fields = mutableMapOf<FieldKey, FieldValues>()
 
-        FieldKey.values().forEach { fieldKey ->
+        FieldKey.entries.forEach { fieldKey ->
             extractFieldValues(fieldKey)?.let { fieldValues ->
                 fields[fieldKey] = fieldValues
             }
@@ -120,7 +120,7 @@ class PhysicalTrack(val file: AudioFile) {
                     .asSequence()
                     .filterIsInstance<VorbisCommentTagField>()
                     .filter {
-                        VorbisCommentFieldKey.values().none { fieldKey ->
+                        VorbisCommentFieldKey.entries.none { fieldKey ->
                             fieldKey.name == it.id
                         }
                     }

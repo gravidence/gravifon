@@ -30,7 +30,7 @@ enum class LastfmApiError(val code: Int) {
 
     companion object {
         fun valueOfCode(code: Int): LastfmApiError {
-            return values().first { it.code == code }
+            return entries.first { it.code == code }
         }
     }
 

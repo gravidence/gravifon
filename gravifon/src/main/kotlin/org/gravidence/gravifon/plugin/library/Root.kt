@@ -9,8 +9,8 @@ import org.jaudiotagger.audio.AudioFileFilter
 import org.jaudiotagger.audio.AudioFileIO
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.streams.toList
-import kotlin.system.measureTimeMillis
+import kotlin.time.DurationUnit
+import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -29,7 +29,7 @@ class Root(
     fun scan(): List<VirtualTrack> {
         logger.info { "Library root ($rootDir) scan started" }
 
-        val scanDuration = measureTimeMillis {
+        val scanDuration = measureTime {
             try {
                 val tracksFromRoot = Files.walk(Path.of(rootDir))
                     .map { it.toFile() }
@@ -44,7 +44,7 @@ class Root(
             }
         }
 
-        logger.info { "Library root ($rootDir) scan completed (processed in ${scanDuration}ms)" }
+        logger.info { "Library root ($rootDir) scan completed (processed in ${scanDuration.toString(DurationUnit.MILLISECONDS)})" }
 
         return tracks
     }

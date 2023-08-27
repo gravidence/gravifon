@@ -74,7 +74,7 @@ enum class ImageSize(val description: String) {
 
     companion object {
         fun valueOfDescription(description: String): ImageSize {
-            return values().first { it.description == description }
+            return entries.first { it.description == description }
         }
     }
 

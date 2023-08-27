@@ -17,7 +17,7 @@ class VirtualTrackPattern(val pattern: String) {
             } else if (group[0] == TOKEN_MARKER) {
                 { track ->
                     val token = group.filterNot { c -> c == TOKEN_MARKER }.uppercase()
-                    VirtualTrackFormatSelectors.values().find { it.name == token }?.selector?.invoke(track)?.toString() ?: ""
+                    VirtualTrackFormatSelectors.entries.find { it.name == token }?.selector?.invoke(track)?.toString() ?: ""
                 }
             } else {
                 { group }

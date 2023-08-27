@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "org.gravidence"
-version = "1.0.0"
+version = "1.0.28"
 
 repositories {
     mavenCentral()

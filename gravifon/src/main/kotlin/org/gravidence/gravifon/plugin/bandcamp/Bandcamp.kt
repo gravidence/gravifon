@@ -1,6 +1,10 @@
 package org.gravidence.gravifon.plugin.bandcamp
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -37,8 +41,9 @@ import org.jsoup.nodes.Document
 import org.springframework.stereotype.Component
 import java.net.URI
 import java.util.*
-import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+import kotlin.time.measureTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -57,10 +62,10 @@ class Bandcamp(
 
     private fun fetchPage(url: String): Document {
         val document: Document
-        measureTimeMillis {
+        measureTime {
             document = pageCache.getOrElse(url) { Jsoup.connect(url).get() }
         }.also {
-            logger.debug { "Fetched in ${it}ms" }
+            logger.debug { "Fetched in ${it.toString(DurationUnit.MILLISECONDS)}" }
         }
         return document
     }

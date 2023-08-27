@@ -72,7 +72,7 @@ enum class IgnoreStatus(val code: Int) {
 
     companion object {
         fun valueOfCode(code: String): IgnoreStatus {
-            return values().first { it.code == code.toInt() }
+            return entries.first { it.code == code.toInt() }
         }
     }
 
@@ -108,7 +108,7 @@ enum class CorrectionStatus(val code: Int) {
 
     companion object {
         fun valueOfCode(code: String): CorrectionStatus {
-            return values().first { it.code == code.toInt() }
+            return entries.first { it.code == code.toInt() }
         }
     }
 
