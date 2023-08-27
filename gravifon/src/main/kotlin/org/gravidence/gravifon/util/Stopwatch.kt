@@ -1,24 +1,25 @@
 package org.gravidence.gravifon.util
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import mu.KotlinLogging
 import kotlin.time.Duration
+import kotlin.time.TimeSource
 
 private val logger = KotlinLogging.logger {}
 
 class Stopwatch {
 
-    private var elapsed: Duration = Duration.ZERO
+    private val timeSource = TimeSource.Monotonic
 
-    private var spanStart: Instant? = null
+    private var spanStart: TimeSource.Monotonic.ValueTimeMark? = null
+
+    private var elapsed: Duration = Duration.ZERO
 
     @Synchronized
     fun count() {
         // start new cycle only if measurement is NOT in progress already
         if (spanStart == null) {
-            spanStart = Clock.System.now().also {
-                logger.trace { "Open stopwatch span at $it" }
+            spanStart = timeSource.markNow().also { start ->
+                logger.trace { "Open stopwatch span at $start" }
             }
         }
     }
@@ -28,10 +29,10 @@ class Stopwatch {
         // update state only if measurement is in progress
         spanStart?.let { start ->
             // update elapsed counter
-            val spanEnd = Clock.System.now().also { end ->
+            val spanEnd = timeSource.markNow().also { end ->
                 logger.trace { "Close stopwatch span at $end" }
             }
-            elapsed += spanEnd.minus(start)
+            elapsed += spanEnd - start
 
             // reset span to mark end of a measurement cycle
             spanStart = null
@@ -42,7 +43,7 @@ class Stopwatch {
 
     @Synchronized
     fun stop(): Duration {
-        // finish up measurement process and keep keep total duration
+        // finish up measurement process and keep total duration
         val duration = pause()
 
         // reset elapsed counter
@@ -51,7 +52,7 @@ class Stopwatch {
         return duration
     }
 
-    fun elapsed(): Duration {
+    private fun elapsed(): Duration {
         return elapsed.also {
             logger.trace { "Elapsed time is $it" }
         }
