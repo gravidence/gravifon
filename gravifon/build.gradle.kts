@@ -34,7 +34,7 @@ dependencies {
     implementation("org.slf4j:log4j-over-slf4j:2.0.5")
 
     implementation("org.springframework:spring-context:6.0.9")
-    implementation("org.springframework:spring-expression:6.0.6")
+    implementation("org.springframework:spring-expression:6.0.9")
 
     implementation("net.jthink:jaudiotagger:3.0.1")
     implementation("org.freedesktop.gstreamer:gst1-java-core:1.4.0")

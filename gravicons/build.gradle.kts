@@ -20,7 +20,7 @@ dependencies {
     // handy lookup page: https://fonts.google.com/icons?selected=Material+Icons&icon.style=Filled&icon.platform=android
 //    api(compose.materialIconsExtended)
 
-    implementation("org.springframework:spring-core:6.0.6")
+    implementation("org.springframework:spring-core:6.0.9")
 }
 
 kotlin {
