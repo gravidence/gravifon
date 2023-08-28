@@ -1,7 +1,13 @@
 package org.gravidence.gravifon.ui.dialog
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
@@ -16,7 +22,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import org.gravidence.gravifon.GravifonContext
@@ -25,7 +31,14 @@ import org.gravidence.gravifon.domain.track.VirtualTrack
 import org.gravidence.gravifon.event.EventBus
 import org.gravidence.gravifon.event.playlist.PlaylistUpdatedEvent
 import org.gravidence.gravifon.playlist.Playlist
-import org.gravidence.gravifon.ui.component.*
+import org.gravidence.gravifon.ui.component.Table
+import org.gravidence.gravifon.ui.component.TableCell
+import org.gravidence.gravifon.ui.component.TableColumn
+import org.gravidence.gravifon.ui.component.TableGrid
+import org.gravidence.gravifon.ui.component.TableLayout
+import org.gravidence.gravifon.ui.component.TableRow
+import org.gravidence.gravifon.ui.component.TableState
+import org.gravidence.gravifon.ui.component.singleColumnTableGrid
 import org.gravidence.gravifon.ui.theme.gShape
 import org.gravidence.gravifon.ui.util.ListHolder
 
@@ -169,7 +182,7 @@ private fun closeDialog() {
 @Composable
 fun TrackMetadataDialog() {
     if (GravifonContext.trackMetadataDialogVisible.value) {
-        Dialog(
+        DialogWindow(
             title = "Edit Metadata",
             visible = GravifonContext.trackMetadataDialogVisible.value,
             state = rememberDialogState(

@@ -1,7 +1,17 @@
 package org.gravidence.gravifon.ui.dialog
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
@@ -15,13 +25,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import org.gravidence.gravifon.GravifonContext
 import org.gravidence.gravifon.GravifonStarter
 import org.gravidence.gravifon.plugin.Plugin
-import org.gravidence.gravifon.ui.component.*
+import org.gravidence.gravifon.ui.component.Table
+import org.gravidence.gravifon.ui.component.TableCell
+import org.gravidence.gravifon.ui.component.TableColumn
+import org.gravidence.gravifon.ui.component.TableGrid
+import org.gravidence.gravifon.ui.component.TableLayout
+import org.gravidence.gravifon.ui.component.TableRow
+import org.gravidence.gravifon.ui.component.TableState
 import org.gravidence.gravifon.ui.theme.gShape
 
 class PluginListState(
@@ -111,7 +127,7 @@ fun rememberPluginSettingsState(
 fun PluginSettingsDialog() {
     val pluginSettingsState = rememberPluginSettingsState()
 
-    Dialog(
+    DialogWindow(
         title = "Plugin Settings",
         visible = GravifonContext.pluginSettingsDialogVisible.value, // wrap dialog with if-clause to dispose it after closure
         state = rememberDialogState(
